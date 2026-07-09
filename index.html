@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patient Care Pilot</title>
+  <meta name="description" content="Pilot patient education website powered by Google Sheets and GitHub Pages." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div>
+        <p class="eyebrow">Patient Care Pilot</p>
+        <h1>Healthy Living comes first.</h1>
+        <p class="subtitle">Diet, monitoring, symptoms, conditions, chronic care, emergency guidance, medicines, and special circumstances.</p>
+      </div>
+      <button id="languageToggle" class="language-toggle" type="button">Arabic placeholders</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="safety-banner" aria-label="Emergency warning">
+      <strong>Emergency warning:</strong> Chest pain, severe shortness of breath, stroke symptoms, fainting, severe allergy, or severe low sugar symptoms need urgent care.
+    </section>
+
+    <section class="toolbar" aria-label="Search and filters">
+      <input id="searchInput" type="search" placeholder="Search: diet, sugar, cough, chest pain..." />
+      <select id="groupFilter">
+        <option value="all">All sections</option>
+      </select>
+    </section>
+
+    <section id="appStatus" class="status">Loading content…</section>
+    <section id="cards" class="card-grid" aria-label="Patient care topics"></section>
+    <section id="detail" class="detail-panel" hidden></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>This information is educational and does not replace medical assessment.</p>
+      <p class="muted">Pilot only. Content should be clinically reviewed before public use.</p>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

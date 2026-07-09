@@ -1,0 +1,63 @@
+* { box-sizing: border-box; }
+:root {
+  --bg: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --white: #ffffff;
+  --blue: #2563eb;
+  --green: #16a34a;
+  --yellow: #d97706;
+  --red: #dc2626;
+  --purple: #7c3aed;
+  --orange: #ea580c;
+  --gray: #64748b;
+}
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+.container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+.site-header { background: linear-gradient(135deg, #0f172a, #1d4ed8); color: white; padding: 44px 0 34px; }
+.header-inner { display: flex; justify-content: space-between; gap: 24px; align-items: start; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; opacity: .82; margin: 0 0 8px; }
+h1 { margin: 0; font-size: clamp(2rem, 4vw, 4rem); line-height: 1; }
+.subtitle { max-width: 760px; font-size: 1.1rem; opacity: .92; }
+.language-toggle { border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: white; border-radius: 999px; padding: 10px 14px; cursor: pointer; }
+.safety-banner { margin: 22px 0; padding: 16px 18px; border: 1px solid #fecaca; border-left: 8px solid var(--red); background: #fff1f2; border-radius: 16px; }
+.toolbar { display: grid; grid-template-columns: 1fr 240px; gap: 12px; margin-bottom: 18px; }
+input, select { width: 100%; padding: 13px 14px; border: 1px solid var(--border); border-radius: 12px; font: inherit; background: white; }
+.status { color: var(--muted); margin: 18px 0; }
+.card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 18px; padding: 18px; box-shadow: 0 10px 28px rgba(15,23,42,.06); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; border-top: 7px solid var(--blue); }
+.card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(15,23,42,.1); }
+.card.green { border-top-color: var(--green); }
+.card.yellow { border-top-color: var(--yellow); }
+.card.red { border-top-color: var(--red); }
+.card.purple { border-top-color: var(--purple); }
+.card.orange { border-top-color: var(--orange); }
+.card.gray, .card.doctor_only { border-top-color: var(--gray); }
+.card .tag { display: inline-block; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+.card h2 { margin: 0 0 8px; font-size: 1.25rem; }
+.card p { color: #334155; margin: 0 0 14px; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { font-size: .75rem; padding: 4px 8px; border-radius: 999px; background: #f1f5f9; color: #334155; }
+.pill.red { background: #fee2e2; color: #991b1b; }
+.pill.yellow { background: #fef3c7; color: #92400e; }
+.pill.green { background: #dcfce7; color: #166534; }
+.detail-panel { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 28px rgba(15,23,42,.06); }
+.detail-top { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+.back-btn { border: 1px solid var(--border); background: white; border-radius: 999px; padding: 9px 12px; cursor: pointer; }
+.block { border-left: 5px solid var(--blue); padding: 12px 0 12px 14px; margin: 10px 0; }
+.block.green { border-left-color: var(--green); }
+.block.yellow { border-left-color: var(--yellow); }
+.block.red { border-left-color: var(--red); }
+.block.doctor_only { border-left-color: var(--gray); }
+.redflag { background: #fff1f2; border: 1px solid #fecaca; border-left: 6px solid var(--red); padding: 12px 14px; border-radius: 12px; margin: 10px 0; }
+.muted { color: var(--muted); }
+.site-footer { margin-top: 42px; padding: 24px 0; border-top: 1px solid var(--border); color: var(--muted); }
+[dir="rtl"] { text-align: right; }
+@media (max-width: 850px) { .card-grid { grid-template-columns: 1fr; } .toolbar { grid-template-columns: 1fr; } .header-inner { display: block; } }
