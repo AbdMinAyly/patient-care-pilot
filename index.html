@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Patient Care Pilot</title>
-  <meta name="description" content="Pilot patient education website powered by Google Sheets and GitHub Pages." />
+  <meta name="description" content="GitHub-only patient education website pilot." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,8 +12,8 @@
     <div class="container header-inner">
       <div>
         <p class="eyebrow">Patient Care Pilot</p>
-        <h1>Healthy Living comes first.</h1>
-        <p class="subtitle">Diet, monitoring, symptoms, conditions, chronic care, emergency guidance, medicines, and special circumstances.</p>
+        <h1>Healthy Living First</h1>
+        <p class="subtitle">A small public website pilot for patient education. No Google Sheets, no AppSheet, no login.</p>
       </div>
       <button id="languageToggle" class="language-toggle" type="button">Arabic placeholders</button>
     </div>
@@ -21,29 +21,51 @@
 
   <main class="container">
     <section class="safety-banner" aria-label="Emergency warning">
-      <strong>Emergency warning:</strong> Chest pain, severe shortness of breath, stroke symptoms, fainting, severe allergy, or severe low sugar symptoms need urgent care.
+      <strong>Emergency now:</strong>
+      chest pain, severe shortness of breath, stroke symptoms, fainting, severe allergy, or severe low sugar symptoms need urgent care.
     </section>
 
-    <section class="toolbar" aria-label="Search and filters">
-      <input id="searchInput" type="search" placeholder="Search: diet, sugar, cough, chest pain..." />
-      <select id="groupFilter">
-        <option value="all">All sections</option>
-      </select>
+    <section class="home-hero" id="home">
+      <div class="home-hero-copy">
+        <p class="eyebrow">Start here</p>
+        <h2>Lifestyle & Health Monitoring Guide</h2>
+        <p>
+          This is the center of the website. Patients first learn simple daily care:
+          what to eat, how to monitor blood pressure and sugar, what symptoms mean,
+          and when to seek help.
+        </p>
+      </div>
+      <div class="home-map" aria-label="Website order">
+        <span>1 Healthy Living</span>
+        <span>2 Diet Guides</span>
+        <span>3 Body Numbers</span>
+        <span>4 Symptoms</span>
+        <span>5 Conditions</span>
+        <span>6 Chronic Care</span>
+        <span>7 Emergency</span>
+        <span>8 Medicines</span>
+        <span>9 Special</span>
+      </div>
     </section>
 
-    <section id="appStatus" class="status">Loading content…</section>
+    <section class="toolbar" aria-label="Search and filter controls">
+      <input id="searchInput" type="search" placeholder="Search: diet, sugar, BP, cough, Ramadan..." />
+      <div id="groupFilter" class="filter-pills" role="list"></div>
+    </section>
+
+    <section id="status" class="status">Loading pilot content…</section>
     <section id="cards" class="card-grid" aria-label="Patient care topics"></section>
     <section id="detail" class="detail-panel" hidden></section>
   </main>
 
   <footer class="site-footer">
     <div class="container">
-      <p>This information is educational and does not replace medical assessment.</p>
-      <p class="muted">Pilot only. Content should be clinically reviewed before public use.</p>
+      <p>This pilot is educational only and does not replace medical assessment.</p>
+      <p class="muted">No patient data is collected. Content is intentionally minimal for design testing.</p>
     </div>
   </footer>
 
-  <script src="config.js"></script>
+  <script src="data.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

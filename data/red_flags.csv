@@ -1,4 +1,0 @@
-red_flag_id,page_id,display_order,trigger_en,action_en,safety_level,status,visible,ar_placeholder
-rf_chest_pain,emergency_chest_pain,1,"Chest pain, pressure, heaviness, or chest pain with sweating, shortness of breath, fainting, or weakness.",Seek emergency care now.,red,published,TRUE,AR_PENDING__rf_chest_pain__body
-rf_bp_symptoms,bp_numbers,2,"Very high blood pressure with chest pain, severe shortness of breath, weakness, vision change, or speech difficulty.",Seek emergency care now.,red,published,TRUE,AR_PENDING__rf_bp_symptoms__body
-rf_cough_breathing,symptom_cough_cold,3,"Cough/cold symptoms with severe breathing difficulty, confusion, chest pain, blue lips, or severe weakness.",Seek urgent/emergency care.,red,published,TRUE,AR_PENDING__rf_cough_breathing__body
