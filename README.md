@@ -1,49 +1,53 @@
-# Patient Care Pilot
+# SHINE Patient Care Pilot
 
-This is a GitHub-only static website pilot.
+This is the second pilot version of the patient care site.
 
-## Current direction
+## Core idea
 
-No Google Sheets.  
-No AppSheet.  
-No Apps Script.  
-The repository itself is the source of truth for this pilot.
+The app has two modes.
+
+### Mode 1: SHINE
+
+This is the first screen before any disease, symptom, medication, or emergency content.
+
+SHINE means:
+
+- **S**leep
+- **H**appiness
+- **I**mmunity
+- **N**utrition
+- **E**xercise
+
+Each item opens into advice and connects to the other items. The goal is not five separate pages. The goal is one combined lifestyle system.
+
+### Mode 2: Patient Mode
+
+This is the secondary medical-support mode. It includes:
+
+- symptoms
+- conditions
+- chronic care
+- emergency
+- medications, dosing, and safety
+- special circumstances
+
+The theme color changes when switching modes so the user understands they moved from wellness-first content into clinical-support content.
 
 ## Files
 
-- `index.html` — page layout
-- `styles.css` — visual design
-- `data.js` — pilot content
-- `app.js` — rendering, search, filters, detail pages
+- `index.html` — app shell
+- `styles.css` — two-mode theme and layout
+- `data.js` — content source
+- `app.js` — app behavior
 - `upload_to_github.cmd` — Windows upload script
+- `open_local_preview.cmd` — local preview helper
 
-## How to publish with GitHub Pages
+## Upload
 
-1. Open the repository on GitHub.
-2. Go to **Settings > Pages**.
-3. Source: **Deploy from a branch**.
-4. Branch: `main`.
-5. Folder: `/ root`.
-6. Save.
+Run:
 
-The site should appear at:
-
-```text
-https://AbdMinAyly.github.io/patient-care-pilot/
+```cmd
+upload_to_github.cmd
 ```
 
-## How to edit content
-
-Edit `data.js`.
-
-Add or change objects under:
-
-- `pages`
-- `blocks`
-- `redFlags`
-
-Keep the current structure until the pilot design is approved.
-
-## Safety note
-
-This pilot is educational only. Do not publish patient data. Medical content should be clinically reviewed before real public use.
+The script uses local Git authentication. It does not store or contain a token.
