@@ -1,59 +1,50 @@
 <!doctype html>
-<html lang="en" data-mode="shine">
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SHINE Patient Care Pilot</title>
-  <meta name="description" content="Two-mode patient care pilot: SHINE lifestyle mode first, Patient Mode second." />
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Patient Care Pilot v005 — SHINE + HEAL static health education prototype.">
+  <title>Patient Care Pilot — SHINE + HEAL</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <header class="app-header">
-    <div class="container header-bar">
-      <button class="brand" id="homeButton" type="button" aria-label="Go to SHINE home">
-        <span class="brand-mark">S</span>
+<body class="mode-shine">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="app-header" role="banner">
+    <div class="brand-block">
+      <a class="brand" href="#/shine" aria-label="Patient Care Pilot home">
+        <span class="brand-mark" aria-hidden="true">✦</span>
         <span>
-          <strong>SHINE</strong>
-          <small>Patient Care Pilot</small>
+          <strong>Patient Care Pilot</strong>
+          <small>SHINE + HEAL</small>
         </span>
-      </button>
-
-      <nav class="top-nav" aria-label="Primary navigation">
-        <button class="nav-button active" data-view="shine" type="button">SHINE</button>
-        <button class="nav-button" data-view="diet" type="button">Diet Guides</button>
-        <button class="nav-button" data-view="exercise" type="button">Exercise Guides</button>
-        <button class="nav-button" data-view="mental" type="button">Mental Health Guide</button>
-        <button class="nav-button patient-switch" data-view="patient" type="button">Patient Mode</button>
-      </nav>
+      </a>
     </div>
+    <nav class="top-nav" aria-label="Main navigation">
+      <a href="#/shine" data-nav="shine">SHINE</a>
+      <a href="#/heal" data-nav="heal">HEAL</a>
+      <a href="#/map" data-nav="map">My Health Map</a>
+    </nav>
   </header>
 
-  <main>
-    <section class="mode-strip" id="modeStrip">
-      <div class="container mode-strip-inner">
-        <div>
-          <p class="eyebrow" id="modeEyebrow">Mode 1</p>
-          <h1 id="modeTitle">SHINE: the key to a brighter life</h1>
-          <p id="modeIntro">Start with daily life before disease. Sleep, Happiness, Immunity, Nutrition, and Exercise connect together.</p>
-        </div>
-        <button class="mode-toggle" id="modeToggle" type="button">Switch to Patient Mode</button>
-      </div>
-    </section>
-
-    <section class="container safety-note" id="safetyNote" hidden>
-      <strong>Emergency note:</strong> chest pain, severe shortness of breath, stroke symptoms, severe allergic reaction, fainting, or severe low sugar symptoms require urgent care.
-    </section>
-
-    <section class="container" id="app"></section>
+  <main id="main" tabindex="-1">
+    <div id="app" aria-live="polite"></div>
   </main>
 
-  <footer class="app-footer">
-    <div class="container">
-      <p>Educational pilot only. It does not diagnose, prescribe, replace a clinician, or collect patient data.</p>
-    </div>
-  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-  <script src="data.js"></script>
+  <script src="data/schema.js"></script>
+  <script src="data/site.js"></script>
+  <script src="data/shine.js"></script>
+  <script src="data/symptoms.js"></script>
+  <script src="data/conditions.js"></script>
+  <script src="data/medications.js"></script>
+  <script src="data/supplements.js"></script>
+  <script src="data/contraindications.js"></script>
+  <script src="data/schedules.js"></script>
+  <script src="data/emergencies.js"></script>
+  <script src="data/monitoring.js"></script>
+  <script src="data/relationships.js"></script>
+  <script src="data/localization.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

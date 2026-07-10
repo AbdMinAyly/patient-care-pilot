@@ -1,53 +1,63 @@
-# SHINE Patient Care Pilot
+# Patient Care Pilot v005 — SHINE + HEAL Simple Safe Build
 
-This is the second pilot version of the patient care site.
+This is a static GitHub Pages prototype for the Patient Care Pilot app.
 
-## Core idea
+## What changed in v005
 
-The app has two modes.
+v005 is built around a guided product experience, not a generic article library:
 
-### Mode 1: SHINE
+- **SHINE first**: Sleep, Happiness, Immunity, Nutrition, Exercise.
+- **HEAL second**: clinical guidance with search, symptoms, conditions, medication/supplement safety, side effects, and emergency access.
+- **Hidden health graph**: the graph powers curated next-step cards only. There is no visible graph explorer.
+- **My Health Map**: local-only saved area with SHINE Plan and HEAL Summary.
+- **Doctor Summary**: HEAL items and doctor questions can be printed.
+- **Safety gates**: dosing is fail-closed. Medication/supplement dosing stays locked unless explicitly approved.
 
-This is the first screen before any disease, symptom, medication, or emergency content.
+## Sample flow included
 
-SHINE means:
+The small v005 data set validates the core graph behavior:
 
-- **S**leep
-- **H**appiness
-- **I**mmunity
-- **N**utrition
-- **E**xercise
-
-Each item opens into advice and connects to the other items. The goal is not five separate pages. The goal is one combined lifestyle system.
-
-### Mode 2: Patient Mode
-
-This is the secondary medical-support mode. It includes:
-
-- symptoms
-- conditions
-- chronic care
-- emergency
-- medications, dosing, and safety
-- special circumstances
-
-The theme color changes when switching modes so the user understands they moved from wellness-first content into clinical-support content.
-
-## Files
-
-- `index.html` — app shell
-- `styles.css` — two-mode theme and layout
-- `data.js` — content source
-- `app.js` — app behavior
-- `upload_to_github.cmd` — Windows upload script
-- `open_local_preview.cmd` — local preview helper
-
-## Upload
-
-Run:
-
-```cmd
-upload_to_github.cmd
+```text
+Sleep / Fatigue
+→ Iron deficiency
+→ Iron supplement
+→ Constipation side effect
+→ Hydration / Fiber / Walking
+→ Nutrition / Exercise support
+→ My Health Map
+→ Print SHINE Plan / Doctor Summary
 ```
 
-The script uses local Git authentication. It does not store or contain a token.
+## Local preview
+
+Open `index.html` directly, or run:
+
+```cmd
+open_local_preview.cmd
+```
+
+This build uses JavaScript data files instead of JSON fetch requests, so it works from `file://` without a local server.
+
+## Deploy
+
+This ZIP includes `upload_to_github.cmd`. The existing `deploy_latest_zip.cmd` script can extract this ZIP and run the uploader.
+
+Repository target inside uploader:
+
+```text
+https://github.com/AbdMinAyly/patient-care-pilot.git
+```
+
+The uploader does not contain tokens.
+
+## Privacy
+
+The app uses `localStorage` only. There is no backend, login, database, or PHI storage system. My Health Map warns users not to enter names, phone numbers, ID numbers, or private identifying details.
+
+## Clinical safety
+
+This app is educational. It does not diagnose, prescribe, or replace a qualified clinician. Medication dosing and emergency guidance are safety-gated. Doctor Summary prints locked dosing as:
+
+```text
+Dosing not provided — clinician review required.
+```
