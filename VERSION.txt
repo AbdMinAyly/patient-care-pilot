@@ -1,0 +1,3 @@
+v020
+Base: v019
+Pattern: complete SHINE + local editable Content Store

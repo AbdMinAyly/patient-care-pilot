@@ -1,63 +1,52 @@
-# Patient Care Pilot v005 — SHINE + HEAL Simple Safe Build
+# Patient Care v020 — Complete SHINE, Local Editable Content
 
-This is a static GitHub Pages prototype for the Patient Care Pilot app.
+Base version: v019.
 
-## What changed in v005
+## Pattern change applied
 
-v005 is built around a guided product experience, not a generic article library:
+All five SHINE topics now use the same complete structure:
 
-- **SHINE first**: Sleep, Happiness, Immunity, Nutrition, Exercise.
-- **HEAL second**: clinical guidance with search, symptoms, conditions, medication/supplement safety, side effects, and emergency access.
-- **Hidden health graph**: the graph powers curated next-step cards only. There is no visible graph explorer.
-- **My Health Map**: local-only saved area with SHINE Plan and HEAL Summary.
-- **Doctor Summary**: HEAL items and doctor questions can be printed.
-- **Safety gates**: dosing is fail-closed. Medication/supplement dosing stays locked unless explicitly approved.
+1. Why the topic matters
+2. How the topic helps SHINE
+3. How weakness in the topic affects SHINE
+4. Good habits linking to HEAL
+5. Common conditions linking to DR
 
-## Sample flow included
+Happiness, Immunity, Nutrition, and Exercise now have the same information depth and page structure as Sleep.
 
-The small v005 data set validates the core graph behavior:
+## Content architecture
 
-```text
-Sleep / Fatigue
-→ Iron deficiency
-→ Iron supplement
-→ Constipation side effect
-→ Hydration / Fiber / Walking
-→ Nutrition / Exercise support
-→ My Health Map
-→ Print SHINE Plan / Doctor Summary
-```
+Patient-facing information is stored in:
 
-## Local preview
+`data/content.js`
 
-Open `index.html` directly, or run:
+Application behavior is stored in:
 
-```cmd
-open_local_preview.cmd
-```
+`app.js`
 
-This build uses JavaScript data files instead of JSON fetch requests, so it works from `file://` without a local server.
+Visual design is stored in:
 
-## Deploy
+`styles.css`
 
-This ZIP includes `upload_to_github.cmd`. The existing `deploy_latest_zip.cmd` script can extract this ZIP and run the uploader.
+The application shell is stored in:
 
-Repository target inside uploader:
+`index.html`
 
-```text
-https://github.com/AbdMinAyly/patient-care-pilot.git
-```
+## Local-only
 
-The uploader does not contain tokens.
+The runtime has no online dependencies and no patient-facing external links.
+Open `index.html` directly.
 
-## Privacy
+## Admin-ready foundation
 
-The app uses `localStorage` only. There is no backend, login, database, or PHI storage system. My Health Map warns users not to enter names, phone numbers, ID numbers, or private identifying details.
+A future Admin Mode can edit the same Content Records and export an updated local content file.
+Directly replacing a local file requires explicit browser permission and is not consistently available on mobile.
 
-## Clinical safety
+## Intentionally preserved
 
-This app is educational. It does not diagnose, prescribe, or replace a qualified clinician. Medication dosing and emergency guidance are safety-gated. Doctor Summary prints locked dosing as:
-
-```text
-Dosing not provided — clinician review required.
-```
+- four-mode bottom navigation
+- white/red/yellow/blue visual direction
+- Summary behavior and localStorage
+- SHINE inline links
+- HEAL and DR rendering
+- no visible graph

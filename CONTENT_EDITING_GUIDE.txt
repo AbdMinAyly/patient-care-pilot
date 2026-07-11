@@ -1,0 +1,42 @@
+PATIENT CARE CONTENT EDITING GUIDE
+
+EDIT THIS FILE:
+  data/content.js
+
+DO NOT EDIT FOR NORMAL CONTENT CHANGES:
+  app.js
+  index.html
+  styles.css
+
+WHAT IS STORED IN data/content.js
+- SHINE teaching
+- SHINE positive and negative relationships
+- HEAL habit links
+- DR condition links
+- Diet, lifestyle, supplement, and normal-range pages
+- Symptoms, acute conditions, chronic conditions, medications, and ER pages
+- Mode descriptions and search labels
+
+SAFE EDITING RULES
+1. Keep every published id unchanged.
+2. Edit text inside quotation marks.
+3. Keep commas, braces, and brackets in place.
+4. Do not add JavaScript functions.
+5. Every linked id must exist in the same Content Store.
+6. Keep medication and supplement dosing locked unless clinically approved.
+7. Make a backup before editing.
+
+WHY THE DATA FILE IS content.js INSTEAD OF content.json
+The app must open directly from a phone or computer without a local web server.
+Many browsers block local fetch requests to JSON files.
+A local script data file loads reliably from file:// while still keeping content separate from code.
+
+FUTURE ADMIN MODE
+Admin Mode will edit the content object through forms and export an updated content file.
+A browser cannot silently overwrite local files. Direct replacement requires explicit
+permission on supported desktop browsers. Mobile browsers will normally download the
+updated file, which can then replace data/content.js before preview or deployment.
+
+NO ONLINE DEPENDENCIES
+The app uses local HTML, CSS, JavaScript, and data files.
+No online fonts, scripts, stylesheets, images, or patient-facing reference links are required.

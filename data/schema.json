@@ -1,0 +1,46 @@
+{
+  "title": "Patient Care Local Content Store",
+  "type": "object",
+  "required": [
+    "meta",
+    "ui",
+    "shine",
+    "healSections",
+    "drSections"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "contentVersion",
+        "offlineOnly"
+      ]
+    },
+    "ui": {
+      "type": "object"
+    },
+    "shine": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "subtitle",
+          "why",
+          "good",
+          "bad",
+          "healLinks",
+          "drLinks"
+        ]
+      }
+    },
+    "healSections": {
+      "type": "array"
+    },
+    "drSections": {
+      "type": "array"
+    }
+  }
+}
