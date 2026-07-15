@@ -1,79 +1,173 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "REPO_URL=https://github.com/AbdMinAyly/patient-care-pilot.git"
-set "BRANCH=main"
-set "SRC=%~dp0"
-set "WORK=%TEMP%\patient-care-pilot-deploy"
+rem Patient Care package uploader.
+rem This script may run from a temporary extracted folder. It locates the real
+rem Git repository, copies the package into it, then commits and pushes there.
+
+for %%I in ("%~dp0.") do set "PACKAGE_DIR=%%~fI"
+set "CONFIG_DIR=%LOCALAPPDATA%\PatientCare"
+set "CONFIG_FILE=%CONFIG_DIR%\github-repository.txt"
+set "REPO_CANDIDATE="
+set "REPO_ROOT="
 
 where git >nul 2>nul
 if errorlevel 1 (
-  echo Git is not installed or not available in PATH.
-  pause
-  exit /b 1
+  echo Git is not installed or is not available in PATH.
+  goto :fail_pause
 )
 
-if exist "%WORK%\.git" (
-  echo Updating existing deploy checkout...
-  cd /d "%WORK%" || exit /b 1
-  git fetch origin
-  git checkout %BRANCH%
-  git pull origin %BRANCH%
-) else (
-  echo Cloning repository...
-  if exist "%WORK%" rmdir /s /q "%WORK%"
-  git clone --branch %BRANCH% "%REPO_URL%" "%WORK%"
-  if errorlevel 1 (
-    echo Clone failed.
-    pause
-    exit /b 1
+rem Repository selection priority:
+rem 1. First command-line argument
+rem 2. PATIENT_CARE_REPO environment variable
+rem 3. Previously saved repository path
+rem 4. The package folder itself
+rem 5. Common project locations
+if not "%~1"=="" set "REPO_CANDIDATE=%~1"
+if not defined REPO_CANDIDATE if defined PATIENT_CARE_REPO set "REPO_CANDIDATE=%PATIENT_CARE_REPO%"
+if not defined REPO_CANDIDATE if exist "%CONFIG_FILE%" set /p "REPO_CANDIDATE="<"%CONFIG_FILE%"
+if not defined REPO_CANDIDATE set "REPO_CANDIDATE=%PACKAGE_DIR%"
+
+call :resolve_repository "%REPO_CANDIDATE%"
+
+if not defined REPO_ROOT call :try_repository "%USERPROFILE%\OneDrive\Documents\Test"
+if not defined REPO_ROOT call :try_repository "%USERPROFILE%\Documents\Test"
+if not defined REPO_ROOT call :try_repository "%USERPROFILE%\OneDrive\Documents\Patient Care"
+if not defined REPO_ROOT call :try_repository "%USERPROFILE%\Documents\Patient Care"
+
+:ask_repository
+if not defined REPO_ROOT (
+  echo.
+  echo The package was extracted to:
+  echo   %PACKAGE_DIR%
+  echo.
+  echo That temporary folder is not the Git repository.
+  echo Enter the full path to the Patient Care repository.
+  echo Example: C:\Users\YourName\OneDrive\Documents\Test
+  set "REPO_CANDIDATE="
+  set /p "REPO_CANDIDATE=Repository folder: "
+  if not defined REPO_CANDIDATE goto :cancelled
+  set "REPO_CANDIDATE=!REPO_CANDIDATE:"=!"
+  call :resolve_repository "!REPO_CANDIDATE!"
+  if not defined REPO_ROOT (
+    echo.
+    echo No Git repository was found at that location.
+    goto :ask_repository
   )
 )
 
-cd /d "%WORK%" || exit /b 1
+if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%" >nul 2>nul
+>"%CONFIG_FILE%" echo %REPO_ROOT%
 
-echo Copying v005 site files...
-copy /Y "%SRC%index.html" "%WORK%\index.html" >nul
-copy /Y "%SRC%styles.css" "%WORK%\styles.css" >nul
-copy /Y "%SRC%app.js" "%WORK%\app.js" >nul
-copy /Y "%SRC%README.md" "%WORK%\README.md" >nul
-copy /Y "%SRC%HEALTH_GRAPH_SCHEMA.md" "%WORK%\HEALTH_GRAPH_SCHEMA.md" >nul
-copy /Y "%SRC%open_local_preview.cmd" "%WORK%\open_local_preview.cmd" >nul
-copy /Y "%SRC%upload_to_github.cmd" "%WORK%\upload_to_github.cmd" >nul
-
-if exist "%WORK%\data" rmdir /s /q "%WORK%\data"
-xcopy "%SRC%data" "%WORK%\data" /E /I /Y >nul
-
-REM Remove old static app directories if they exist from previous experiments.
-if exist "%WORK%\js" rmdir /s /q "%WORK%\js"
-if exist "%WORK%\css" rmdir /s /q "%WORK%\css"
-if exist "%WORK%\pages" rmdir /s /q "%WORK%\pages"
-if exist "%WORK%\print" rmdir /s /q "%WORK%\print"
-
-git add index.html styles.css app.js README.md HEALTH_GRAPH_SCHEMA.md open_local_preview.cmd upload_to_github.cmd data
-
-git diff --cached --quiet
-if not errorlevel 1 (
-  echo No changes to commit.
-  pause
-  exit /b 0
+for /f "delims=" %%R in ('git -C "%REPO_ROOT%" remote get-url origin 2^>nul') do set "ORIGIN_URL=%%R"
+if not defined ORIGIN_URL (
+  echo.
+  echo The repository has no Git remote named origin.
+  echo Add the GitHub remote, then run this uploader again.
+  goto :fail_pause
 )
 
-git commit -m "Deploy Patient Care Pilot v005 SHINE HEAL simple safe"
-if errorlevel 1 (
-  echo Commit failed.
-  pause
-  exit /b 1
-)
-
-git push origin %BRANCH%
-if errorlevel 1 (
-  echo Push failed. Make sure your GitHub authentication is active for this repository.
-  pause
-  exit /b 1
+for /f "delims=" %%B in ('git -C "%REPO_ROOT%" branch --show-current 2^>nul') do set "CURRENT_BRANCH=%%B"
+if not defined CURRENT_BRANCH (
+  echo.
+  echo The repository is not on a named branch.
+  echo Check out the branch you want to upload, then run this script again.
+  goto :fail_pause
 )
 
 echo.
-echo Deploy complete.
-echo GitHub Pages may take a minute to update.
+echo Package folder:
+echo   %PACKAGE_DIR%
+echo Repository:
+echo   %REPO_ROOT%
+echo Branch:
+echo   %CURRENT_BRANCH%
+echo Remote:
+echo   %ORIGIN_URL%
+echo.
+
+if /I not "%PACKAGE_DIR%"=="%REPO_ROOT%" (
+  echo Syncing package files into the repository...
+  robocopy "%PACKAGE_DIR%" "%REPO_ROOT%" /E /COPY:DAT /DCOPY:DAT /R:2 /W:1 /XD ".git" /XF "*.zip" >nul
+  set "ROBOCOPY_CODE=!ERRORLEVEL!"
+  if !ROBOCOPY_CODE! GEQ 8 (
+    echo Package sync failed. Robocopy exit code: !ROBOCOPY_CODE!
+    goto :fail_pause
+  )
+) else (
+  echo Package is already inside the repository. No copy step is needed.
+)
+
+rem Locate a versioned standalone build if one exists. The uploader must not
+rem fail when the repository intentionally omits this optional file.
+set "STANDALONE_NAME="
+for /f "delims=" %%F in ('dir /b /a-d "%REPO_ROOT%\patient-care-v*-standalone-mobile.html" 2^>nul') do set "STANDALONE_NAME=%%F"
+
+echo.
+echo Current package changes:
+git -C "%REPO_ROOT%" status --short -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd
+if defined STANDALONE_NAME git -C "%REPO_ROOT%" status --short -- "%STANDALONE_NAME%"
+
+echo.
+set "COMMIT_MESSAGE="
+set /p "COMMIT_MESSAGE=Commit message [Patient Care v043]: "
+if not defined COMMIT_MESSAGE set "COMMIT_MESSAGE=Patient Care v043"
+
+git -C "%REPO_ROOT%" add -A -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd
+if errorlevel 1 goto :git_fail
+if defined STANDALONE_NAME (
+  git -C "%REPO_ROOT%" add -A -- "%STANDALONE_NAME%"
+  if errorlevel 1 goto :git_fail
+) else (
+  echo No standalone mobile HTML file was found. Continuing without it.
+)
+
+git -C "%REPO_ROOT%" diff --cached --quiet
+if errorlevel 1 (
+  git -C "%REPO_ROOT%" commit -m "%COMMIT_MESSAGE%"
+  if errorlevel 1 goto :git_fail
+) else (
+  echo No new package changes need to be committed.
+)
+
+echo.
+echo Pushing %CURRENT_BRANCH% to origin...
+git -C "%REPO_ROOT%" push -u origin "%CURRENT_BRANCH%"
+if errorlevel 1 goto :git_fail
+
+echo.
+echo Upload complete.
+echo Repository path saved for future uploads:
+echo   %CONFIG_FILE%
 pause
+exit /b 0
+
+:resolve_repository
+set "REPO_ROOT="
+set "REPO_CANDIDATE=%~1"
+if not defined REPO_CANDIDATE exit /b 0
+if not exist "%REPO_CANDIDATE%" exit /b 0
+for /f "delims=" %%G in ('git -C "%REPO_CANDIDATE%" rev-parse --show-toplevel 2^>nul') do set "REPO_ROOT=%%G"
+exit /b 0
+
+:try_repository
+if not exist "%~1" exit /b 0
+set "TRY_ROOT="
+for /f "delims=" %%G in ('git -C "%~1" rev-parse --show-toplevel 2^>nul') do set "TRY_ROOT=%%G"
+if defined TRY_ROOT set "REPO_ROOT=%TRY_ROOT%"
+exit /b 0
+
+:git_fail
+echo.
+echo Upload stopped because a Git command failed.
+goto :fail_pause
+
+:cancelled
+echo.
+echo Upload cancelled. No repository was selected.
+pause
+exit /b 1
+
+:fail_pause
+pause
+exit /b 1
