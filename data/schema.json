@@ -1,0 +1,677 @@
+{
+  "schemaVersion": 21,
+  "contentVersion": "v043",
+  "batch": {
+    "id": "FEATURE_SLEEP_HEAL_WIZARD",
+    "title": "Sleep HEAL Wizard",
+    "deliveryStatus": "implemented",
+    "baseline": "v042",
+    "sequenceNote": "Sleep-only wizard pilot. Batch 11 Exercise remains deferred. No new clinical claims or source registrations are introduced.",
+    "implementationRecord": "docs/product/V043_SLEEP_HEAL_WIZARD.md"
+  },
+  "completedBatches": [
+    {
+      "id": "BATCH_01_ENERGY_IRON",
+      "title": "Energy, Fatigue, and Iron",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_01_ENERGY_IRON.md"
+    },
+    {
+      "id": "BATCH_02_SLEEP_DAYTIME_FUNCTION",
+      "title": "Sleep and Daytime Function",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_02_SLEEP_DAYTIME_FUNCTION.md"
+    },
+    {
+      "id": "BATCH_03_DIABETES_GLUCOSE",
+      "title": "Diabetes and Glucose",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_03_DIABETES_GLUCOSE.md"
+    },
+    {
+      "id": "BATCH_04_BLOOD_PRESSURE",
+      "title": "Blood Pressure",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_04_BLOOD_PRESSURE.md"
+    },
+    {
+      "id": "BATCH_05_CHOLESTEROL_HEART",
+      "title": "Cholesterol and Heart Health",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_05_CHOLESTEROL_HEART.md"
+    },
+    {
+      "id": "BATCH_06_DIGESTIVE_SUPPORT",
+      "title": "Digestive Support",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_06_DIGESTIVE_SUPPORT.md"
+    },
+    {
+      "id": "BATCH_07_MOOD_STRESS",
+      "title": "Mood and Stress",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_07_MOOD_STRESS.md"
+    },
+    {
+      "id": "BATCH_08_SUPPLEMENT_LIBRARY",
+      "title": "Supplement Library",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_08_SUPPLEMENT_LIBRARY.md"
+    },
+    {
+      "id": "BATCH_09_EMERGENCY_SAFETY",
+      "title": "Emergency and Safety Pass",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_09_EMERGENCY_SAFETY.md"
+    },
+    {
+      "id": "BATCH_10_IMMUNITY_INFECTION",
+      "title": "Immunity and Infection Prevention",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_10_IMMUNITY_INFECTION.md"
+    },
+    {
+      "id": "BATCH_12_NUTRITION_HEALTHY_EATING",
+      "title": "Nutrition and Healthy Eating",
+      "status": "researched",
+      "researchRegister": "docs/research/BATCH_12_NUTRITION_HEALTHY_EATING.md"
+    },
+    {
+      "id": "BATCH_13_CLINICAL_CONSISTENCY_REVIEW",
+      "title": "Cross-App Clinical Consistency and Quality Review",
+      "status": "quality-reviewed",
+      "researchRegister": "docs/research/BATCH_13_CLINICAL_CONSISTENCY_REVIEW.md",
+      "qualityReport": "docs/quality/V042_CLINICAL_CONSISTENCY_REPORT.md"
+    }
+  ],
+  "contentStatus": {
+    "allowed": [
+      "placeholder",
+      "researched",
+      "clinical-review-required",
+      "approved"
+    ],
+    "rules": [
+      "Completed batch patient-facing entities use researched.",
+      "Sensitive fields remain listed under clinicalReview with status clinical-review-required.",
+      "Approved is never inferred from researched.",
+      "Batch 11 remains deferred and is not represented as completed.",
+      "Every patient-facing entity must carry an explicit contentStatus.",
+      "The deferred Exercise, Mobility, and Joint Health entities remain placeholder until Batch 11 is completed.",
+      "Quality-reviewed does not mean clinically approved."
+    ]
+  },
+  "entityFields": {
+    "batchInternal": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "actionPathGroups": [
+      "foodIdeas",
+      "helpfulTasks",
+      "supplements",
+      "questions",
+      "labs"
+    ],
+    "actionTaskFields": [
+      "id",
+      "title",
+      "detail"
+    ],
+    "batch07Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "batch08Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "batch09Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "batch10Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "batch12Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "commonRequired": [
+      "id",
+      "title",
+      "subtitle",
+      "actionPath",
+      "contentStatus",
+      "contentTemplate",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview"
+    ],
+    "shineRequired": [
+      "why",
+      "good",
+      "bad",
+      "healLinks",
+      "drLinks"
+    ],
+    "detailRequired": [
+      "body"
+    ],
+    "sensitiveLockRequiredForSections": [
+      "supplements",
+      "medications"
+    ],
+    "batch13Fields": [
+      "contentStatus",
+      "contentTemplate",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds",
+      "relatedIds",
+      "clinicalReview",
+      "lockedDosing"
+    ],
+    "sleepWizardFields": [
+      "id",
+      "title",
+      "subtitle",
+      "steps",
+      "categories",
+      "recommendations",
+      "maxPerCategory"
+    ],
+    "sleepWizardStepFields": [
+      "id",
+      "eyebrow",
+      "title",
+      "intro",
+      "options"
+    ],
+    "sleepWizardOptionFields": [
+      "id",
+      "label",
+      "detail",
+      "icon"
+    ],
+    "sleepWizardRecommendationFields": [
+      "id",
+      "category",
+      "priority",
+      "reason",
+      "taskRef",
+      "when",
+      "always"
+    ]
+  },
+  "templates": {
+    "shine-teaching": [
+      "whatItSupports",
+      "healthyPattern",
+      "daytimeFunction",
+      "patternsToNotice",
+      "possibleDisruptors",
+      "supportiveActions",
+      "questionsForClinician",
+      "safety"
+    ],
+    "symptom": [
+      "whatItIs",
+      "howItMayFeel",
+      "patternsToNotice",
+      "possibleCauses",
+      "safeObservations",
+      "supportiveActions",
+      "questionsForDoctor",
+      "testsToDiscuss",
+      "redFlags",
+      "relatedConditions"
+    ],
+    "condition": [
+      "whatItIs",
+      "commonSymptoms",
+      "causesAndRiskFactors",
+      "expectedCourse",
+      "possibleComplications",
+      "homeSupport",
+      "treatmentOverview",
+      "monitoring",
+      "questionsForDoctor",
+      "redFlags",
+      "relatedCare"
+    ],
+    "diet": [
+      "purpose",
+      "whoItMaySupport",
+      "coreEatingPattern",
+      "foodsToEmphasize",
+      "foodsToUseCarefully",
+      "mealBuildingGuidance",
+      "mealExamples",
+      "foodSwaps",
+      "cautions",
+      "addableDietItems"
+    ],
+    "lifestyle": [
+      "purpose",
+      "whoItMaySupport",
+      "coreRoutine",
+      "timingGuidance",
+      "practicalSteps",
+      "barriers",
+      "cautions",
+      "monitoring",
+      "questionsForClinician",
+      "addableTasks"
+    ],
+    "supplement": [
+      "whatItIs",
+      "roleInBody",
+      "whoMayBeAssessed",
+      "foodSources",
+      "availableForms",
+      "expectedResponse",
+      "sideEffects",
+      "interactions",
+      "contraindicationsAndCautions",
+      "monitoring",
+      "questionsForClinician",
+      "lockedDosing"
+    ],
+    "medication": [
+      "purposeAndClass",
+      "generalUse",
+      "commonSideEffects",
+      "seriousWarnings",
+      "contraindications",
+      "interactions",
+      "pregnancyChildKidneyLiverCautions",
+      "monitoring",
+      "questionsForClinicianOrPharmacist",
+      "lockedDosing"
+    ],
+    "normal-range": [
+      "whatItRepresents",
+      "generalReferenceOrTarget",
+      "howItIsMeasured",
+      "interpretationFactors",
+      "monitoringFrequencyToDiscuss",
+      "highOrLowMeaning",
+      "whenToSeekHelp",
+      "addableTrackingTasks"
+    ],
+    "emergency": [
+      "purpose",
+      "severeLowGlucose",
+      "dangerousHighGlucose",
+      "oralSafety",
+      "glucagonDiscussion",
+      "ketoneDiscussion",
+      "insulinDeliveryFailure",
+      "whenToCallEmergencyServices",
+      "whatToBring",
+      "followUp"
+    ],
+    "blood-pressure-emergency": [
+      "purpose",
+      "checkSafetyFirst",
+      "emergencySymptoms",
+      "veryHighWithoutSymptoms",
+      "repeatMeasurementSafely",
+      "medicineSafety",
+      "pregnancyAndPostpartum",
+      "lowBloodPressureUrgency",
+      "whatToBring",
+      "followUp"
+    ],
+    "mental-health-condition": [
+      "whatItIs",
+      "commonSymptoms",
+      "patternsAndDuration",
+      "causesAndRiskFactors",
+      "medicalAndSubstanceContributors",
+      "treatmentOverview",
+      "supportiveActions",
+      "monitoring",
+      "questionsForClinician",
+      "testsToDiscuss",
+      "urgentSafety"
+    ],
+    "mental-health-lifestyle": [
+      "purpose",
+      "whoItMaySupport",
+      "coreRoutine",
+      "barriersAndAccess",
+      "practicalSteps",
+      "cautions",
+      "monitoring",
+      "questionsForClinician",
+      "addableTasks",
+      "urgentSafety"
+    ],
+    "supplement-safety": [
+      "purpose",
+      "scope",
+      "commonPatterns",
+      "routeConsiderations",
+      "interactions",
+      "contraindicationsAndCautions",
+      "monitoring",
+      "questionsForClinician",
+      "addableTasks",
+      "urgentSafety",
+      "lockedInstructions"
+    ],
+    "emergency-safety": [
+      "purpose",
+      "recognition",
+      "immediateActions",
+      "actionsToAvoid",
+      "whatToBring",
+      "followUp",
+      "addableTasks",
+      "questionsForClinician",
+      "localization",
+      "clinicalReview"
+    ],
+    "infection-prevention-lifestyle": [
+      "purpose",
+      "vaccinationPlanning",
+      "handHygiene",
+      "respiratoryHygiene",
+      "cleanerAir",
+      "masking",
+      "cleaning",
+      "foodSafety",
+      "householdPlan",
+      "specialRiskAdaptations"
+    ],
+    "immune-condition": [
+      "whatItIs",
+      "commonPatterns",
+      "causesAndRiskFactors",
+      "evaluation",
+      "treatmentOverview",
+      "preventionPlanning",
+      "monitoring",
+      "questionsForClinician",
+      "testsToDiscuss",
+      "redFlags",
+      "relatedCare"
+    ]
+  },
+  "dietBuilderItem": {
+    "required": [
+      "id",
+      "title",
+      "subtitle",
+      "focus",
+      "meals",
+      "roles",
+      "why",
+      "caution",
+      "learnId"
+    ],
+    "batch01Fields": [
+      "mealType",
+      "dietTags",
+      "ironSourceType",
+      "proteinTag",
+      "vegetarian",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch02Fields": [
+      "sleepTiming",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch02Filters": [
+      "sleep-support",
+      "evening"
+    ],
+    "batch03Fields": [
+      "diabetesMealRole",
+      "additionalResearchBatches",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch03Filters": [
+      "blood-sugar"
+    ],
+    "batch04Fields": [
+      "dashMealRole",
+      "additionalResearchBatches",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch04Filters": [
+      "blood-pressure"
+    ],
+    "batch05Fields": [
+      "mediterraneanMealRole",
+      "additionalResearchBatches",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch05Filters": [
+      "heart"
+    ],
+    "batch06Fields": [
+      "digestiveMealRole",
+      "additionalResearchBatches",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch06Filters": [
+      "bowel-support",
+      "meal-tolerance"
+    ],
+    "batch07Fields": [],
+    "batch07Filters": [],
+    "batch08Fields": [],
+    "batch08Filters": [],
+    "batch09Fields": [],
+    "batch09Filters": [],
+    "batch10Fields": [
+      "immuneMealRole",
+      "additionalResearchBatches",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ],
+    "batch10Filters": [
+      "immune-variety"
+    ],
+    "batch13ReviewFields": [
+      "contentStatus",
+      "researchBatch",
+      "additionalResearchBatches",
+      "editorialSourceIds"
+    ]
+  },
+  "safetyRules": [
+    "Treat emergency pages as recognition and preparation support, not diagnosis, triage automation, or a substitute for local emergency services.",
+    "Keep all emergency numbers, poison-service details, transport guidance, positioning, first aid, rescue medicine, oral treatment, and device instructions locally adaptable and clinical-review-required.",
+    "Do not delay emergency care to repeat a measurement, search the app, complete a diary, or wait for symptoms to resolve.",
+    "Do not advise driving when breathing, consciousness, vision, coordination, judgment, severe pain, or treatment effects may be impaired.",
+    "Do not give food, drink, tablets, or oral glucose to a person who is unconscious, having a seizure, vomiting repeatedly, or unable to swallow safely.",
+    "Do not recommend aspirin, extra blood-pressure medicine, extra insulin, rescue medicines, epinephrine, glucagon, or any other product unless the person is following a clinician-approved plan, trained device instructions, or local emergency guidance.",
+    "Do not provide universal missed-dose, double-dose, stop, restart, withdrawal, overdose, poison, surgery, pregnancy, or adverse-event reporting instructions.",
+    "Require exact product names, strengths, routes, last doses, labels, containers, lot numbers when relevant, allergies, diagnoses, pregnancy status, and symptom-onset time for medicine and supplement safety review.",
+    "Keep severe allergy, anaphylaxis, stroke, heart attack, seizure, altered consciousness, bleeding, dehydration, glucose, blood-pressure, poisoning, self-harm, safeguarding, and pregnancy emergency wording clinical-review-required.",
+    "Printed plans must state that they are educational planning aids and must not be used to delay emergency care or independently change treatment.",
+    "Keep all app references local and editorial; do not display source URLs in the patient interface.",
+    "Keep vaccine schedules, live-vaccine decisions, immune-testing thresholds, fever plans during immune suppression, neutropenia instructions, food-safety restrictions, antimicrobial treatment, and supplement dosing clinical-review-required."
+  ],
+  "yourShinePath": {
+    "purpose": "An infographic-first combined view generated from all saved Plan Cores.",
+    "requiredConfig": [
+      "title",
+      "subtitle",
+      "eyebrow",
+      "summaryTitle",
+      "connectedLabel",
+      "ariaLabel",
+      "infographicEyebrow",
+      "infographicTitle",
+      "infographicIntro",
+      "hubLabel",
+      "hubCountLabel",
+      "savedLabel",
+      "coreListEyebrow",
+      "coreListTitle",
+      "coreListIntro",
+      "finishTitle",
+      "finishText",
+      "empty",
+      "backButton",
+      "printButton",
+      "openCoreButton",
+      "moreLabel",
+      "stages"
+    ],
+    "stageFields": [
+      "id",
+      "step",
+      "verb",
+      "title",
+      "coreTitle",
+      "icon",
+      "color",
+      "description",
+      "sentenceLead"
+    ],
+    "rules": [
+      "Keep the established central SHINE flow design unchanged.",
+      "Generate path items from updated entity titles, HEAL lifestyle items, and Action Path tasks.",
+      "Reflect prevention and recovery, treatment safety, monitoring, urgent warning signs, emergency topics, symptom tracking, and doctor preparation when those items are saved.",
+      "Do not duplicate or invent patient selections.",
+      "Support mobile, desktop, print, and standalone HTML."
+    ],
+    "printSafety": {
+      "required": true,
+      "source": "plan.printSafety",
+      "rules": [
+        "Display on printed Plan Overview, Core Details, and Your SHINE Path.",
+        "Do not hide the warning in print.",
+        "Keep local emergency and poison-service localization clinical-review-required."
+      ]
+    }
+  },
+  "dietBuilderFields": {
+    "batch12NutritionItemFields": [
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds",
+      "nutritionMealRole"
+    ],
+    "focusOptionRequired": [
+      "id",
+      "label",
+      "description",
+      "contentStatus",
+      "researchBatch",
+      "editorialSourceIds"
+    ]
+  },
+  "sourceRegistry": {
+    "index": "docs/research/SOURCE_INDEX.md",
+    "rules": [
+      "Each editorial source ID has one canonical level-three record.",
+      "Later batch registers reuse canonical IDs through level-four cross-references.",
+      "Researched entities list at least one editorial source ID and a research batch.",
+      "Cross-batch sources are recorded in additionalResearchBatches.",
+      "Source URLs remain absent from the patient interface."
+    ]
+  },
+  "qualityReview": {
+    "release": "v042",
+    "dateChecked": "2026-07-15",
+    "report": "docs/quality/V042_CLINICAL_CONSISTENCY_REPORT.md",
+    "checks": [
+      "duplicate entity and task IDs within their valid scope",
+      "broken SHINE, HEAL, DR, Diet Builder, and relatedIds targets",
+      "content status and research-batch coverage",
+      "canonical source-ID uniqueness and cross-batch reuse",
+      "medication and supplement dosing locks",
+      "clinical-review queues for sensitive fields",
+      "patient-interface source-link exclusion",
+      "Your Plan and SHINE Path wording consistency",
+      "print safety presence",
+      "standalone source parity and ZIP integrity"
+    ],
+    "deferredEntities": [
+      "exercise",
+      "exercise-start-small",
+      "exercise-aerobic",
+      "exercise-strength",
+      "exercise-sit-less",
+      "exercise-recovery",
+      "arthritis"
+    ],
+    "editorialSourceIds": [
+      "CONSISTENCY_FDA_DRUG_INTERACTIONS",
+      "CONSISTENCY_FDA_SUPPLEMENT_QA",
+      "CONSISTENCY_ODS_SUPPLEMENT_SAFETY",
+      "CONSISTENCY_CDC_STROKE_SIGNS",
+      "CONSISTENCY_CDC_HEART_ATTACK",
+      "CONSISTENCY_MEDLINEPLUS_EMERGENCIES"
+    ]
+  },
+  "featureRelease": {
+    "scopeEntityId": "sleep",
+    "selectionGroups": [
+      "conditions",
+      "schedule",
+      "patterns",
+      "factors"
+    ],
+    "resultCategories": [
+      "routine",
+      "environment",
+      "daytime",
+      "food",
+      "tracking"
+    ],
+    "recommendationModel": "References existing actionPath tasks by itemId, group, and taskId.",
+    "manualTaskSelectionPreserved": true,
+    "savedProfileField": "sleepWizard"
+  }
+}
