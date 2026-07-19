@@ -153,3 +153,10 @@ The following remain deferred unless explicitly requested:
 - Added an Iron Guide empty state and persistent selected-intent context.
 - Restored Sleep Wizard category context and moved the explicit three-action add control before additional matches.
 - Refined neutral safety notices, narrow-screen actions, badges, and spacing.
+
+### Navigation UI cleanup
+
+- Removed the unintended visible outline around programmatically focused page headings while retaining route-change focus for accessibility.
+- Reused and restyled the existing `detail-back` pattern instead of adding another navigation component.
+- HEAL detail pages now return directly to the main HEAL page.
+- No new permanent files, routes, dependencies, clinical content, or saved-data fields were added.

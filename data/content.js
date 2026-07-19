@@ -121,8 +121,10 @@ window.PATIENT_CARE_CONTENT = {
     },
     "planLabel": "Your Plan",
     "clarity": {
-      "backToShine": "← Back to SHINE",
-      "backToSectionPrefix": "← Back to",
+      "backToShine": "Back to SHINE",
+      "backToHeal": "Back to HEAL home",
+      "backToDr": "Back to DR home",
+      "backToSectionPrefix": "Back to",
       "atAGlance": "At a glance",
       "important": "Important",
       "readFullTeachingDetails": "Read full teaching details",

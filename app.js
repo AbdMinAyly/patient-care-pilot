@@ -228,11 +228,12 @@ function rawDrItems(){
 }
 function renderDetailNavigation(area,item){
   const labels=DATA.ui.clarity||{};
-  if(area==='shine')return `<a class="detail-back" href="#/shine">${esc(labels.backToShine||'← Back to SHINE')}</a>`;
+  if(area==='shine')return `<a class="detail-back" href="#/shine">${esc(labels.backToShine||'Back to SHINE')}</a>`;
+  if(area==='heal')return `<a class="detail-back heal-back" href="#/heal">${esc(labels.backToHeal||'Back to HEAL home')}</a>`;
   const sectionId=item?.sectionId||'';
   const sectionTitle=item?.section||area.toUpperCase();
-  const prefix=labels.backToSectionPrefix||'← Back to';
-  return `<a class="detail-back" href="#/${area}/${esc(sectionId)}">${esc(prefix)} ${esc(sectionTitle)}</a>`;
+  const prefix=labels.backToSectionPrefix||'Back to';
+  return `<a class="detail-back ${esc(area)}-back" href="#/${area}/${esc(sectionId)}">${esc(prefix+' '+sectionTitle)}</a>`;
 }
 function warningTeachingPoints(item){
   const pattern=/(seek\s+(?:urgent|emergency|prompt)|call\s+(?:local\s+)?emergency|red\s+flags?|serious\s+(?:warning|risks?)|emergency\s+symptoms?|urgent\s+symptoms?|immediate\s+(?:danger|emergency)|requires?\s+(?:urgent|emergency)|urgent\s+help|emergency\s+(?:help|care|services?))/i;
