@@ -1,4 +1,0 @@
-{
-  "passes": 157,
-  "failures": []
-}
