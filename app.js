@@ -483,8 +483,22 @@ function clearAllSavedData(){
   document.getElementById('shine-focus-modal')?.remove();
   document.getElementById('sleep-wizard-modal')?.remove();
   document.body.classList.remove('wizard-open','focus-modal-open');
+  shinePriorityStep=0;
+  shinePriorityAnswers={};
+  pendingShineFocusId=null;
+  dietWizardStep=0;
+  dietWizardAnswers={conditions:[],goal:'',preference:''};
+  dietState.focus=[];
+  dietState.meal='all';
+  dietState.match='all';
+  dietState.query='';
+  findShowAll=false;
+  findQuery='';
+  findScrollY=0;
+  ironGuideIntent=null;
+  pendingDietFoodId=null;
   history.replaceState(null,'',location.pathname+location.search+'#/shine');
-  location.reload();
+  renderShine();
 }
 
 function clearPlanItems(){
@@ -657,8 +671,12 @@ function renderProgressiveDr(){
 // END GUIDED HOMES AND SHINOPEDIA
 function renderShine(){
   setActive('shine');
+  const p=profile();
   const c=guidedConfig().shine;
-  if(profile().guided.shineCompleted!==true){app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');return;}
+  if(p.guided.shineCompleted!==true){
+    app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');
+    return;
+  }
   app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderPriorityLauncher()}<section class="grid shine-focus-grid">${DATA.shine.map(renderGuidedShineCard).join('')}</section></div>`;
 }
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
