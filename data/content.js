@@ -2,10 +2,10 @@
 window.PATIENT_CARE_CONTENT = {
   "meta": {
     "schemaVersion": 21,
-    "contentVersion": "v045",
+    "contentVersion": "v046",
     "offlineOnly": true,
     "referencesVisible": false,
-    "contentBatch": "FEATURE_CLARITY_PASS",
+    "contentBatch": "FEATURE_SHINE_FOCUS_FOUNDATION",
     "contentStatusDefinitions": {
       "placeholder": "Initial content that still requires structured research.",
       "researched": "Patient-facing content has been researched and source-registered.",
@@ -99,12 +99,13 @@ window.PATIENT_CARE_CONTENT = {
       ]
     },
     "featureRelease": {
-      "id": "FEATURE_CLARITY_PASS",
-      "title": "Clarity Pass",
+      "id": "FEATURE_SHINE_FOCUS_FOUNDATION",
+      "title": "SHINE Focus Foundation",
       "status": "implemented",
-      "baseline": "v044",
-      "scope": "Presentation and navigation",
-      "note": "Progressive disclosure retains complete researched content, keeps safety and dosing-lock information visible, hides placeholders from normal discovery, and corrects Plan routing and task counts. No new sources, clinical claims, QR codes, or scheduling features are introduced."
+      "baseline": "v045",
+      "scope": "SHINE focus selection and focus-aware navigation",
+      "implementationRecord": "docs/product/V046_SHINE_FOCUS_FOUNDATION.md",
+      "note": "SHINE becomes a browsing focus rather than a saved Plan item. One primary focus and one optional secondary focus guide direct, typed HEAL and DR relationship highlighting. No clinical claim, source registration, approval state, dosing rule, QR feature, or scheduling feature is changed."
     }
   },
   "ui": {
@@ -134,6 +135,43 @@ window.PATIENT_CARE_CONTENT = {
       "printPlan": "Print Your Plan",
       "moreOptions": "More options",
       "downloadJsonBackup": "Download JSON backup"
+    },
+    "shineFocus": {
+      "eyebrow": "SHINE focus",
+      "title": "Choose what you want to focus on",
+      "intro": "Start with one focus so your next steps stay manageable. You may add one additional focus.",
+      "oneRecommended": "One focus is recommended while you build progress.",
+      "chooseFocus": "Choose focus",
+      "makeTopicPrimary": "Make {topic} my focus",
+      "addSecond": "Add as second focus",
+      "primaryFocus": "Primary focus",
+      "secondaryFocus": "Second focus",
+      "makePrimary": "Make primary",
+      "removeFocus": "Remove focus",
+      "currentFocus": "Your focus",
+      "alsoFocus": "Also focusing on",
+      "changeFocus": "Change focus",
+      "noFocus": "No SHINE focus selected",
+      "chooseFocusPrompt": "Choose a SHINE focus to guide what is highlighted.",
+      "focusBarAria": "Current SHINE focus",
+      "maxTitle": "You already have two focuses",
+      "maxText": "Choose which focus to replace with {topic}.",
+      "replaceFocus": "Replace {focus}",
+      "cancel": "Cancel",
+      "close": "Close focus choices",
+      "supports": "Supports {focus}",
+      "affects": "Can affect {focus}",
+      "relevant": "Relevant to {focus}",
+      "planTitle": "Current SHINE focus",
+      "planText": "Your focus guides what is highlighted. Only items you deliberately save appear in this Plan.",
+      "focusNotPlan": "A SHINE focus is a browsing lens, not a saved Plan item.",
+      "migrationTitle": "Choose your active focuses",
+      "migrationText": "Your previous SHINE selections are preserved. The first two are active; you can change them here.",
+      "clearPlanPrompt": "Clear saved Plan items? Your SHINE focus will remain selected.",
+      "clearPlan": "Clear saved Plan items",
+      "pathPrimary": "Primary focus",
+      "pathSecondary": "Also focusing on",
+      "pathSavedSentence": "Your saved SHINE Path includes {summary}."
     },
     "actionPath": {
       "title": "Your next-step tasks",
@@ -12073,7 +12111,7 @@ window.PATIENT_CARE_CONTENT = {
         "title": "Daily Foundation",
         "icon": "☀️",
         "color": "red",
-        "description": "SHINE lessons, prevention habits, recovery supports, and lifestyle routines you want to keep visible."
+        "description": "Prevention habits, recovery supports, lifestyle routines, and daily actions you want to keep visible."
       },
       {
         "id": "food",
@@ -12130,7 +12168,7 @@ window.PATIENT_CARE_CONTENT = {
       "coreListIntro": "The infographic gives the whole picture. These cards keep each part clear and usable.",
       "finishTitle": "One path. Your choices. A clearer next step.",
       "finishText": "Your Plan keeps each core organized, while Your SHINE Path shows how daily foundations, food and hydration, treatment safety, monitoring, symptoms, urgent warning signs, and clinical questions work together.",
-      "empty": "Your SHINE Path will appear as you add teaching, habits, food choices, supplements, medications, health topics, tasks, and doctor questions.",
+      "empty": "Your SHINE Path will appear as you add habits, food choices, supplements, medications, health topics, tasks, and clinician questions.",
       "backButton": "Back to Plan Overview",
       "printButton": "Print Your SHINE Path",
       "openCoreButton": "Open Core Details",
@@ -12144,7 +12182,7 @@ window.PATIENT_CARE_CONTENT = {
           "coreTitle": "Daily Foundation",
           "icon": "☀️",
           "color": "red",
-          "description": "Your SHINE teaching, emotional-well-being supports, immunity and prevention habits, recovery supports, and everyday actions.",
+          "description": "Your emotional-well-being supports, immunity and prevention habits, recovery supports, lifestyle routines, and everyday actions.",
           "sentenceLead": "strengthening sleep, emotional well-being, connection, movement, infection prevention, and recovery with"
         },
         {

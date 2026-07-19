@@ -245,11 +245,25 @@ function findDr(id){return rawDrItems().find(item=>item.id===id)}
 function findDietItem(id){return DATA.dietBuilder.items.find(x=>x.id===id)}
 function focusById(id){return DATA.dietBuilder.focusOptions.find(x=>x.id===id)}
 function mealById(id){return DATA.dietBuilder.mealOptions.find(x=>x.id===id)}
+function visibleShineTopics(){return DATA.shine.filter(topic=>!isPlaceholder(topic))}
+function normalizeShineFocus(ids){
+  const valid=new Set(visibleShineTopics().map(topic=>topic.id));
+  const seen=new Set();
+  return (Array.isArray(ids)?ids:[]).filter(id=>valid.has(id)&&!seen.has(id)&&seen.add(id)).slice(0,2);
+}
+function rawStoredProfile(){
+  try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}
+}
+function legacyShineFocusNeedsReview(){
+  const raw=rawStoredProfile();
+  return !Array.isArray(raw.shineFocus)&&Array.isArray(raw.shine)&&raw.shine.length>2;
+}
 
 function defaultProfile(){
   return {
     version:22,
     shine:[],
+    shineFocus:[],
     heal:[],
     dr:[],
     dietItems:[],
@@ -262,12 +276,17 @@ function defaultProfile(){
 }
 function profile(){
   try{
-    const parsed=JSON.parse(localStorage.getItem(KEY)) || {};
+    const parsed=rawStoredProfile();
     const base=defaultProfile();
+    const legacyShine=Array.isArray(parsed.shine)?parsed.shine:[];
+    const hasExplicitFocus=Array.isArray(parsed.shineFocus);
+    const explicitFocus=hasExplicitFocus?parsed.shineFocus:[];
+    const shineFocus=normalizeShineFocus(hasExplicitFocus?explicitFocus:legacyShine);
     return {
       ...base,
       ...parsed,
-      shine:Array.isArray(parsed.shine)?parsed.shine:[],
+      shine:legacyShine,
+      shineFocus,
       heal:Array.isArray(parsed.heal)?parsed.heal:[],
       dr:Array.isArray(parsed.dr)?parsed.dr:[],
       dietItems:Array.isArray(parsed.dietItems)?parsed.dietItems:[],
@@ -289,9 +308,146 @@ function profile(){
 }
 function saveProfile(p){
   p.version=22;
+  p.shineFocus=normalizeShineFocus(p.shineFocus);
   p.updatedAt=new Date().toISOString();
   localStorage.setItem(KEY,JSON.stringify(p));
 }
+
+let pendingShineFocusId=null;
+function shineFocusLabels(){return DATA.ui.shineFocus}
+function selectedShineFocus(p=profile()){return normalizeShineFocus(p.shineFocus)}
+function selectedShineFocusTopics(p=profile()){return selectedShineFocus(p).map(id=>shineById[id]).filter(Boolean)}
+function primaryShineFocus(p=profile()){return selectedShineFocusTopics(p)[0]||null}
+function secondaryShineFocus(p=profile()){return selectedShineFocusTopics(p)[1]||null}
+function formatFocusLabel(template,value){return String(template||'').replace('{focus}',value).replace('{topic}',value)}
+function buildShineFocusIndex(){
+  const index=new Map();
+  const add=(itemId,shineId,relation)=>{
+    const list=index.get(itemId)||[];
+    if(!list.some(entry=>entry.shineId===shineId&&entry.relation===relation))list.push({shineId,relation});
+    index.set(itemId,list);
+  };
+  visibleShineTopics().forEach(topic=>{
+    (topic.healLinks||[]).forEach(link=>{const target=findHeal(link.id);if(target&&!isPlaceholder(target))add(link.id,topic.id,'supports')});
+    (topic.drLinks||[]).forEach(link=>{const target=findDr(link.id);if(target&&!isPlaceholder(target))add(link.id,topic.id,'affects')});
+  });
+  return index;
+}
+const shineFocusIndex=buildShineFocusIndex();
+function focusRelationsForItem(itemId,focusIds=selectedShineFocus()){
+  const chosen=new Set(focusIds);
+  return (shineFocusIndex.get(itemId)||[]).filter(entry=>chosen.has(entry.shineId));
+}
+function focusBadgeForItem(itemId,focusIds=selectedShineFocus()){
+  const relations=focusRelationsForItem(itemId,focusIds);
+  if(!relations.length)return null;
+  const topics=focusIds.map(id=>shineById[id]).filter(topic=>topic&&relations.some(entry=>entry.shineId===topic.id));
+  const names=topics.map(topic=>topic.title).join(' + ');
+  const relationTypes=new Set(relations.map(entry=>entry.relation));
+  const labels=shineFocusLabels();
+  const relation=relationTypes.size===1?[...relationTypes][0]:'relevant';
+  const template=relation==='supports'?labels.supports:relation==='affects'?labels.affects:labels.relevant;
+  return {relation,text:formatFocusLabel(template,names)};
+}
+function focusMatchClass(itemId){return focusBadgeForItem(itemId)?' focus-match':''}
+function renderFocusBadge(itemId){
+  const badge=focusBadgeForItem(itemId);
+  return badge?`<span class="focus-relevance-badge ${esc(badge.relation)}">${esc(badge.text)}</span>`:'';
+}
+function renderShineFocusBar(){
+  const labels=shineFocusLabels();
+  const topics=selectedShineFocusTopics();
+  if(!topics.length)return `<section class="shine-focus-bar no-print" aria-label="${esc(labels.focusBarAria)}"><div><small>${esc(labels.eyebrow)}</small><strong>${esc(labels.noFocus)}</strong><span>${esc(labels.chooseFocusPrompt)}</span></div><a href="#/shine">${esc(labels.chooseFocus)}</a></section>`;
+  return `<section class="shine-focus-bar no-print" aria-label="${esc(labels.focusBarAria)}"><div><small>${esc(labels.eyebrow)}</small><strong>${esc(labels.currentFocus)}: ${esc(topics[0].title)}</strong>${topics[1]?`<span>${esc(labels.alsoFocus)}: ${esc(topics[1].title)}</span>`:''}</div><a href="#/shine">${esc(labels.changeFocus)}</a></section>`;
+}
+function renderPlanShineFocusSummary(p=profile()){
+  const labels=shineFocusLabels();
+  const topics=selectedShineFocusTopics(p);
+  return `<section class="plan-shine-focus"><div><p class="eyebrow">${esc(labels.planTitle)}</p>${topics.length?`<h2>${esc(topics[0].title)}</h2>${topics[1]?`<p><strong>${esc(labels.alsoFocus)}:</strong> ${esc(topics[1].title)}</p>`:''}`:`<h2>${esc(labels.noFocus)}</h2><p>${esc(labels.chooseFocusPrompt)}</p>`}<p>${esc(labels.planText)}</p><small>${esc(labels.focusNotPlan)}</small></div><a class="btn ghost button-link no-print" href="#/shine">${esc(labels.changeFocus)}</a></section>`;
+}
+function renderShineFocusControls(topic,compact=false){
+  const labels=shineFocusLabels();
+  const ids=selectedShineFocus();
+  const position=ids.indexOf(topic.id);
+  if(position===0)return `<div class="shine-focus-actions ${compact?'compact':''}"><span class="shine-focus-status primary">${esc(labels.primaryFocus)}</span><button type="button" class="shine-focus-button remove" data-toggle-shine-focus="${esc(topic.id)}">${esc(labels.removeFocus)}</button></div>`;
+  if(position===1)return `<div class="shine-focus-actions ${compact?'compact':''}"><span class="shine-focus-status secondary">${esc(labels.secondaryFocus)}</span><button type="button" class="shine-focus-button" data-promote-shine-focus="${esc(topic.id)}">${esc(labels.makePrimary)}</button><button type="button" class="shine-focus-button remove" data-toggle-shine-focus="${esc(topic.id)}">${esc(labels.removeFocus)}</button></div>`;
+  const text=ids.length===0?formatFocusLabel(labels.makeTopicPrimary,topic.title):ids.length===1?labels.addSecond:labels.chooseFocus;
+  return `<div class="shine-focus-actions ${compact?'compact':''}"><button type="button" class="shine-focus-button choose" data-toggle-shine-focus="${esc(topic.id)}" aria-pressed="false">${esc(text)}</button></div>`;
+}
+function renderShineFocusHomeCard(topic){
+  const labels=shineFocusLabels();
+  if(isPlaceholder(topic))return `<article class="card mode-card shine placeholder-card" aria-disabled="true"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p><span class="coming-soon">${esc(DATA.ui.clarity.comingSoon)}</span></article>`;
+  const selected=selectedShineFocus().includes(topic.id);
+  return `<article class="card mode-card shine shine-focus-card ${selected?'focus-selected':''}"><a class="shine-card-link" href="#/shine/${esc(topic.id)}"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p></a>${renderShineFocusControls(topic,true)}</article>`;
+}
+function renderShineFocusIntro(){
+  const labels=shineFocusLabels();
+  const topics=selectedShineFocusTopics();
+  const migration=legacyShineFocusNeedsReview()?`<aside class="shine-focus-migration"><strong>${esc(labels.migrationTitle)}</strong><span>${esc(labels.migrationText)}</span></aside>`:'';
+  return `<section class="shine-focus-intro"><p class="eyebrow">${esc(labels.eyebrow)}</p><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><small>${esc(labels.oneRecommended)}</small>${topics.length?`<div class="shine-focus-current"><strong>${esc(labels.currentFocus)}: ${esc(topics[0].title)}</strong>${topics[1]?`<span>${esc(labels.alsoFocus)}: ${esc(topics[1].title)}</span>`:''}</div>`:''}${migration}</section>`;
+}
+function openShineFocusReplace(topicId){
+  const topic=shineById[topicId];
+  if(!topic||isPlaceholder(topic))return;
+  pendingShineFocusId=topicId;
+  const labels=shineFocusLabels();
+  const topics=selectedShineFocusTopics();
+  const modal=document.createElement('div');
+  modal.id='shine-focus-modal';
+  modal.className='shine-focus-modal';
+  modal.innerHTML=`<div class="shine-focus-backdrop" data-close-shine-focus="1"></div><section class="shine-focus-dialog" role="dialog" aria-modal="true" aria-labelledby="shine-focus-dialog-title"><button class="shine-focus-close" data-close-shine-focus="1" aria-label="${esc(labels.close)}">×</button><p class="eyebrow">${esc(labels.eyebrow)}</p><h2 id="shine-focus-dialog-title">${esc(labels.maxTitle)}</h2><p>${esc(formatFocusLabel(labels.maxText,topic.title))}</p><div class="shine-focus-replace-actions">${topics.map(existing=>`<button type="button" class="btn ghost" data-replace-shine-focus="${esc(existing.id)}">${esc(formatFocusLabel(labels.replaceFocus,existing.title))}</button>`).join('')}<button type="button" class="btn ghost" data-close-shine-focus="1">${esc(labels.cancel)}</button></div></section>`;
+  document.body.appendChild(modal);
+  document.body.classList.add('focus-modal-open');
+  modal.querySelector('[data-replace-shine-focus]')?.focus();
+}
+function closeShineFocusReplace(){
+  document.getElementById('shine-focus-modal')?.remove();
+  document.body.classList.remove('focus-modal-open');
+  pendingShineFocusId=null;
+}
+function toggleShineFocus(topicId){
+  const topic=shineById[topicId];
+  if(!topic||isPlaceholder(topic))return;
+  const p=profile();
+  const ids=selectedShineFocus(p);
+  if(ids.includes(topicId))p.shineFocus=ids.filter(id=>id!==topicId);
+  else if(ids.length<2)p.shineFocus=[...ids,topicId];
+  else{openShineFocusReplace(topicId);return}
+  saveProfile(p);
+  route();
+}
+function promoteShineFocus(topicId){
+  const p=profile();
+  const ids=selectedShineFocus(p);
+  if(!ids.includes(topicId))return;
+  p.shineFocus=[topicId,...ids.filter(id=>id!==topicId)];
+  saveProfile(p);
+  route();
+}
+function replaceShineFocus(existingId){
+  if(!pendingShineFocusId)return;
+  const p=profile();
+  const ids=selectedShineFocus(p);
+  const index=ids.indexOf(existingId);
+  if(index<0)return;
+  ids[index]=pendingShineFocusId;
+  p.shineFocus=normalizeShineFocus(ids);
+  saveProfile(p);
+  closeShineFocusReplace();
+  route();
+}
+function clearPlanItems(){
+  const p=profile();
+  p.heal=[];
+  p.dr=[];
+  p.dietItems=[];
+  p.questions=[];
+  p.planTasks=[];
+  p.planNotes={...defaultProfile().planNotes};
+  saveProfile(p);
+  route();
+}
+
 function setActive(mode){
   ['shine','heal','dr','summary'].forEach(m=>{
     const el=document.getElementById('nav-'+m);
@@ -318,16 +474,14 @@ function connectionRows(rows,current){
     </div>`).join('')}</div>`;
 }
 function conditionRows(rows,heading){
-  if(!rows||!rows.length)return '';
-  return `<div class="info-card dr-bridge"><h3>${esc(heading||'Common conditions')}</h3>
-    <div class="condition-grid">${rows.map(r=>`<a class="condition-card" href="#/dr/item/${r.id}"><strong>${esc(r.title)}</strong><span>${esc(r.text)}</span></a>`).join('')}</div>
-  </div>`;
+  const visible=(rows||[]).filter(row=>{const target=findDr(row.id);return target&&!isPlaceholder(target)});
+  if(!visible.length)return '';
+  return `<div class="info-card dr-bridge"><h3>${esc(heading||'Common conditions')}</h3><div class="condition-grid">${visible.map(row=>`<a class="condition-card${focusMatchClass(row.id)}" href="#/dr/item/${esc(row.id)}">${renderFocusBadge(row.id)}<strong>${esc(row.title)}</strong><span>${esc(row.text)}</span></a>`).join('')}</div></div>`;
 }
 function healHabitRows(rows,heading,intro){
-  if(!rows||!rows.length)return '';
-  return `<div class="info-card heal-bridge"><h3>${esc(heading||'Good habits')}</h3>${intro?`<p class="mini">${esc(intro)}</p>`:''}
-    <div class="habit-grid">${rows.map(r=>`<a class="habit-card" href="#/heal/item/${r.id}"><strong>${esc(r.title)}</strong><span>${esc(r.text)}</span></a>`).join('')}</div>
-  </div>`;
+  const visible=(rows||[]).filter(row=>{const target=findHeal(row.id);return target&&!isPlaceholder(target)});
+  if(!visible.length)return '';
+  return `<div class="info-card heal-bridge"><h3>${esc(heading||'Good habits')}</h3>${intro?`<p class="mini">${esc(intro)}</p>`:''}<div class="habit-grid">${visible.map(row=>`<a class="habit-card${focusMatchClass(row.id)}" href="#/heal/item/${esc(row.id)}">${renderFocusBadge(row.id)}<strong>${esc(row.title)}</strong><span>${esc(row.text)}</span></a>`).join('')}</div></div>`;
 }
 function sectionCards(sections,area){
   return sections.map(section=>{
@@ -339,16 +493,8 @@ function sectionCards(sections,area){
 
 function renderShine(){
   setActive('shine');
-  const label=DATA.ui.clarity?.comingSoon||'Coming soon';
-  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}
-    <section class="grid">${DATA.shine.map(topic=>isPlaceholder(topic)
-      ? `<article class="card mode-card shine placeholder-card" aria-disabled="true"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p><span class="coming-soon">${esc(label)}</span></article>`
-      : `<a class="card mode-card shine" href="#/shine/${topic.id}"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p></a>`).join('')}</section>
-  </div>`;
+  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderShineFocusIntro()}<section class="grid shine-focus-grid">${DATA.shine.map(renderShineFocusHomeCard).join('')}</section></div>`;
 }
-let sleepWizardState=null;
-let sleepWizardStep=0;
-
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
 function sleepWizardSelectionCount(state=profile().sleepWizard){
   return ['conditions','schedule','patterns','factors'].reduce((sum,key)=>sum+(state?.[key]?.length||0),0);
@@ -507,56 +653,45 @@ function renderShineTopic(id){
   setActive('shine');
   const topic=shineById[id];
   if(!topic||isPlaceholder(topic)){
-    history.replaceState(null,'','#/shine');
+    history.replaceState(null,'',location.pathname+location.search+'#/shine');
     renderShine();
     return;
   }
   const headings=topic.headings||{};
-  const saveLabel=DATA.ui.clarity?.saveTopic||'Add to Your Plan';
-  const healLinks=(topic.healLinks||[]).filter(link=>{const target=findHeal(link.id);return target&&!isPlaceholder(target)});
-  const drLinks=(topic.drLinks||[]).filter(link=>{const target=findDr(link.id);return target&&!isPlaceholder(target)});
-  app.innerHTML=`<div class="screen"><section class="detail shine readable-detail">
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail shine readable-detail">
     ${renderDetailNavigation('shine',topic)}
     <p class="eyebrow">SHINE / ${esc(topic.title)}</p>
-    <h2 tabindex="-1">${esc(topic.title)}</h2>
+    <h2>${esc(topic.title)}</h2>
     <p class="lead">${esc(topic.subtitle)}</p>
-    <div class="info-card primary"><h3>${esc(headings.why||('1. Why '+topic.title+' matters'))}</h3><ul class="bullets">${(topic.why||[]).map(point=>`<li>${linkifyShine(point,topic.id)}</li>`).join('')}</ul><div class="savebar no-print"><button class="btn shine" data-add="shine" data-id="${topic.id}">${esc(saveLabel)}</button></div></div>
+    <div class="info-card primary">
+      <h3>${esc(headings.why||('1. Why '+topic.title+' matters'))}</h3>
+      <ul class="bullets">${(topic.why||[]).map(point=>`<li>${linkifyShine(point,topic.id)}</li>`).join('')}</ul>
+      <div class="savebar no-print">${renderShineFocusControls(topic)}</div>
+    </div>
     <div class="info-card"><h3>${esc(headings.positive||('2. How '+topic.title+' helps SHINE'))}</h3>${connectionRows(topic.good||[],topic.id)}</div>
     <div class="info-card"><h3>${esc(headings.negative||('3. How weak '+topic.title+' affects SHINE'))}</h3>${connectionRows(topic.bad||[],topic.id)}</div>
-    ${healHabitRows(healLinks,headings.habits,topic.habitIntro)}
-    ${conditionRows(drLinks,headings.conditions)}
+    ${healHabitRows(topic.healLinks,headings.habits,topic.habitIntro)}
+    ${conditionRows(topic.drLinks,headings.conditions)}
     ${topic.id==='sleep'?renderSleepWizardLaunch(topic):renderActionPath({...topic,section:'SHINE',sectionId:'shine'})}
   </section></div>`;
 }
 function renderHeal(){
   setActive('heal');
-  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}
-    <section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.heal)}"><div class="results" id="results"><div class="empty">Type to search HEAL content.</div></div></section>
-    <section class="grid">${sectionCards(DATA.healSections,'heal')}</section>
-  </div>`;
+  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.heal)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptHeal)}</div></div></section><section class="grid">${sectionCards(DATA.healSections,'heal')}</section></div>`;
   setupSearch('heal');
 }
 function renderDr(){
   setActive('dr');
-  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}
-    <section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.dr)}"><div class="results" id="results"><div class="empty">Type to search DR content.</div></div></section>
-    <section class="grid">${sectionCards(DATA.drSections,'dr')}</section>
-  </div>`;
+  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.dr)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptDr)}</div></div></section><section class="grid">${sectionCards(DATA.drSections,'dr')}</section></div>`;
   setupSearch('dr');
 }
 function renderList(area,id){
   if(area==='heal'&&id==='diet')return renderDietBuilder();
   setActive(area);
   const sections=area==='heal'?DATA.healSections:DATA.drSections;
-  const section=sections.find(value=>value.id===id)||sections[0];
-  const items=visibleItems(section.items);
-  app.innerHTML=`<div class="screen"><section class="detail ${area}">
-    <a class="detail-back" href="#/${area}">← Back to ${area.toUpperCase()}</a>
-    <p class="eyebrow">${area.toUpperCase()}</p>
-    <h2 tabindex="-1">${esc(section.title)}</h2>
-    <p class="lead">${esc(section.subtitle)}</p>
-    <div class="grid">${items.map(item=>`<a class="card" href="#/${area}/item/${item.id}"><h3>${esc(item.title)}</h3><p>${esc(item.subtitle)}</p></a>`).join('')}</div>
-  </section></div>`;
+  const sec=sections.find(section=>section.id===id)||sections[0];
+  const items=visibleItems(sec.items);
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail ${area}"><a class="detail-back" href="#/${area}">← ${esc((DATA.ui.clarity.backToSectionPrefix||'← Back to')+' '+area.toUpperCase())}</a><p class="eyebrow">${area.toUpperCase()}</p><h2>${esc(sec.title)}</h2><p class="lead">${esc(sec.subtitle)}</p><div class="grid">${items.map(item=>`<a class="card${focusMatchClass(item.id)}" href="#/${area}/item/${esc(item.id)}">${renderFocusBadge(item.id)}<h3>${esc(item.title)}</h3><p>${esc(item.subtitle)}</p></a>`).join('')}</div></section></div>`;
 }
 function isLockedItem(item){
   return item && (
@@ -618,23 +753,23 @@ function renderItem(area,id){
   setActive(area);
   const item=area==='heal'?findHeal(id):findDr(id);
   if(!item||isPlaceholder(item)){
-    history.replaceState(null,'',`#/${area}`);
+    history.replaceState(null,'',location.pathname+location.search+`#/${area}`);
     area==='heal'?renderHeal():renderDr();
     return;
   }
   const locked=isLockedItem(item);
-  const saveLabel=DATA.ui.clarity?.saveTopic||'Add to Your Plan';
-  app.innerHTML=`<div class="screen"><section class="detail ${area} readable-detail">
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail ${area} readable-detail${focusMatchClass(item.id)}">
     ${renderDetailNavigation(area,item)}
+    ${renderFocusBadge(item.id)}
     <p class="eyebrow">${area.toUpperCase()} / ${esc(item.section)}</p>
-    <h2 tabindex="-1">${esc(item.title)}</h2>
+    <h2>${esc(item.title)}</h2>
     <p class="lead">${esc(item.subtitle)}</p>
-    ${locked?'<div class="notice">Medication or supplement dosing is not shown here. Bring this topic to a clinician or pharmacist before starting, stopping, or changing treatment.</div>':''}
+    ${locked?`<div class="notice">${esc(DATA.ui.clarity.dosingNotice)}</div>`:''}
     ${renderImportantTeaching(item)}
     ${renderAtAGlance(item)}
     ${renderTeachingDetails(item)}
     ${renderActionPath(item)}
-    <div class="savebar no-print"><button class="btn ${area}" data-add="${area}" data-id="${item.id}">${esc(saveLabel)}</button></div>
+    <div class="savebar no-print"><button class="btn ${area}" data-add="${area}" data-id="${esc(item.id)}">${esc(DATA.ui.clarity.saveTopic)}</button></div>
   </section></div>`;
 }
 function setupSearch(area){
@@ -643,13 +778,11 @@ function setupSearch(area){
   const items=area==='heal'?allHealItems():allDrItems();
   input.addEventListener('input',()=>{
     const q=input.value.trim().toLowerCase();
-    if(!q){results.innerHTML='<div class="empty">Type to search '+area.toUpperCase()+' content.</div>';return}
+    if(!q){results.innerHTML=`<div class="empty">${esc(area==='heal'?DATA.ui.clarity.searchPromptHeal:DATA.ui.clarity.searchPromptDr)}</div>`;return}
     const hits=items.filter(item=>(item.title+' '+item.subtitle+' '+(item.body||[]).join(' ')+' '+item.section).toLowerCase().includes(q)).slice(0,8);
-    results.innerHTML=hits.length?hits.map(item=>`<a class="result" href="#/${area}/item/${item.id}"><strong>${esc(item.title)}</strong><span>${esc(item.section)} — ${esc(item.subtitle)}</span></a>`).join(''):'<div class="empty">No results yet.</div>';
+    results.innerHTML=hits.length?hits.map(item=>`<a class="result${focusMatchClass(item.id)}" href="#/${area}/item/${esc(item.id)}">${renderFocusBadge(item.id)}<strong>${esc(item.title)}</strong><span>${esc(item.section)} — ${esc(item.subtitle)}</span></a>`).join(''):`<div class="empty">${esc(DATA.ui.clarity.noSearchResults)}</div>`;
   });
 }
-
-/* ---------------- Diet Builder ---------------- */
 const dietState={focus:[],meal:'all',match:'all',query:''};
 
 function dietFocusChip(option){
@@ -709,7 +842,7 @@ function renderDietResults(){
 function renderDietBuilder(){
   setActive('heal');
   const d=DATA.dietBuilder;
-  app.innerHTML=`<div class="screen"><section class="detail heal diet-builder">
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail heal diet-builder">
     <p class="eyebrow">HEAL / DIET</p>
     <h2>${esc(d.title)}</h2>
     <p class="lead">${esc(d.subtitle)}</p>
@@ -750,14 +883,14 @@ function itemTitle(area,id){
   if(area==='diet')return findDietItem(id)?.title||id;
   return id;
 }
-function countCore(profileData,core){
-  const heal=(profileData.heal||[]).map(findHeal).filter(Boolean);
-  const dr=(profileData.dr||[]).map(findDr).filter(Boolean);
-  const tasks=taskCountForCore(profileData,core);
-  if(core==='daily')return (profileData.shine||[]).length+heal.filter(item=>item.sectionId==='lifestyle').length+tasks;
-  if(core==='food')return (profileData.dietItems||[]).length+heal.filter(item=>item.sectionId==='diet').length+tasks;
-  if(core==='treatment')return heal.filter(item=>item.sectionId==='supplements').length+dr.filter(item=>item.sectionId==='medications').length+tasks;
-  if(core==='doctor')return dr.filter(item=>item.sectionId!=='medications').length+(profileData.questions||[]).length+tasks;
+function countCore(p,core){
+  const heal=(p.heal||[]).map(findHeal).filter(Boolean);
+  const dr=(p.dr||[]).map(findDr).filter(Boolean);
+  const tasks=taskCountForCore(p,core);
+  if(core==='daily')return heal.filter(x=>x.sectionId==='lifestyle').length+tasks;
+  if(core==='food')return (p.dietItems||[]).length+heal.filter(x=>x.sectionId==='diet').length+tasks;
+  if(core==='treatment')return heal.filter(x=>x.sectionId==='supplements').length+dr.filter(x=>x.sectionId==='medications').length+tasks;
+  if(core==='doctor')return dr.filter(x=>x.sectionId!=='medications').length+(p.questions||[]).length+tasks;
   return 0;
 }
 function planCoreCards(p){
@@ -802,14 +935,14 @@ function focusSummary(ids){
 function totalPlanItems(p){
   return countCore(p,'daily')+countCore(p,'food')+countCore(p,'treatment')+countCore(p,'doctor');
 }
-function coreBreakdown(profileData,core){
-  const heal=(profileData.heal||[]).map(findHeal).filter(Boolean);
-  const dr=(profileData.dr||[]).map(findDr).filter(Boolean);
-  const tasks=taskCountForCore(profileData,core);
-  if(core==='daily')return [['SHINE lessons',(profileData.shine||[]).length],['Lifestyle habits',heal.filter(item=>item.sectionId==='lifestyle').length],['Next actions',tasks]];
-  if(core==='food')return [['Food items',(profileData.dietItems||[]).length],['Diet guidance',heal.filter(item=>item.sectionId==='diet').length],['Next actions',tasks]];
-  if(core==='treatment')return [['Supplements',heal.filter(item=>item.sectionId==='supplements').length],['Medications',dr.filter(item=>item.sectionId==='medications').length],['Next actions',tasks]];
-  if(core==='doctor')return [['Health topics',dr.filter(item=>item.sectionId!=='medications').length],['Questions',(profileData.questions||[]).length],['Next actions',tasks]];
+function coreBreakdown(p,core){
+  const heal=(p.heal||[]).map(findHeal).filter(Boolean);
+  const dr=(p.dr||[]).map(findDr).filter(Boolean);
+  const tasks=taskCountForCore(p,core);
+  if(core==='daily')return [['Lifestyle habits',heal.filter(x=>x.sectionId==='lifestyle').length],[DATA.ui.clarity.nextActionsEyebrow,tasks]];
+  if(core==='food')return [['Food items',(p.dietItems||[]).length],['Diet guidance',heal.filter(x=>x.sectionId==='diet').length],[DATA.ui.clarity.nextActionsEyebrow,tasks]];
+  if(core==='treatment')return [['Supplements',heal.filter(x=>x.sectionId==='supplements').length],['Medications',dr.filter(x=>x.sectionId==='medications').length],[DATA.ui.clarity.nextActionsEyebrow,tasks]];
+  if(core==='doctor')return [['Health topics',dr.filter(x=>x.sectionId!=='medications').length],['Questions',(p.questions||[]).length],[DATA.ui.clarity.nextActionsEyebrow,tasks]];
   return [];
 }
 function planOverviewCards(p){
@@ -831,22 +964,10 @@ function renderPlanOverview(){
   setActive('summary');
   const p=profile();
   const labels=DATA.plan.overview||{};
-  const clarity=DATA.ui.clarity||{};
+  const clarity=DATA.ui.clarity;
   const total=totalPlanItems(p);
-  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}
-    <div class="plan-privacy">${esc(DATA.plan.privacy)}</div>
-    ${printSafetyNotice()}
-    <section class="plan-overview">
-      <div class="plan-overview-summary"><h2 tabindex="-1">${esc(labels.title||'Your plan at a glance')}</h2><p>${esc(labels.intro||'See everything you have saved before opening a core.')}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel||'Total saved items')}</span></div></div>
-      ${renderNextActions(p)}
-      ${total===0?`<div class="plan-empty">${esc(labels.empty||'Your plan is empty.')}</div>`:''}
-      ${planOverviewCards(p)}
-      <div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems||'Review all saved items')}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath||'Visualize Your SHINE Path')}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan||'Print Your Plan')}</button></div>
-      <details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions||'More options')}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup||'Download JSON backup')}</button></details>
-    </section>
-  </div>`;
+  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}<div class="plan-privacy">${esc(DATA.plan.privacy)}</div>${renderPlanShineFocusSummary(p)}${printSafetyNotice()}<section class="plan-overview"><div class="plan-overview-summary"><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel)}</span></div></div>${renderNextActions(p)}${total===0?`<div class="plan-empty">${esc(labels.empty)}</div>`:''}${planOverviewCards(p)}<div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems)}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath)}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan)}</button></div><details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions)}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup)}</button><button class="btn ghost danger" data-clear="1">${esc(shineFocusLabels().clearPlan)}</button></details></section></div>`;
 }
-
 function uniquePathItems(items){
   const seen=new Set();
   return items.filter(item=>{
@@ -876,38 +997,11 @@ function taskStage(task){
 function pathStageItems(p,stageId){
   const heal=(p.heal||[]).map(findHeal).filter(Boolean);
   const dr=(p.dr||[]).map(findDr).filter(Boolean);
-  const tasks=(p.planTasks||[]).filter(t=>taskStage(t)===stageId).map(t=>({
-    title:t.title,
-    meta:t.groupLabel||'Saved task',
-    type:'task'
-  }));
-
-  if(stageId==='daily'){
-    return uniquePathItems([
-      ...(p.shine||[]).map(id=>({title:itemTitle('shine',id),meta:'SHINE teaching',type:'shine'})),
-      ...heal.filter(x=>x.sectionId==='lifestyle').map(x=>({title:x.title,meta:'Lifestyle habit',type:'heal'})),
-      ...tasks
-    ]);
-  }
-  if(stageId==='food'){
-    return uniquePathItems([
-      ...(p.dietItems||[]).map(id=>({title:itemTitle('diet',id),meta:'Food choice',type:'diet'})),
-      ...heal.filter(x=>x.sectionId==='diet').map(x=>({title:x.title,meta:'Diet guidance',type:'heal'})),
-      ...tasks
-    ]);
-  }
-  if(stageId==='treatment'){
-    return uniquePathItems([
-      ...heal.filter(x=>x.sectionId==='supplements').map(x=>({title:x.title,meta:'Supplement',type:'heal'})),
-      ...dr.filter(x=>x.sectionId==='medications').map(x=>({title:x.title,meta:'Medication',type:'dr'})),
-      ...tasks
-    ]);
-  }
-  return uniquePathItems([
-    ...dr.filter(x=>x.sectionId!=='medications').map(x=>({title:x.title,meta:x.section||'Health topic',type:'dr'})),
-    ...tasks,
-    ...(p.questions||[]).map(q=>({title:q,meta:'Question for doctor',type:'question'}))
-  ]);
+  const tasks=(p.planTasks||[]).filter(t=>taskStage(t)===stageId).map(t=>({title:t.title,meta:t.groupLabel||'Saved task',type:'task'}));
+  if(stageId==='daily')return uniquePathItems([...heal.filter(x=>x.sectionId==='lifestyle').map(x=>({title:x.title,meta:'Lifestyle habit',type:'heal'})),...tasks]);
+  if(stageId==='food')return uniquePathItems([...(p.dietItems||[]).map(id=>({title:itemTitle('diet',id),meta:'Food choice',type:'diet'})),...heal.filter(x=>x.sectionId==='diet').map(x=>({title:x.title,meta:'Diet guidance',type:'heal'})),...tasks]);
+  if(stageId==='treatment')return uniquePathItems([...heal.filter(x=>x.sectionId==='supplements').map(x=>({title:x.title,meta:'Supplement',type:'heal'})),...dr.filter(x=>x.sectionId==='medications').map(x=>({title:x.title,meta:'Medication',type:'dr'})),...tasks]);
+  return uniquePathItems([...dr.filter(x=>x.sectionId!=='medications').map(x=>({title:x.title,meta:x.section||'Health topic',type:'dr'})),...tasks,...(p.questions||[]).map(q=>({title:q,meta:'Question for doctor',type:'question'}))]);
 }
 function pathTitleList(items,max=2){
   const titles=items.slice(0,max).map(x=>x.title);
@@ -919,8 +1013,8 @@ function shinePathSentence(stageData){
   const active=stageData.filter(x=>x.items.length);
   if(!active.length)return DATA.plan.shinePath.empty;
   const phrases=active.map(x=>`${x.config.sentenceLead} ${pathTitleList(x.items)}`);
-  if(phrases.length===1)return `Your SHINE Path is focused on ${phrases[0]}.`;
-  return `Your SHINE Path is focused on ${phrases.slice(0,-1).join('; ')}, and ${phrases[phrases.length-1]}.`;
+  const summary=phrases.length===1?phrases[0]:`${phrases.slice(0,-1).join('; ')}, and ${phrases[phrases.length-1]}`;
+  return shineFocusLabels().pathSavedSentence.replace('{summary}',summary);
 }
 function renderPathItems(items,moreLabel){
   if(!items.length)return '<div class="shine-path-empty-stage">Nothing saved in this stage yet.</div>';
@@ -944,6 +1038,9 @@ function renderShinePath(){
   }));
   const total=stageData.reduce((sum,stage)=>sum+stage.items.length,0);
   const sentence=shinePathSentence(stageData);
+  const focusTopics=selectedShineFocusTopics(p);
+  const primaryFocus=focusTopics[0]||null;
+  const secondaryFocus=focusTopics[1]||null;
 
   app.innerHTML=`<div class="screen shine-path-screen">
     <section class="shine-path-hero">
@@ -957,6 +1054,7 @@ function renderShinePath(){
     </section>
 
     ${printSafetyNotice()}
+    ${renderPlanShineFocusSummary(p)}
 
     <section class="shine-path-infographic" aria-label="${esc(config.ariaLabel)}">
       <header class="shine-path-infographic-head">
@@ -1003,8 +1101,9 @@ function renderShinePath(){
             </a>`).join('')}
           <div class="shine-path-hub">
             <div class="shine-path-hub-inner">
-              <small>${esc(config.hubLabel)}</small>
-              <strong>SHINE</strong>
+              <small>${esc(primaryFocus?shineFocusLabels().pathPrimary:config.hubLabel)}</small>
+              <strong>${esc(primaryFocus?.title||'SHINE')}</strong>
+              ${secondaryFocus?`<em>${esc(shineFocusLabels().pathSecondary)}: ${esc(secondaryFocus.title)}</em>`:''}
               <span><b>${total}</b> ${esc(config.hubCountLabel)}</span>
             </div>
           </div>
@@ -1074,7 +1173,6 @@ function renderPlanDetails(coreId=null){
   const daily=`<section class="plan-section red" id="plan-daily">
       <div class="plan-section-head"><span>☀️</span><div><small>Core 1</small><h2>Daily Foundation</h2><p>Teaching and routines you want to keep visible.</p></div></div>
       <div class="plan-two-col">
-        <div class="plan-subsection"><h3>SHINE lessons</h3>${simpleSavedRows(p.shine||[],'shine','No SHINE lessons added yet.')}</div>
         <div class="plan-subsection"><h3>Lifestyle habits</h3>${simpleSavedRows(lifestyleIds,'heal','No lifestyle habits added yet.')}</div>
       </div>
       <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'daily'))}</div>
@@ -1121,6 +1219,7 @@ function renderPlanDetails(coreId=null){
   const title=coreId?DATA.plan.cores.find(c=>c.id===coreId)?.title||'Core details':'All core details';
 
   app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,'Detailed view of your saved plan cores.')}
+    ${renderPlanShineFocusSummary(p)}
     ${printSafetyNotice()}
     <div class="plan-detail-nav no-print">
       <div><small>YOUR PLAN DETAILS</small><h2>${esc(title)}</h2></div>
@@ -1138,6 +1237,7 @@ function renderPlan(){
 }
 
 function add(area,id){
+  if(area==='shine')return;
   const p=profile();
   p[area]=p[area]||[];
   if(!p[area].includes(id))p[area].push(id);
@@ -1200,7 +1300,7 @@ function download(){
   const blob=new Blob([JSON.stringify(profile(),null,2)],{type:'application/json'});
   const anchor=document.createElement('a');
   anchor.href=URL.createObjectURL(blob);
-  anchor.download='patient-care-v045-your-plan.json';
+  anchor.download='patient-care-v046-your-plan.json';
   anchor.click();
   URL.revokeObjectURL(anchor.href);
 }
@@ -1219,6 +1319,14 @@ document.addEventListener('click',e=>{
     location.hash='#/plan/core/'+core.dataset.scrollCore;
     return;
   }
+
+  const focusToggle=e.target.closest('[data-toggle-shine-focus]');
+  if(focusToggle){toggleShineFocus(focusToggle.dataset.toggleShineFocus);return}
+  const focusPromote=e.target.closest('[data-promote-shine-focus]');
+  if(focusPromote){promoteShineFocus(focusPromote.dataset.promoteShineFocus);return}
+  const focusReplace=e.target.closest('[data-replace-shine-focus]');
+  if(focusReplace){replaceShineFocus(focusReplace.dataset.replaceShineFocus);return}
+  if(e.target.closest('[data-close-shine-focus]')){closeShineFocusReplace();return}
 
   if(e.target.closest('[data-open-sleep-wizard]')){openSleepWizard();return}
   if(e.target.closest('[data-close-sleep-wizard]')){closeSleepWizard();return}
@@ -1280,7 +1388,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-download]')){download();return}
 
   if(e.target.closest('[data-clear]')){
-    if(confirm('Clear Your Plan on this device?')){localStorage.removeItem(KEY);route()}
+    if(confirm(shineFocusLabels().clearPlanPrompt))clearPlanItems();
   }
 });
 
@@ -1304,6 +1412,15 @@ function route(){
   focusPageHeading();
   return result;
 }
-window.addEventListener('hashchange',()=>{closeSleepWizard(false);route()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('sleep-wizard-modal'))closeSleepWizard()});
+let printDisclosureDetails=[];
+window.addEventListener('beforeprint',()=>{
+  printDisclosureDetails=[...document.querySelectorAll('details:not([open])')];
+  printDisclosureDetails.forEach(detail=>{detail.open=true});
+});
+window.addEventListener('afterprint',()=>{
+  printDisclosureDetails.forEach(detail=>{detail.open=false});
+  printDisclosureDetails=[];
+});
+window.addEventListener('hashchange',()=>{closeSleepWizard(false);closeShineFocusReplace();route()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(document.getElementById('shine-focus-modal'))closeShineFocusReplace();else if(document.getElementById('sleep-wizard-modal'))closeSleepWizard()});
 route();

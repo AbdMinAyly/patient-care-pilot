@@ -1297,3 +1297,22 @@ Pilot rule for v044:
 ## Progressive Disclosure Pattern — v045
 
 Detailed content remains complete in data/content.js. Normal pages show a short initial view, visible safety information, and compact next-step choices. Full teaching and secondary Action Path groups remain available on demand. Emergency and dosing-lock content must never be hidden by this pattern.
+
+---
+
+# SHINE Focus Pattern — v046
+
+SHINE is a browsing and teaching focus, not a saved Plan item.
+
+Rules:
+
+- Recommend one primary SHINE focus so next steps remain manageable.
+- Permit one optional secondary focus; never silently replace a selected focus.
+- Do not permit placeholder topics to become active focuses.
+- Keep legacy `shine` profile data for compatibility, but store new focus choices in `shineFocus`.
+- A SHINE focus does not increase Plan totals, appear as a Plan row, or count as health progress.
+- Continue saving deliberately chosen HEAL, DR, Diet Builder, Action Path, and Wizard items to Your Plan.
+- Highlight only direct typed SHINE-to-HEAL and SHINE-to-DR relationships. Do not infer support or risk from body text or generic `relatedIds`.
+- Use at most one relationship badge on a card.
+- Focus may bring relevant content forward, but it must not hide the complete library or reduce the visibility of urgent content.
+- Do not generate percentages, completion claims, diagnosis, treatment selection, or prescribing logic from focus activity.

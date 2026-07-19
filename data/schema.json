@@ -1,13 +1,13 @@
 {
   "schemaVersion": 21,
-  "contentVersion": "v045",
+  "contentVersion": "v046",
   "batch": {
-    "id": "FEATURE_CLARITY_PASS",
-    "title": "Clarity Pass",
+    "id": "FEATURE_SHINE_FOCUS_FOUNDATION",
+    "title": "SHINE Focus Foundation",
     "deliveryStatus": "implemented",
-    "baseline": "v044",
-    "sequenceNote": "Presentation and navigation change only. Full researched content remains available through progressive disclosure; placeholders are hidden from normal discovery; Plan routes and task counts are corrected. No medical content changes, new sources, clinical approval changes, QR codes, or scheduling work are introduced.",
-    "implementationRecord": "docs/product/V045_CLARITY_PASS.md"
+    "baseline": "v045",
+    "sequenceNote": "SHINE becomes a selectable browsing focus rather than a saved Plan item. One primary focus and one optional secondary focus guide direct HEAL and DR relationship highlighting. No clinical claims, source registrations, approval states, dosing rules, QR features, or scheduling features are changed.",
+    "implementationRecord": "docs/product/V046_SHINE_FOCUS_FOUNDATION.md"
   },
   "completedBatches": [
     {
