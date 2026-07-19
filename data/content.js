@@ -14218,6 +14218,11 @@ window.PATIENT_CARE_CONTENT = {
         "added": "Added",
         "chooseIntent": "What would you like help finding?",
         "back": "Back to Find",
+        "backTo": "Back to {page}",
+        "choosePrompt": "Choose one option above to see existing Patient Care topics, food ideas, and actions.",
+        "readLabel": "Read",
+        "actionLabel": "Plan action",
+        "openTopicTemplate": "Open {topic}",
         "selectedIntent": "Selected purpose",
         "foodIdea": "Food idea",
         "noOptions": "No existing destination is available for this choice."
