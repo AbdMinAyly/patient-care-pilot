@@ -1,9 +1,9 @@
 name: Export verified v045 base for v046
 
 on:
-  push:
+  pull_request:
     branches:
-      - v046-shine-focus-foundation
+      - v045-clarity-pass
   workflow_dispatch:
 
 permissions:
