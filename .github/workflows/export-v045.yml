@@ -1,9 +1,9 @@
 name: Export v045 workspace
 
 on:
-  push:
+  pull_request:
     branches:
-      - v045-clarity-pass
+      - main
   workflow_dispatch:
 
 permissions:
