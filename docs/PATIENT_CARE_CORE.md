@@ -1282,12 +1282,12 @@ v029 restores the light circular central-flow composition for the combined Your 
 
 Guided HEAL Wizards may be added to a SHINE topic when the existing content supports a connected planning flow.
 
-Pilot rule for v043:
+Pilot rule for v044:
 
 - The wizard is available only on SHINE Sleep.
 - Existing teaching sections remain unchanged.
-- The wizard is the primary guided next-step pattern.
-- The full manual Action Path remains available.
+- The wizard is the final guided next-step pattern on the Sleep page.
+- Do not duplicate the full manual Action Path on the Sleep page. Manual exploration remains available through HEAL search and HEAL topic pages.
 - Wizard selections are not diagnoses or medical-record fields.
 - Recommendations must reuse existing researched Action Path tasks rather than create conflicting duplicate instructions.
 - Recommendations may be filtered by relevant conditions, schedules, symptoms or patterns, and daily-life circumstances.

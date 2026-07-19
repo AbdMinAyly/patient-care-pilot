@@ -1076,7 +1076,7 @@ button,input,textarea{font:inherit}
   .print-safety-notice p{margin:4px 0}
 }
 
-/* v043 — Sleep-only HEAL Wizard */
+/* v044 — Focused Sleep-only HEAL Wizard */
 .sleep-wizard-launch{
   position:relative;
   display:grid;
@@ -1115,11 +1115,6 @@ button,input,textarea{font:inherit}
 .sleep-wizard-launch-action>strong{font-size:2rem;line-height:1;color:var(--shine)}
 .sleep-wizard-launch-action>span{margin:4px 0 12px;color:#667085;font-size:.76rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
 .sleep-wizard-button,.sleep-wizard-next{background:linear-gradient(135deg,var(--shine),#7c1430);color:#fff;box-shadow:0 10px 22px rgba(193,18,50,.24)}
-.sleep-manual-path{margin-top:16px;padding-top:4px;border-top:1px dashed #d8dce4}
-.sleep-manual-head{padding:16px 4px 0}
-.sleep-manual-head h3{margin:.1rem 0 .35rem;font-size:1.25rem;letter-spacing:-.03em}
-.sleep-manual-head>p:last-child{margin:0;color:#667085;line-height:1.5}
-.sleep-manual-path .action-path{margin-top:12px}
 
 body.wizard-open{overflow:hidden}
 .sleep-wizard-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px}
@@ -1185,4 +1180,4 @@ body.wizard-open{overflow:hidden}
 }
 @keyframes sleepWizardFade{from{opacity:0}to{opacity:1}}
 @keyframes sleepWizardRise{from{transform:translateY(18px) scale(.985)}to{transform:translateY(0) scale(1)}}
-@media print{.sleep-wizard-launch,.sleep-manual-head,.sleep-wizard-modal{display:none!important}}
+@media print{.sleep-wizard-launch,.sleep-wizard-modal{display:none!important}}

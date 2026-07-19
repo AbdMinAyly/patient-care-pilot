@@ -1,13 +1,13 @@
 {
   "schemaVersion": 21,
-  "contentVersion": "v043",
+  "contentVersion": "v044",
   "batch": {
-    "id": "FEATURE_SLEEP_HEAL_WIZARD",
-    "title": "Sleep HEAL Wizard",
+    "id": "FEATURE_FOCUSED_SLEEP_HEAL_WIZARD",
+    "title": "Focused Sleep HEAL Wizard",
     "deliveryStatus": "implemented",
-    "baseline": "v042",
-    "sequenceNote": "Sleep-only wizard pilot. Batch 11 Exercise remains deferred. No new clinical claims or source registrations are introduced.",
-    "implementationRecord": "docs/product/V043_SLEEP_HEAL_WIZARD.md"
+    "baseline": "v043",
+    "sequenceNote": "Sleep-only pattern refinement. The duplicate manual Action Path is removed from the Sleep page; manual exploration remains available through HEAL. No clinical claims or source registrations are introduced.",
+    "implementationRecord": "docs/product/V044_FOCUSED_SLEEP_HEAL_WIZARD.md"
   },
   "completedBatches": [
     {
@@ -671,7 +671,8 @@
       "tracking"
     ],
     "recommendationModel": "References existing actionPath tasks by itemId, group, and taskId.",
-    "manualTaskSelectionPreserved": true,
-    "savedProfileField": "sleepWizard"
+    "savedProfileField": "sleepWizard",
+    "manualTaskSelectionOnSleepPage": false,
+    "manualTaskSelectionAvailableThroughHeal": true
   }
 }

@@ -1891,7 +1891,7 @@ Use:
 - Daily-life factors
 - Your matched HEAL actions
 - Add to plan
-- Or choose tasks manually
+- Browse lifestyle actions in HEAL
 
 Safety line:
 

@@ -98,29 +98,17 @@ if /I not "%PACKAGE_DIR%"=="%REPO_ROOT%" (
   echo Package is already inside the repository. No copy step is needed.
 )
 
-rem Locate a versioned standalone build if one exists. The uploader must not
-rem fail when the repository intentionally omits this optional file.
-set "STANDALONE_NAME="
-for /f "delims=" %%F in ('dir /b /a-d "%REPO_ROOT%\patient-care-v*-standalone-mobile.html" 2^>nul') do set "STANDALONE_NAME=%%F"
-
 echo.
 echo Current package changes:
-git -C "%REPO_ROOT%" status --short -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd
-if defined STANDALONE_NAME git -C "%REPO_ROOT%" status --short -- "%STANDALONE_NAME%"
+git -C "%REPO_ROOT%" status --short -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd patient-care-v043-standalone-mobile.html
 
 echo.
 set "COMMIT_MESSAGE="
 set /p "COMMIT_MESSAGE=Commit message [Patient Care v043]: "
 if not defined COMMIT_MESSAGE set "COMMIT_MESSAGE=Patient Care v043"
 
-git -C "%REPO_ROOT%" add -A -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd
+git -C "%REPO_ROOT%" add -- index.html styles.css app.js data README.md VERSION.txt PATIENT_CARE_CORE.md PATIENT_CARE_SHARED_LANGUAGE.md docs upload_to_github.cmd patient-care-v043-standalone-mobile.html
 if errorlevel 1 goto :git_fail
-if defined STANDALONE_NAME (
-  git -C "%REPO_ROOT%" add -A -- "%STANDALONE_NAME%"
-  if errorlevel 1 goto :git_fail
-) else (
-  echo No standalone mobile HTML file was found. Continuing without it.
-)
 
 git -C "%REPO_ROOT%" diff --cached --quiet
 if errorlevel 1 (

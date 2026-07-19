@@ -2,7 +2,7 @@
 window.PATIENT_CARE_CONTENT = {
   "meta": {
     "schemaVersion": 21,
-    "contentVersion": "v043",
+    "contentVersion": "v044",
     "offlineOnly": true,
     "referencesVisible": false,
     "contentBatch": "FEATURE_SLEEP_HEAL_WIZARD",
@@ -378,8 +378,6 @@ window.PATIENT_CARE_CONTENT = {
         "launchLabel": "Start Sleep Wizard",
         "resumeLabel": "Review my Sleep Wizard",
         "notice": "This wizard organizes educational options. It does not diagnose a sleep disorder or replace individualized medical advice.",
-        "manualTitle": "Or choose tasks manually",
-        "manualIntro": "The full Sleep task list remains available below. Add or remove any task at any time.",
         "backLabel": "Back",
         "nextLabel": "Next",
         "resultsLabel": "Build my actions",

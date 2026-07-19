@@ -305,13 +305,6 @@ function renderSleepWizardLaunch(item){
     </div>
   </section>`;
 }
-function renderSleepManualPath(item){
-  const wizard=item.wizard;
-  return `<section class="sleep-manual-path">
-    <div class="sleep-manual-head"><p class="eyebrow">MANUAL CHOICES</p><h3>${esc(wizard.manualTitle)}</h3><p>${esc(wizard.manualIntro)}</p></div>
-    ${renderActionPath(item)}
-  </section>`;
-}
 function cloneWizardSelections(value){
   const base={conditions:[],schedule:[],patterns:[],factors:[]};
   return Object.fromEntries(Object.keys(base).map(key=>[key,Array.isArray(value?.[key])?[...value[key]]:[]]));
@@ -462,7 +455,7 @@ function renderShineTopic(id){
     ${healHabitRows(s.healLinks,headings.habits,s.habitIntro)}
     ${conditionRows(s.drLinks,headings.conditions)}
     ${s.id==='sleep'?renderSleepWizardLaunch(s):''}
-    ${s.id==='sleep'?renderSleepManualPath({...s,section:'SHINE',sectionId:'shine'}):renderActionPath({...s,section:'SHINE',sectionId:'shine'})}
+    ${s.id==='sleep'?'':renderActionPath({...s,section:'SHINE',sectionId:'shine'})}
   </section></div>`;
 }
 function renderHeal(){
@@ -1143,7 +1136,7 @@ function download(){
   const blob=new Blob([JSON.stringify(profile(),null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='patient-care-v043-your-plan.json';
+  a.download='patient-care-v044-your-plan.json';
   a.click();
   URL.revokeObjectURL(a.href);
 }
