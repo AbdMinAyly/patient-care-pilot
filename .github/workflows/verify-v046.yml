@@ -1,0 +1,124 @@
+name: Verify v046 SHINE Focus Foundation
+
+on:
+  pull_request:
+    branches:
+      - v045-clarity-pass
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Apply v046 source build once
+        id: build
+        shell: bash
+        run: |
+          if [ "$(cat VERSION.txt)" != "v046" ] || [ ! -f docs/product/V046_SHINE_FOCUS_FOUNDATION.md ]; then
+            cat .github/v046-build.*.b64 | tr -d '\n' | base64 -d | gzip -d > /tmp/build_v046.py
+            sed -i "s#root=Path('/mnt/data/v046ws/repo')#root=Path.cwd()#" /tmp/build_v046.py
+            python3 /tmp/build_v046.py
+            echo "applied=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "applied=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Static and preservation verification
+        shell: bash
+        run: |
+          node --check app.js
+          test "$(node -e "global.window={};require('./data/content.js');process.stdout.write(window.PATIENT_CARE_CONTENT.meta.contentVersion)")" = "v046"
+          node -e "JSON.parse(require('fs').readFileSync('data/schema.json','utf8'));console.log('schema ok')"
+          git diff --check
+          cmp PATIENT_CARE_CORE.md docs/PATIENT_CARE_CORE.md
+          grep -Fq "const KEY = 'pc_pilot_v022_profile'" app.js
+          grep -Fq "version:22" app.js
+          grep -Fq "shineFocus" app.js
+          ! grep -Fq 'data-add="shine"' app.js
+          ! grep -R "clarity-v045" index.html app.js styles.css
+          git fetch origin v045-clarity-pass
+          node <<'NODE'
+          const fs=require('fs');
+          const vm=require('vm');
+          const cp=require('child_process');
+          function load(text){
+            const context={window:{}};
+            vm.createContext(context);
+            vm.runInContext(text,context);
+            return context.window.PATIENT_CARE_CONTENT;
+          }
+          const before=load(cp.execFileSync('git',['show','origin/v045-clarity-pass:data/content.js'],{encoding:'utf8'}));
+          const after=load(fs.readFileSync('data/content.js','utf8'));
+          const checks=[
+            ['shine',before.shine,after.shine],
+            ['healSections',before.healSections,after.healSections],
+            ['drSections',before.drSections,after.drSections],
+            ['dietBuilder.items',before.dietBuilder.items,after.dietBuilder.items],
+            ['dietBuilder.focusOptions',before.dietBuilder.focusOptions,after.dietBuilder.focusOptions],
+            ['meta.completedBatches',before.meta.completedBatches,after.meta.completedBatches],
+            ['meta.qualityReview',before.meta.qualityReview,after.meta.qualityReview]
+          ];
+          for(const [label,a,b] of checks){
+            if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('Clinical content changed: '+label);
+          }
+          console.log('clinical content preserved');
+          NODE
+
+      - name: Install browser verification runtime
+        shell: bash
+        run: |
+          mkdir -p /tmp/v046-browser
+          cd /tmp/v046-browser
+          npm init -y
+          npm install playwright@1.54.1
+          npx playwright install --with-deps chromium
+
+      - name: Browser, responsive, persistence, and print verification
+        shell: bash
+        run: |
+          set -o pipefail
+          cat .github/v046-verify.*.b64 | tr -d '\n' | base64 -d | gzip -d > /tmp/v046-browser/verify.mjs
+          python3 -m http.server 8766 --bind 127.0.0.1 > /tmp/v046-http.log 2>&1 &
+          sleep 2
+          cd /tmp/v046-browser
+          node verify.mjs 2>&1 | tee "$RUNNER_TEMP/v046-browser-report.txt"
+
+      - name: Upload browser verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v046-browser-report
+          path: ${{ runner.temp }}/v046-browser-report.txt
+          if-no-files-found: warn
+
+      - name: Commit verified v046 source
+        if: steps.build.outputs.applied == 'true' && success()
+        shell: bash
+        run: |
+          rm -f .github/v046-build.*.b64
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Patient Care v046 — SHINE Focus Foundation"
+          git push
+
+      - name: Remove temporary v046 verification helpers
+        if: steps.build.outputs.applied == 'false' && success()
+        shell: bash
+        run: |
+          rm -f .github/v046-verify.*.b64 .github/workflows/verify-v046.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Remove temporary v046 verification helpers"
+            git push
+          fi
