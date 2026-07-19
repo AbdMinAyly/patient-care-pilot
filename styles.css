@@ -1364,3 +1364,13 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 .progressive-support-list{display:grid;gap:14px}.quiet-profile-link{justify-self:start;color:var(--dr);font-weight:850}
 @media(max-width:520px){.progressive-start,.progressive-ready,.medical-suggestion,.progressive-support-list{padding:20px}.progressive-ready-actions,.medical-suggestion>div:last-child{grid-template-columns:1fr}}
 @media print{.progressive-start-button,.progressive-ready-actions,.medical-suggestion button,.quiet-profile-link{display:none!important}}
+
+
+/* Full local-data reset */
+[data-clear-all]{
+  border-color:#b42318!important;
+  background:#fff5f4!important;
+  color:#b42318!important;
+}
+[data-clear-all]:hover{background:#fee4e2!important}
+[data-clear-all]:focus-visible{outline:3px solid rgba(180,35,24,.28);outline-offset:3px}

@@ -476,6 +476,17 @@ function replaceShineFocus(existingId){
   closeShineFocusReplace();
   route();
 }
+function clearAllSavedData(){
+  localStorage.removeItem(KEY);
+  closePriorityWizard();
+  closeDietWizard();
+  document.getElementById('shine-focus-modal')?.remove();
+  document.getElementById('sleep-wizard-modal')?.remove();
+  document.body.classList.remove('wizard-open','focus-modal-open');
+  history.replaceState(null,'',location.pathname+location.search+'#/shine');
+  location.reload();
+}
+
 function clearPlanItems(){
   const p=profile();
   p.heal=[];
@@ -1120,7 +1131,7 @@ function renderPlanOverview(){
   const labels=DATA.plan.overview||{};
   const clarity=DATA.ui.clarity;
   const total=totalPlanItems(p);
-  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}<div class="plan-privacy">${esc(DATA.plan.privacy)}</div>${renderPlanShineFocusSummary(p)}${printSafetyNotice()}<section class="plan-overview"><div class="plan-overview-summary"><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel)}</span></div></div>${renderNextActions(p)}${total===0?`<div class="plan-empty">${esc(labels.empty)}</div>`:''}${planOverviewCards(p)}<div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems)}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath)}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan)}</button></div><details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions)}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup)}</button><button class="btn ghost danger" data-clear="1">${esc(shineFocusLabels().clearPlan)}</button></details></section></div>`;
+  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}<div class="plan-privacy">${esc(DATA.plan.privacy)}</div>${renderPlanShineFocusSummary(p)}${printSafetyNotice()}<section class="plan-overview"><div class="plan-overview-summary"><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel)}</span></div></div>${renderNextActions(p)}${total===0?`<div class="plan-empty">${esc(labels.empty)}</div>`:''}${planOverviewCards(p)}<div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems)}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath)}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan)}</button></div><details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions)}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup)}</button><button class="btn ghost danger" data-clear-all="1">Clear All Data</button></details></section></div>`;
 }
 function uniquePathItems(items){
   const seen=new Set();
@@ -1574,8 +1585,10 @@ document.addEventListener('click',e=>{
 
   if(e.target.closest('[data-download]')){download();return}
 
-  if(e.target.closest('[data-clear]')){
-    if(confirm(shineFocusLabels().clearPlanPrompt))clearPlanItems();
+  if(e.target.closest('[data-clear-all]')){
+    const confirmed=confirm('Clear all saved information and return the app to its first-use state? This cannot be undone.');
+    if(confirmed)clearAllSavedData();
+    return;
   }
 });
 

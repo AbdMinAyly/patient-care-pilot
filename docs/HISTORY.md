@@ -196,3 +196,11 @@ The following remain deferred unless explicitly requested:
 
 - SHINE now remains on a single Choose Your Priority action until the new priority wizard is explicitly completed.
 - Legacy SHINE focus selections no longer bypass the progressive-reveal entry screen.
+
+
+### Full local-data reset
+
+- Replaced the limited Clear Plan action with one Clear All Data control in Your Plan.
+- The reset removes the entire `pc_pilot_v022_profile` record, including wizard completion, guided profile answers, priorities, Diet setup, DR confirmations, saved topics, tasks, questions, notes, and food selections.
+- A destructive confirmation is required before deletion.
+- After confirmation, the app returns to the initial SHINE priority screen.
