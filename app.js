@@ -477,12 +477,14 @@ function replaceShineFocus(existingId){
   route();
 }
 function clearAllSavedData(){
-  localStorage.removeItem(KEY);
   closePriorityWizard();
   closeDietWizard();
   document.getElementById('shine-focus-modal')?.remove();
   document.getElementById('sleep-wizard-modal')?.remove();
   document.body.classList.remove('wizard-open','focus-modal-open');
+
+  Object.keys(localStorage).filter(key=>key===KEY||key.startsWith('pc_pilot_')).forEach(key=>localStorage.removeItem(key));
+
   shinePriorityStep=0;
   shinePriorityAnswers={};
   pendingShineFocusId=null;
@@ -497,8 +499,17 @@ function clearAllSavedData(){
   findScrollY=0;
   ironGuideIntent=null;
   pendingDietFoodId=null;
+  sleepWizardState=null;
+  sleepWizardStep=0;
+
+  const leftovers=Object.keys(localStorage).filter(key=>key===KEY||key.startsWith('pc_pilot_'));
+  if(leftovers.length){
+    alert('Reset could not remove all Patient Care data. Please close and reopen the app, then try again.');
+    return;
+  }
+
   history.replaceState(null,'',location.pathname+location.search+'#/shine');
-  renderShine();
+  location.reload();
 }
 
 function clearPlanItems(){
@@ -673,7 +684,7 @@ function renderShine(){
   setActive('shine');
   const p=profile();
   const c=guidedConfig().shine;
-  if(p.guided.shineCompleted!==true){
+  if(profile().guided.shineCompleted!==true){
     app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');
     return;
   }
