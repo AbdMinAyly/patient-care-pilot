@@ -1,0 +1,26 @@
+name: Export v045 workspace
+
+on:
+  push:
+    branches:
+      - v045-clarity-pass
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create workspace archive
+        run: |
+          zip -r patient-care-v045-workspace.zip . -x '.git/*'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patient-care-v045-workspace
+          path: patient-care-v045-workspace.zip
+          if-no-files-found: error
