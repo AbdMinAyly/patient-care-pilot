@@ -168,3 +168,13 @@ The following remain deferred unless explicitly requested:
 - HEAL and DR detail pages return to their section, not directly to the home screen.
 - Diet guidance returns to Diet; Diet returns to HEAL.
 - All back controls use one shared icon-and-label component with no raw arrow text.
+
+
+### Guided homes and Shinopedia
+
+- SHINE now begins with a three-question priority wizard that suggests one primary and one secondary visible researched focus.
+- HEAL now presents Diet, Routine, and deferred Exercise builders instead of the full section library.
+- DR now begins with an optional medical-profile selector and reveals only relevant support builders.
+- Shinopedia is the dedicated full-library tab for SHINE, HEAL, DR, urgent, medication, supplement, tracking, task, and question destinations.
+- Existing content, IDs, routes, profile version 22, storage key, dosing locks, placeholder exclusion, and offline behavior remain unchanged.
+- The standalone Sleep Wizard is no longer shown; sleep support is reached through SHINE priority and the HEAL Routine builder.

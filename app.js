@@ -308,6 +308,7 @@ function defaultProfile(){
     questions:[],
     planTasks:[],
     sleepWizard:{conditions:[],schedule:[],patterns:[],factors:[]},
+    guided:{shineAnswers:{},routineChoices:[],medicalProfile:[]},
     planNotes:{daily:'',food:'',treatment:'',doctor:''},
     createdAt:new Date().toISOString()
   };
@@ -338,6 +339,7 @@ function profile(){
         patterns:Array.isArray(parsed.sleepWizard?.patterns)?parsed.sleepWizard.patterns:[],
         factors:Array.isArray(parsed.sleepWizard?.factors)?parsed.sleepWizard.factors:[]
       },
+      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[]},
       planNotes:{...base.planNotes,...(parsed.planNotes||{})}
     };
   }catch(e){
@@ -487,7 +489,7 @@ function clearPlanItems(){
 }
 
 function setActive(mode){
-  ['shine','heal','dr','summary'].forEach(m=>{
+  ['shine','heal','dr','pedia','summary'].forEach(m=>{
     const el=document.getElementById('nav-'+m);
     if(!el)return;
     el.className='navbtn'+(m===mode?' active-'+m:'');
@@ -529,9 +531,67 @@ function sectionCards(sections,area){
   }).join('');
 }
 
+// BEGIN GUIDED HOMES AND SHINOPEDIA
+let shinePriorityStep=0;
+let shinePriorityAnswers={};
+function guidedConfig(){return DATA.guidedExperience||{}}
+function scoreShinePriority(){
+  const scores={};
+  Object.entries(shinePriorityAnswers).forEach(([questionId,optionId])=>{
+    const question=guidedConfig().shine.questions.find(q=>q.id===questionId);
+    const option=question?.options.find(o=>o.id===optionId);
+    Object.entries(option?.scores||{}).forEach(([id,value])=>scores[id]=(scores[id]||0)+value);
+  });
+  return visibleShineTopics().map((topic,index)=>({topic,score:scores[topic.id]||0,index})).sort((a,b)=>(b.score-a.score)||(a.index-b.index)).slice(0,2).map(x=>x.topic);
+}
+function renderPriorityWizard(){
+  const c=guidedConfig().shine;
+  const question=c.questions[shinePriorityStep];
+  const results=shinePriorityStep>=c.questions.length?scoreShinePriority():[];
+  const modal=document.getElementById('priority-wizard')||document.createElement('div');
+  modal.id='priority-wizard';modal.className='guided-modal';
+  modal.innerHTML=`<div class="guided-backdrop" data-close-priority="1"></div><section class="guided-dialog" role="dialog" aria-modal="true" aria-labelledby="priority-title"><button class="guided-close" data-close-priority="1" aria-label="Close">×</button><p class="eyebrow">SHINE PRIORITY</p><h2 id="priority-title">${esc(c.title)}</h2>${question?`<div class="guided-progress"><span style="width:${((shinePriorityStep+1)/c.questions.length)*100}%"></span></div><h3>${esc(question.title)}</h3><div class="guided-options">${question.options.map(option=>`<button type="button" class="guided-option ${shinePriorityAnswers[question.id]===option.id?'selected':''}" data-priority-question="${esc(question.id)}" data-priority-option="${esc(option.id)}">${esc(option.label)}</button>`).join('')}</div><div class="guided-actions"><button class="btn ghost" data-priority-back="1" ${shinePriorityStep===0?'disabled':''}>Previous</button><button class="btn shine" data-priority-next="1" ${shinePriorityAnswers[question.id]?'':'disabled'}>${shinePriorityStep===c.questions.length-1?'See recommendation':'Continue'}</button></div>`:`<div class="priority-result"><h3>${esc(c.resultTitle)}</h3>${results.map((topic,index)=>`<article class="priority-result-card ${index===0?'primary':'secondary'}"><small>${esc(index===0?c.primary:c.secondary)}</small><strong>${esc(topic.title)}</strong><p>${esc(topic.subtitle)}</p></article>`).join('')}<div class="guided-actions"><button class="btn ghost" data-priority-retake="1">${esc(c.retake)}</button><button class="btn shine" data-priority-apply="1">${esc(c.apply)}</button></div></div>`}</section>`;
+  if(!modal.isConnected)document.body.appendChild(modal);
+}
+function closePriorityWizard(){document.getElementById('priority-wizard')?.remove()}
+function renderPriorityLauncher(){
+  const c=guidedConfig().shine,topics=selectedShineFocusTopics();
+  return `<section class="guided-launch priority-launch"><div><p class="eyebrow">START HERE</p><h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p>${topics.length?`<div class="priority-current"><span><b>${esc(c.primary)}:</b> ${esc(topics[0].title)}</span>${topics[1]?`<span><b>${esc(c.secondary)}:</b> ${esc(topics[1].title)}</span>`:''}</div>`:''}</div><button class="btn shine" data-open-priority="1">${esc(c.start)}</button></section>`;
+}
+function shinePriorityRank(topic){const ids=selectedShineFocus();return ids.indexOf(topic.id)}
+function renderGuidedShineCard(topic){
+  if(isPlaceholder(topic))return renderShineFocusHomeCard(topic);
+  const rank=shinePriorityRank(topic),label=rank===0?guidedConfig().shine.primary:rank===1?guidedConfig().shine.secondary:'';
+  return `<article class="card mode-card shine shine-focus-card guided-shine-card ${rank===0?'priority-primary':rank===1?'priority-secondary':''}">${label?`<span class="priority-tab">${esc(label)}</span>`:''}<a class="shine-card-link" href="#/shine/${esc(topic.id)}"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p></a></article>`;
+}
+function renderBuilderCard(builder){
+  const disabled=builder.disabled;
+  return `<article class="guided-builder-card ${disabled?'disabled':''}"><span class="builder-icon">${esc(builder.icon)}</span><div><h3>${esc(builder.title)}</h3><p>${esc(builder.text)}</p></div>${disabled?`<span class="coming-soon">${esc(DATA.ui.clarity.comingSoon)}</span>`:`<a class="btn ghost button-link" href="${esc(builder.route)}">Open builder</a>`}</article>`;
+}
+function renderRoutineBuilder(){
+  setActive('heal');const c=guidedConfig().routine,p=profile(),selected=new Set(p.guided.routineChoices||[]);
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail heal guided-page">${renderBackControl('#/heal','HEAL','heal')}<p class="eyebrow">HEAL BUILDER</p><h1>${esc(c.title)}</h1><p class="lead">${esc(c.intro)}</p><div class="guided-check-grid">${c.choices.map(choice=>`<label class="guided-check"><input type="checkbox" data-routine-choice="${esc(choice.id)}" ${selected.has(choice.id)?'checked':''}><span><strong>${esc(choice.label)}</strong></span></label>`).join('')}</div><button class="btn heal" data-save-routine="1">${esc(c.save)}</button>${selected.size?renderRoutineResults([...selected]):''}</section></div>`;
+}
+function renderRoutineResults(ids){
+  const c=guidedConfig().routine,targets=[...new Set(c.choices.filter(x=>ids.includes(x.id)).flatMap(x=>x.targets||[]))].map(findHeal).filter(x=>x&&!isPlaceholder(x));
+  return `<section class="guided-results"><h2>${esc(c.saved)}</h2>${targets.length?targets.map(item=>`<a class="guided-result-link" href="#/heal/item/${esc(item.id)}"><strong>${esc(item.title)}</strong><span>${esc(item.section)}</span></a>`).join(''):`<p>${esc(c.empty)}</p>`}</section>`;
+}
+function renderMedicalProfile(){
+  setActive('dr');const c=guidedConfig().dr,p=profile(),selected=new Set(p.guided.medicalProfile||[]);
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail dr guided-page">${renderBackControl('#/dr','DR','dr')}<p class="eyebrow">DR PROFILE</p><h1>${esc(c.title)}</h1><p class="lead">${esc(c.intro)}</p><div class="guided-check-grid">${c.options.map(option=>`<label class="guided-check"><input type="checkbox" data-medical-profile="${esc(option.id)}" ${selected.has(option.id)?'checked':''}><span><strong>${esc(option.label)}</strong></span></label>`).join('')}</div><button class="btn dr" data-save-medical-profile="1">${esc(c.save)}</button></section></div>`;
+}
+function medicalBuilderCards(){
+  const c=guidedConfig().dr,p=profile();
+  return (p.guided.medicalProfile||[]).map(id=>c.builders[id]).filter(Boolean).map(builder=>`<article class="guided-builder-card medical"><div><h3>${esc(builder.title)}</h3><p>${esc(builder.text)}</p></div><a class="btn ghost button-link" href="${esc(builder.route)}">Open</a></article>`).join('');
+}
+function renderPedia(filter=''){
+  setActive('pedia');const c=guidedConfig().pedia,cards=filter?c.cards.filter(x=>x.id===filter||filter==='heal'&&['diet','supplements'].includes(x.id)):c.cards;
+  app.innerHTML=`<div class="screen">${hero('summary',c.title,c.intro)}<section class="pedia-grid">${cards.map(card=>`<a class="pedia-card" href="${esc(card.route)}"><span>${esc(card.title)}</span><p>${esc(card.text)}</p></a>`).join('')}</section></div>`;
+}
+// END GUIDED HOMES AND SHINOPEDIA
 function renderShine(){
   setActive('shine');
-  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderShineFocusIntro()}${renderFindEntry()}<section class="grid shine-focus-grid">${DATA.shine.map(renderShineFocusHomeCard).join('')}</section></div>`;
+  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderPriorityLauncher()}<section class="grid shine-focus-grid">${DATA.shine.map(renderGuidedShineCard).join('')}</section></div>`;
 }
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
 function sleepWizardSelectionCount(state=profile().sleepWizard){
@@ -708,18 +768,16 @@ function renderShineTopic(id){
     <div class="info-card"><h3>${esc(headings.negative||('3. How weak '+topic.title+' affects SHINE'))}</h3>${connectionRows(topic.bad||[],topic.id)}</div>
     ${healHabitRows(topic.healLinks,headings.habits,topic.habitIntro)}
     ${conditionRows(topic.drLinks,headings.conditions)}
-    ${topic.id==='sleep'?renderSleepWizardLaunch(topic):renderActionPath({...topic,section:'SHINE',sectionId:'shine'})}
+    ${renderActionPath({...topic,section:'SHINE',sectionId:'shine'})}
   </section></div>`;
 }
 function renderHeal(){
-  setActive('heal');
-  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}${renderFindEntry()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.heal)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptHeal)}</div></div></section><section class="grid">${sectionCards(DATA.healSections,'heal')}</section></div>`;
-  setupSearch('heal');
+  setActive('heal');const c=guidedConfig().heal;
+  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}<section class="guided-home-head"><p class="eyebrow">GUIDED BUILDERS</p><h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p></section><section class="guided-builder-grid">${c.builders.map(renderBuilderCard).join('')}</section><a class="library-link-card" href="#/pedia/heal"><strong>Browse all HEAL topics</strong><span>Open Shinopedia</span></a></div>`;
 }
 function renderDr(){
-  setActive('dr');
-  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}${renderFindEntry()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.dr)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptDr)}</div></div></section><section class="grid">${sectionCards(DATA.drSections,'dr')}</section></div>`;
-  setupSearch('dr');
+  setActive('dr');const c=guidedConfig().dr,p=profile(),hasProfile=(p.guided.medicalProfile||[]).length>0;
+  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}<section class="guided-launch medical-launch"><div><p class="eyebrow">START HERE</p><h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p></div><a class="btn dr button-link" href="#/dr/profile">${esc(hasProfile?c.update:c.start)}</a></section>${hasProfile?`<section class="guided-builder-grid">${medicalBuilderCards()}</section>`:''}<a class="library-link-card" href="#/pedia"><strong>Browse all medical topics</strong><span>Open Shinopedia</span></a></div>`;
 }
 function renderList(area,id){
   if(area==='heal'&&id==='diet')return renderDietBuilder();
@@ -1353,6 +1411,16 @@ function showToast(text){
 }
 
 document.addEventListener('click',e=>{
+  if(e.target.closest('[data-open-priority]')){shinePriorityStep=0;shinePriorityAnswers={...profile().guided.shineAnswers};renderPriorityWizard();return}
+  if(e.target.closest('[data-close-priority]')){closePriorityWizard();return}
+  const priorityOption=e.target.closest('[data-priority-option]');if(priorityOption){shinePriorityAnswers[priorityOption.dataset.priorityQuestion]=priorityOption.dataset.priorityOption;renderPriorityWizard();return}
+  if(e.target.closest('[data-priority-next]')){shinePriorityStep++;renderPriorityWizard();return}
+  if(e.target.closest('[data-priority-back]')){shinePriorityStep=Math.max(0,shinePriorityStep-1);renderPriorityWizard();return}
+  if(e.target.closest('[data-priority-retake]')){shinePriorityStep=0;shinePriorityAnswers={};renderPriorityWizard();return}
+  if(e.target.closest('[data-priority-apply]')){const p=profile();p.shineFocus=scoreShinePriority().map(x=>x.id);p.guided.shineAnswers={...shinePriorityAnswers};saveProfile(p);closePriorityWizard();renderShine();return}
+  if(e.target.closest('[data-save-routine]')){const p=profile();p.guided.routineChoices=[...document.querySelectorAll('[data-routine-choice]:checked')].map(x=>x.dataset.routineChoice);saveProfile(p);renderRoutineBuilder();return}
+  if(e.target.closest('[data-save-medical-profile]')){const p=profile();p.guided.medicalProfile=[...document.querySelectorAll('[data-medical-profile]:checked')].map(x=>x.dataset.medicalProfile);saveProfile(p);renderDr();return}
+
   const core=e.target.closest('[data-scroll-core]');
   if(core){
     location.hash='#/plan/core/'+core.dataset.scrollCore;
@@ -1535,13 +1603,16 @@ function route(){
   const hash=location.hash||'#/shine';
   const [mode,a,b]=hash.replace('#/','').split('/');
   let result;
-  if(mode==='find')result=renderFind();
+  if(mode==='pedia')result=renderPedia(a||'');
+  else if(mode==='find')result=renderFind();
   else if(mode==='guide'&&a==='iron')result=renderIronGuide();
   else if(mode==='shine'&&a)result=renderShineTopic(a);
   else if(mode==='shine')result=renderShine();
+  else if(mode==='heal'&&a==='routine')result=renderRoutineBuilder();
   else if(mode==='heal'&&a==='item')result=renderItem('heal',b);
   else if(mode==='heal'&&a)result=renderList('heal',a);
   else if(mode==='heal')result=renderHeal();
+  else if(mode==='dr'&&a==='profile')result=renderMedicalProfile();
   else if(mode==='dr'&&a==='item')result=renderItem('dr',b);
   else if(mode==='dr'&&a)result=renderList('dr',a);
   else if(mode==='dr')result=renderDr();

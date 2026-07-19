@@ -14238,4 +14238,89 @@ window.PATIENT_CARE_CONTENT = {
       "eyebrow": "Guide"
     }
   }
+
+  ,"guidedExperience": {
+    "shine": {
+      "title": "Choose Your Priority",
+      "intro": "Answer three short questions. Patient Care will suggest one primary and one secondary SHINE focus. You can still change either choice.",
+      "start": "Choose Your Priority",
+      "questions": [
+        {"id":"day","title":"What is affecting your day most?","options":[{"id":"tired","label":"Low energy or poor sleep","scores":{"sleep":3,"nutrition":1}},{"id":"stress","label":"Stress, mood, or motivation","scores":{"happiness":3,"sleep":1}},{"id":"illness","label":"Frequent illness or recovery","scores":{"immunity":3,"sleep":1}},{"id":"food","label":"Eating patterns or food choices","scores":{"nutrition":3,"immunity":1}}]},
+        {"id":"goal","title":"What would you most like to improve first?","options":[{"id":"rest","label":"Rest and daytime alertness","scores":{"sleep":3}},{"id":"cope","label":"Coping and emotional balance","scores":{"happiness":3}},{"id":"defense","label":"Healthy recovery and prevention habits","scores":{"immunity":3}},{"id":"meals","label":"Regular, balanced eating","scores":{"nutrition":3}}]},
+        {"id":"change","title":"Which change feels most realistic this week?","options":[{"id":"bedtime","label":"Adjust my sleep routine","scores":{"sleep":2}},{"id":"pause","label":"Add a calming or enjoyable activity","scores":{"happiness":2}},{"id":"protect","label":"Improve prevention and recovery habits","scores":{"immunity":2}},{"id":"plate","label":"Improve one meal or food habit","scores":{"nutrition":2}}]}
+      ],
+      "resultTitle": "Recommended focus",
+      "primary": "Primary priority",
+      "secondary": "Secondary priority",
+      "apply": "Use these focuses",
+      "retake": "Retake questions"
+    },
+    "heal": {
+      "title": "Build Your Daily Support",
+      "intro": "Start with one builder. Completed builders stay available to view or update.",
+      "builders": [
+        {"id":"diet","title":"Build Your Diet","text":"Choose food goals, meal types, preferences, and practical limits.","route":"#/heal/diet","icon":"🍽️"},
+        {"id":"routine","title":"Build Your Routine","text":"Create a small morning, daytime, evening, and sleep routine from existing HEAL actions.","route":"#/heal/routine","icon":"🗓️"},
+        {"id":"exercise","title":"Build Your Exercise Plan","text":"Exercise guidance will open after the research batch is completed.","route":"","icon":"🏃","disabled":true}
+      ]
+    },
+    "routine": {
+      "title":"Build Your Routine",
+      "intro":"Choose the areas that need the most structure. The result links to existing HEAL education; it does not create treatment instructions.",
+      "choices":[
+        {"id":"morning","label":"Morning start","targets":["sleep-schedule","hydration-support"]},
+        {"id":"daytime","label":"Daytime energy and consistency","targets":["sleep-daylight-activity","meal-planning"]},
+        {"id":"evening","label":"Evening wind-down","targets":["sleep-wind-down","sleep-food-caffeine"]},
+        {"id":"sleep","label":"Sleep environment","targets":["sleep-environment"]},
+        {"id":"stress","label":"Stress and recovery","targets":["stress-management"]}
+      ],
+      "save":"Save Routine",
+      "saved":"Your Routine",
+      "empty":"Choose at least one routine area."
+    },
+    "dr": {
+      "title":"Build Your Medical Profile",
+      "intro":"Select only areas you already know you are managing or want education about. This does not diagnose a condition.",
+      "start":"Build Your Medical Profile",
+      "update":"Update Medical Profile",
+      "options":[
+        {"id":"deficiency","label":"Supplement or nutrient deficiency"},
+        {"id":"chronic","label":"Chronic condition"},
+        {"id":"treatment","label":"Medication or treatment support"},
+        {"id":"weight","label":"Weight support"},
+        {"id":"tracking","label":"Symptoms or measurements to track"},
+        {"id":"appointment","label":"Preparing for an appointment"},
+        {"id":"tests","label":"Laboratory or test follow-up"},
+        {"id":"other","label":"Other health concern"}
+      ],
+      "save":"Save Medical Profile",
+      "builders": {
+        "deficiency":{"title":"Build Supplement Support","text":"Organize existing deficiency, supplement, food, side-effect, and follow-up education.","route":"#/pedia/supplements"},
+        "chronic":{"title":"Build Condition Support","text":"Browse chronic-condition education and save relevant actions or questions.","route":"#/pedia/chronic"},
+        "treatment":{"title":"Build Treatment Support","text":"Organize existing medication education, safety topics, and follow-up questions.","route":"#/pedia/medications"},
+        "weight":{"title":"Build Weight Support","text":"Connect Diet, Routine, tracking, and clinician-question tools without promising weight loss.","route":"#/heal/diet"},
+        "tracking":{"title":"Build Your Tracking Plan","text":"Choose existing symptom and measurement topics to follow without interpreting results.","route":"#/pedia/tracking"},
+        "appointment":{"title":"Build Your Questions","text":"Open saved questions and doctor-discussion actions for appointment preparation.","route":"#/plan/details"},
+        "tests":{"title":"Prepare for Test Follow-up","text":"Browse existing laboratory and follow-up education without interpreting results.","route":"#/pedia/tracking"},
+        "other":{"title":"Browse Medical Topics","text":"Use Shinopedia to find the relevant topic area.","route":"#/pedia"}
+      }
+    },
+    "pedia": {
+      "title":"Shinopedia",
+      "intro":"Browse the complete Patient Care library by category. Guided home screens stay simple; the full library lives here.",
+      "cards":[
+        {"id":"shine","title":"SHINE Topics","text":"Sleep, happiness, immunity, nutrition, and exercise.","route":"#/shine"},
+        {"id":"diet","title":"Diet and Habits","text":"Food guidance, daily habits, routines, and practical support.","route":"#/pedia/heal"},
+        {"id":"symptoms","title":"Symptoms","text":"Existing symptom education and warning signs.","route":"#/dr/symptoms"},
+        {"id":"acute","title":"Acute Conditions","text":"Short-term illnesses and acute health information.","route":"#/dr/acute"},
+        {"id":"chronic","title":"Chronic Conditions","text":"Long-term condition education and support topics.","route":"#/dr/chronic"},
+        {"id":"medications","title":"Medications","text":"Medication education with dosing kept hidden.","route":"#/dr/medications"},
+        {"id":"supplements","title":"Vitamins, Minerals, and Deficiencies","text":"Supplement and nutrient-deficiency education.","route":"#/heal/supplements"},
+        {"id":"tracking","title":"Tests and Tracking","text":"Normal-range, measurement, laboratory, and follow-up topics.","route":"#/heal/vitals"},
+        {"id":"urgent","title":"Urgent Help","text":"Emergency and urgent warning information.","route":"#/dr/er"},
+        {"id":"plan","title":"Tasks and Questions","text":"Review saved actions, tasks, notes, and questions.","route":"#/plan/details"}
+      ]
+    }
+  }
+
 };
