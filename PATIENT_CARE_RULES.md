@@ -131,3 +131,8 @@ Validation must fail closed using the existing content-error screen when require
 This pilot uses one repository and one active branch: `main`. Make requested edits directly to `main` unless the user explicitly requests another workflow. Do not create branches, pull requests, forks, clones, releases, or version repositories without explicit instruction.
 
 Git history remains the recovery mechanism. Do not rewrite or flatten history merely to make the repository look cleaner.
+
+
+## Find and Guide Pattern — v047
+
+Find uses deterministic local search over visible researched content. It helps users locate education but does not diagnose symptoms, interpret tests, or select treatment. Guides may organize existing researched pages and Action Path tasks, but must not create new clinical instructions. SHINE Focus may provide secondary context but must never override safety, exact search matches, or urgent-help visibility.

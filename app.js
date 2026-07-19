@@ -1,3 +1,4 @@
+// IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
 const DATA = window.PATIENT_CARE_CONTENT;
 const KEY = 'pc_pilot_v022_profile';
 const app = document.getElementById('app');
@@ -139,12 +140,38 @@ function validateContent(data){
     });
   }
 
+
+  const normalizeAliasTerm=value=>String(value||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[-‐‑–—]/g,' ').replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();
+  const search=data.search;
+  if(!search||!Number.isInteger(search.resultLimit)||search.resultLimit<1)errors.push('Search configuration or result limit is invalid.');
+  else{
+    const aliasTerms=new Set();
+    (search.aliases||[]).forEach(alias=>{
+      const term=normalizeAliasTerm(alias.term);
+      if(!term||aliasTerms.has(term))errors.push('Duplicate or invalid search alias: '+alias.term);
+      aliasTerms.add(term);
+      (alias.targetIds||[]).forEach(id=>{
+        const target=entities.find(x=>x.item.id===id)?.item;
+        if(!target)errors.push('Search alias has a missing target: '+id);
+        else if(isPlaceholder(target))errors.push('Search alias targets a placeholder: '+id);
+      });
+    });
+  }
+  const ironGuide=data.guides?.iron;
+  if(!ironGuide||!Number.isInteger(ironGuide.primaryLimit)||ironGuide.primaryLimit<1)errors.push('Iron Learning Guide configuration is invalid.');
+  else Object.values(ironGuide.recommendations||{}).flat().forEach(rec=>{
+    if(rec.entityId){const target=entities.find(x=>x.item.id===rec.entityId)?.item;if(!target||isPlaceholder(target))errors.push('Iron Guide has an invalid entity target: '+rec.entityId)}
+    else if(rec.foodId){const target=(data.dietBuilder?.items||[]).find(x=>x.id===rec.foodId);if(!target||isPlaceholder(target))errors.push('Iron Guide has an invalid food target: '+rec.foodId)}
+    else {const entity=entities.find(x=>x.item.id===rec.itemId)?.item;const task=entity?.actionPath?.[rec.group]?.find(x=>x.id===rec.taskId);if(!task)errors.push('Iron Guide has a broken task reference.');}
+  });
+  if(sleepWizard&&!Number.isInteger(sleepWizard.presentation?.primaryLimit))errors.push('Sleep Wizard primary result limit is invalid.');
+
   const scanForUrls=(value,path)=>{
     if(typeof value==='string' && /https?:\/\//i.test(value))errors.push('Patient content contains an online URL at '+path+'.');
     else if(Array.isArray(value))value.forEach((v,i)=>scanForUrls(v,path+'['+i+']'));
     else if(value&&typeof value==='object')Object.entries(value).forEach(([k,v])=>scanForUrls(v,path+'.'+k));
   };
-  ['ui','shine','healSections','drSections','plan','dietBuilder'].forEach(key=>scanForUrls(data[key],key));
+  ['ui','shine','healSections','drSections','plan','dietBuilder','search','guides'].forEach(key=>scanForUrls(data[key],key));
 
   const printSafety=data.plan?.printSafety;
   if(!printSafety || !['title','text','followUp'].every(key=>String(printSafety[key]||'').trim())){
@@ -493,7 +520,7 @@ function sectionCards(sections,area){
 
 function renderShine(){
   setActive('shine');
-  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderShineFocusIntro()}<section class="grid shine-focus-grid">${DATA.shine.map(renderShineFocusHomeCard).join('')}</section></div>`;
+  app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderShineFocusIntro()}${renderFindEntry()}<section class="grid shine-focus-grid">${DATA.shine.map(renderShineFocusHomeCard).join('')}</section></div>`;
 }
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
 function sleepWizardSelectionCount(state=profile().sleepWizard){
@@ -581,19 +608,22 @@ function sleepWizardChoiceSummary(){
 function renderSleepWizardResults(){
   const wizard=sleepWizardConfig();
   const recommendations=matchingSleepWizardRecommendations();
-  const grouped=wizard.categories.map(category=>({category,items:recommendations.filter(rec=>rec.category===category.id)})).filter(group=>group.items.length);
-  const unsaved=recommendations.filter(rec=>!taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId));
+  const presentation=wizard.presentation||{};
+  const limit=presentation.primaryLimit||3;
+  const primary=recommendations.slice(0,limit);
+  const hidden=recommendations.slice(limit);
+  const renderCard=rec=>{
+    const saved=taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId);
+    return `<article class="sleep-wizard-result-card"><div><strong>${esc(rec.task.title)}</strong><p>${esc(rec.reason)}</p><small>From ${esc(rec.task.itemTitle)}</small></div><button class="task-add ${saved?'saved':''}" data-add-task="1" data-origin="sleep-wizard" data-item="${esc(rec.task.itemId)}" data-group="${esc(rec.task.group)}" data-task="${esc(rec.task.taskId)}">${saved?'Added ✓':'Add to plan'}</button></article>`;
+  };
+  const unsaved=primary.filter(rec=>!taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId));
+  const hiddenLabel=String(presentation.hiddenCountLabel||'{count} additional matched actions').replace('{count}',hidden.length).replace('{suffix}',hidden.length===1?'':'s');
   return `<div class="sleep-wizard-results">
     <div class="sleep-wizard-results-head"><p class="eyebrow">YOUR MATCHED HEAL ACTIONS</p><h3>${esc(wizard.resultsTitle)}</h3><p>${esc(wizard.resultsIntro)}</p></div>
     ${sleepWizardChoiceSummary()}
-    <div class="sleep-wizard-result-groups">${grouped.map(({category,items})=>`<section class="sleep-wizard-result-group">
-      <h4><span>${esc(category.icon)}</span>${esc(category.title)}</h4>
-      ${items.map(rec=>{
-        const saved=taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId);
-        return `<article class="sleep-wizard-result-card"><div><strong>${esc(rec.task.title)}</strong><p>${esc(rec.reason)}</p><small>From ${esc(rec.task.itemTitle)}</small></div><button class="task-add ${saved?'saved':''}" data-add-task="1" data-origin="sleep-wizard" data-item="${esc(rec.task.itemId)}" data-group="${esc(rec.task.group)}" data-task="${esc(rec.task.taskId)}">${saved?'Added ✓':'Add to plan'}</button></article>`;
-      }).join('')}
-    </section>`).join('')}</div>
-    <button class="btn sleep-wizard-add-all" data-wizard-add-all="1" ${unsaved.length?'':'disabled'}>${esc(unsaved.length?(wizard.addAllLabel||'Add all shown actions'):(wizard.addedAllLabel||'All shown actions added'))}</button>
+    <div class="sleep-wizard-result-groups">${primary.map(renderCard).join('')}</div>
+    ${hidden.length?`<details class="wizard-more-actions"><summary>${esc(presentation.moreMatchedActions||'More matched actions')} <span>${esc(hiddenLabel)}</span></summary><div>${hidden.map(renderCard).join('')}</div></details>`:''}
+    <button class="btn sleep-wizard-add-all" data-wizard-add-all="1" ${unsaved.length?'':'disabled'}>${esc(unsaved.length?(presentation.addShownActions||'Add shown actions'):(wizard.addedAllLabel||'All shown actions added'))}</button>
   </div>`;
 }
 function renderSleepWizardModal(){
@@ -634,16 +664,10 @@ function toggleSleepWizardOption(stepId,optionId){
   renderSleepWizardModal();
 }
 function addAllSleepWizardRecommendations(){
-  const recs=matchingSleepWizardRecommendations();
-  const p=profile();
-  p.planTasks=p.planTasks||[];
-  let added=0;
-  recs.forEach(rec=>{
-    if(!p.planTasks.some(task=>task.key===rec.task.key)){
-      p.planTasks.push({...rec.task,origin:'sleep-wizard'});
-      added++;
-    }
-  });
+  const limit=sleepWizardConfig()?.presentation?.primaryLimit||3;
+  const recs=matchingSleepWizardRecommendations().slice(0,limit);
+  const p=profile();p.planTasks=p.planTasks||[];let added=0;
+  recs.forEach(rec=>{if(!p.planTasks.some(task=>task.key===rec.task.key)){p.planTasks.push({...rec.task,origin:'sleep-wizard'});added++;}});
   saveProfile(p);
   showToast(added?`${added} Sleep action${added===1?'':'s'} added`:'All shown actions are already in Your Plan');
   renderSleepWizardModal();
@@ -677,12 +701,12 @@ function renderShineTopic(id){
 }
 function renderHeal(){
   setActive('heal');
-  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.heal)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptHeal)}</div></div></section><section class="grid">${sectionCards(DATA.healSections,'heal')}</section></div>`;
+  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}${renderFindEntry()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.heal)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptHeal)}</div></div></section><section class="grid">${sectionCards(DATA.healSections,'heal')}</section></div>`;
   setupSearch('heal');
 }
 function renderDr(){
   setActive('dr');
-  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.dr)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptDr)}</div></div></section><section class="grid">${sectionCards(DATA.drSections,'dr')}</section></div>`;
+  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}${renderFindEntry()}<section class="search"><input id="search" placeholder="${esc(DATA.ui.searchPlaceholders.dr)}"><div class="results" id="results"><div class="empty">${esc(DATA.ui.clarity.searchPromptDr)}</div></div></section><section class="grid">${sectionCards(DATA.drSections,'dr')}</section></div>`;
   setupSearch('dr');
 }
 function renderList(area,id){
@@ -763,7 +787,7 @@ function renderItem(area,id){
     ${renderFocusBadge(item.id)}
     <p class="eyebrow">${area.toUpperCase()} / ${esc(item.section)}</p>
     <h2>${esc(item.title)}</h2>
-    <p class="lead">${esc(item.subtitle)}</p>
+    <p class="lead">${esc(item.subtitle)}</p>${renderIronGuideEntry(item.id)}
     ${locked?`<div class="notice">${esc(DATA.ui.clarity.dosingNotice)}</div>`:''}
     ${renderImportantTeaching(item)}
     ${renderAtAGlance(item)}
@@ -1300,7 +1324,7 @@ function download(){
   const blob=new Blob([JSON.stringify(profile(),null,2)],{type:'application/json'});
   const anchor=document.createElement('a');
   anchor.href=URL.createObjectURL(blob);
-  anchor.download='patient-care-v046-your-plan.json';
+  anchor.download='patient-care-v047-your-plan.json';
   anchor.click();
   URL.revokeObjectURL(anchor.href);
 }
@@ -1335,6 +1359,11 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-wizard-next]')){sleepWizardStep=Math.min(sleepWizardStep+1,sleepWizardConfig()?.steps.length||0);renderSleepWizardModal();return}
   if(e.target.closest('[data-wizard-back]')){sleepWizardStep=Math.max(0,sleepWizardStep-1);renderSleepWizardModal();return}
   if(e.target.closest('[data-wizard-add-all]')){addAllSleepWizardRecommendations();return}
+
+
+  if(e.target.closest('[data-find-show-all]')){findShowAll=true;const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(input&&target)target.innerHTML=renderFindResults(searchEntities(input.value));return}
+  const guideIntent=e.target.closest('[data-guide-intent]');
+  if(guideIntent){ironGuideIntent=guideIntent.dataset.guideIntent;renderIronGuide();return}
 
   const addBtn=e.target.closest('[data-add]');
   if(addBtn){add(addBtn.dataset.add,addBtn.dataset.id);return}
@@ -1392,11 +1421,65 @@ document.addEventListener('click',e=>{
   }
 });
 
+
+// BEGIN V047 FIND AND GUIDE
+let findShowAll=false;
+let ironGuideIntent=null;
+function normalizeSearchText(value){return String(value||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[-‐‑–—]/g,' ').replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim()}
+function searchWords(value){return normalizeSearchText(value).split(' ').filter(Boolean)}
+function visibleResearched(item){return item&&item.contentStatus==='researched'&&!isPlaceholder(item)}
+function buildSearchIndex(){
+  const list=[];let order=0;
+  visibleShineTopics().filter(visibleResearched).forEach(item=>list.push({id:item.id,area:'shine',title:item.title,subtitle:item.subtitle,section:'SHINE',body:(item.why||[]).join(' '),route:`#/shine/${item.id}`,order:order++}));
+  rawHealItems().filter(visibleResearched).forEach(item=>list.push({...item,body:(item.body||[]).join(' '),route:`#/heal/item/${item.id}`,order:order++}));
+  rawDrItems().filter(visibleResearched).forEach(item=>list.push({...item,body:(item.body||[]).join(' '),route:`#/dr/item/${item.id}`,order:order++}));
+  (DATA.dietBuilder?.items||[]).filter(visibleResearched).forEach(item=>list.push({id:item.id,area:'food',title:item.title,subtitle:item.subtitle,section:DATA.search.resultTypes.food,body:[item.why,item.caution,...(item.roles||[])].join(' '),route:'#/heal/diet',food:item,order:order++}));
+  return list;
+}
+function aliasMatchesFor(query){const q=normalizeSearchText(query);return (DATA.search.aliases||[]).filter(alias=>normalizeSearchText(alias.term).includes(q)||q.includes(normalizeSearchText(alias.term)))}
+function scoreSearchResult(entity,query,aliasMatches){
+  const q=normalizeSearchText(query),title=normalizeSearchText(entity.title),subtitle=normalizeSearchText(entity.subtitle),section=normalizeSearchText(entity.section),body=normalizeSearchText(entity.body);
+  const exactAlias=aliasMatches.some(alias=>normalizeSearchText(alias.term)===q&&(alias.targetIds||[]).includes(entity.id));
+  const partialAlias=aliasMatches.some(alias=>(alias.targetIds||[]).includes(entity.id));
+  let score=title===q?700:exactAlias?650:title.startsWith(q)?600:searchWords(q).every(word=>searchWords(title).includes(word))?500:partialAlias?400:(subtitle+' '+section).includes(q)?300:body.includes(q)?100:0;
+  if(score&&entity.sectionId!=='er'&&focusBadgeForSearchEntity(entity))score+=1;
+  return score;
+}
+function dedupeSearchResults(results){const seen=new Set();return results.filter(result=>!seen.has(result.id)&&(seen.add(result.id),true))}
+function searchEntities(query){const q=normalizeSearchText(query);if(!q)return [];const aliases=aliasMatchesFor(q);return dedupeSearchResults(buildSearchIndex().map(entity=>({...entity,score:scoreSearchResult(entity,q,aliases)})).filter(x=>x.score>0).sort((a,b)=>(b.score-a.score)||(a.order-b.order)))}
+function focusBadgeForSearchEntity(entity){
+  if(entity.area!=='food')return focusBadgeForItem(entity.id);
+  const focusIds=selectedShineFocus();const matched=focusIds.filter(id=>(entity.food?.focus||[]).includes(id));
+  if(!matched.length)return null;const names=matched.map(id=>shineById[id]?.title).filter(Boolean).join(' + ');
+  return {relation:'relevant',text:String(DATA.search.focusRelevant||'Relevant to {focus}').replace('{focus}',names)};
+}
+function renderSearchFocusBadge(entity){const badge=focusBadgeForSearchEntity(entity);return badge?`<span class="focus-relevance-badge relevant">${esc(badge.text)}</span>`:''}
+function isIronGuideEntity(id){return (DATA.guides?.iron?.entryIds||[]).includes(id)}
+function renderIronGuideEntry(id){return isIronGuideEntity(id)?`<aside class="iron-guide-entry no-print"><a class="btn ghost button-link" href="#/guide/iron">${esc(DATA.search.ironGuideLink)}</a></aside>`:''}
+function renderFindEntry(){const s=DATA.search;return `<section class="find-entry no-print"><div><p class="eyebrow">FIND</p><h2>${esc(s.entryTitle)}</h2><p>${esc(s.entryText)}</p></div><a class="btn ghost button-link" href="#/find">${esc(s.entryAction)}</a></section>`}
+function renderFindResults(results){
+  const s=DATA.search,shown=findShowAll?results:results.slice(0,s.resultLimit);
+  if(!results.length)return `<div class="empty-state">${esc(s.noResults)}</div>`;
+  return `<div class="find-result-list">${shown.map(entity=>`<article class="find-result-row"><a href="${esc(entity.route)}">${renderSearchFocusBadge(entity)}<span class="find-result-type">${esc(s.resultTypes[entity.area])}${entity.sectionId==='er'?' · '+esc(s.urgentLabel):''}</span><strong>${esc(entity.title)}</strong><small>${esc(entity.section)} · ${esc(s.modeLabels[entity.area])}</small><p>${esc(entity.subtitle)}</p></a>${isIronGuideEntity(entity.id)?`<a class="iron-result-guide" href="#/guide/iron">${esc(s.ironGuideLink)}</a>`:''}</article>`).join('')}</div>${!findShowAll&&results.length>s.resultLimit?`<button class="btn ghost find-show-all" data-find-show-all="1">${esc(s.showAll)} (${results.length})</button>`:''}`;
+}
+function updateFindResults(){const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(!input||!target)return;const q=input.value;findShowAll=false;target.innerHTML=q.trim()?renderFindResults(searchEntities(q)):`<div class="empty-state">${esc(DATA.search.emptyState)}</div>`}
+function renderFind(){setActive('');const s=DATA.search;app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail find-screen"><p class="eyebrow">FIND</p><h1>${esc(s.title)}</h1><p class="lead">${esc(s.subtitle)}</p><div class="notice">${esc(s.safetyNotice)}</div><label class="find-label" for="find-query">${esc(s.title)}</label><input id="find-query" class="find-input" type="search" placeholder="${esc(s.placeholder)}" autocomplete="off"><div id="find-results"><div class="empty-state">${esc(s.emptyState)}</div></div></section></div>`;document.getElementById('find-query')?.addEventListener('input',updateFindResults)}
+function guideEntity(id){return findAnyEntity(id)}
+function guideRecommendationCard(rec){
+  if(rec.entityId){const item=guideEntity(rec.entityId);if(!item)return '';const route=item.area==='shine'?`#/shine/${item.id}`:`#/${item.area}/item/${item.id}`;return `<article class="guide-recommendation"><div><span>${esc(item.section||item.area.toUpperCase())}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="${route}">${esc(DATA.guides.iron.labels.openTopic)}</a></article>`;}
+  if(rec.foodId){const item=(DATA.dietBuilder.items||[]).find(x=>x.id===rec.foodId);if(!item)return '';return `<article class="guide-recommendation"><div><span>${esc(DATA.guides.iron.labels.foodIdea)}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="#/heal/diet">${esc(DATA.guides.iron.labels.openTopic)}</a></article>`;}
+  const task=findActionTask(rec.itemId,rec.group,rec.taskId);if(!task)return '';const saved=taskIsSaved(rec.itemId,rec.group,rec.taskId);return `<article class="guide-recommendation"><div><span>${esc(task.groupLabel)}</span><strong>${esc(task.title)}</strong><p>${esc(task.detail)}</p></div><button class="task-add ${saved?'saved':''} no-print" data-add-task="1" data-item="${esc(rec.itemId)}" data-group="${esc(rec.group)}" data-task="${esc(rec.taskId)}">${esc(saved?DATA.guides.iron.labels.added:DATA.guides.iron.labels.addAction)}</button></article>`;
+}
+function renderIronGuide(){setActive('');const g=DATA.guides.iron,choice=g.choices.find(x=>x.id===ironGuideIntent),recs=choice?(g.recommendations[choice.id]||[]):[],primary=recs.slice(0,g.primaryLimit),more=recs.slice(g.primaryLimit);app.innerHTML=`<div class="screen"><section class="detail iron-guide-screen"><a class="detail-back no-print" href="#/find">← ${esc(g.labels.back)}</a><p class="eyebrow">GUIDE</p><h1>${esc(g.title)}</h1><p class="lead">${esc(g.subtitle)}</p><div class="notice">${esc(g.safetyNotice)}</div><section class="guide-intents"><h2>${esc(g.labels.chooseIntent)}</h2><div>${g.choices.map(item=>`<button type="button" class="guide-intent ${ironGuideIntent===item.id?'selected':''}" data-guide-intent="${esc(item.id)}" aria-pressed="${ironGuideIntent===item.id}">${esc(item.label)}</button>`).join('')}</div></section>${choice?`<section class="guide-results"><p class="print-only"><strong>${esc(g.labels.selectedIntent)}:</strong> ${esc(choice.label)}</p>${primary.map(guideRecommendationCard).join('')||`<div class="empty-state">${esc(g.labels.noOptions)}</div>`}${more.length?`<details class="guide-more-options"><summary>${esc(g.labels.moreOptions)}</summary>${more.map(guideRecommendationCard).join('')}</details>`:''}</section>`:''}</section></div>`}
+// END V047 FIND AND GUIDE
+
 function route(){
   const hash=location.hash||'#/shine';
   const [mode,a,b]=hash.replace('#/','').split('/');
   let result;
-  if(mode==='shine'&&a)result=renderShineTopic(a);
+  if(mode==='find')result=renderFind();
+  else if(mode==='guide'&&a==='iron')result=renderIronGuide();
+  else if(mode==='shine'&&a)result=renderShineTopic(a);
   else if(mode==='shine')result=renderShine();
   else if(mode==='heal'&&a==='item')result=renderItem('heal',b);
   else if(mode==='heal'&&a)result=renderList('heal',a);

@@ -1,11 +1,11 @@
-/* EDITABLE CONTENT STORE — data only, no application functions. */
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
 window.PATIENT_CARE_CONTENT = {
   "meta": {
     "schemaVersion": 21,
-    "contentVersion": "v046",
+    "contentVersion": "v047",
     "offlineOnly": true,
     "referencesVisible": false,
-    "contentBatch": "FEATURE_SHINE_FOCUS_FOUNDATION",
+    "contentBatch": "FEATURE_FIND_AND_GUIDE",
     "contentStatusDefinitions": {
       "placeholder": "Initial content that still requires structured research.",
       "researched": "Patient-facing content has been researched and source-registered.",
@@ -77,8 +77,8 @@ window.PATIENT_CARE_CONTENT = {
     "qualityReview": {
       "status": "completed",
       "dateChecked": "2026-07-15",
-      "report": "docs/quality/V042_CLINICAL_CONSISTENCY_REPORT.md",
-      "sourceIndex": "docs/research/SOURCE_INDEX.md",
+      "report": "docs/HISTORY.md",
+      "sourceIndex": "docs/HISTORY.md",
       "deferredEntityIds": [
         "exercise",
         "exercise-start-small",
@@ -99,13 +99,13 @@ window.PATIENT_CARE_CONTENT = {
       ]
     },
     "featureRelease": {
-      "id": "FEATURE_SHINE_FOCUS_FOUNDATION",
-      "title": "SHINE Focus Foundation",
+      "id": "FEATURE_FIND_AND_GUIDE",
+      "title": "Find and Guide",
       "status": "implemented",
-      "baseline": "v045",
-      "scope": "SHINE focus selection and focus-aware navigation",
-      "implementationRecord": "docs/product/V046_SHINE_FOCUS_FOUNDATION.md",
-      "note": "SHINE becomes a browsing focus rather than a saved Plan item. One primary focus and one optional secondary focus guide direct, typed HEAL and DR relationship highlighting. No clinical claim, source registration, approval state, dosing rule, QR feature, or scheduling feature is changed."
+      "baseline": "v046",
+      "scope": "Unified deterministic offline search, capped Sleep Wizard results, and a non-diagnostic Iron Learning Guide",
+      "implementationRecord": "docs/HISTORY.md",
+      "note": "Find locates existing education without diagnosing symptoms or selecting treatment. SHINE Focus is secondary context only. The Iron Learning Guide organizes existing pages and Action Path tasks. No clinical claims, editorial sources, dosing rules, QR codes, schedules, backend, authentication, or prescribing logic are added."
     }
   },
   "ui": {
@@ -1201,7 +1201,13 @@ window.PATIENT_CARE_CONTENT = {
             }
           }
         ],
-        "maxPerCategory": 3
+        "maxPerCategory": 3,
+        "presentation": {
+          "primaryLimit": 3,
+          "moreMatchedActions": "More matched actions",
+          "hiddenCountLabel": "{count} additional matched action{suffix}",
+          "addShownActions": "Add shown actions"
+        }
       }
     },
     {
@@ -13923,5 +13929,296 @@ window.PATIENT_CARE_CONTENT = {
         "nutritionMealRole": "A portable vegetarian option that can use fresh or cooked vegetables."
       }
     ]
+  },
+  "search": {
+    "title": "Find a topic",
+    "subtitle": "Search the full Patient Care library without needing to choose SHINE, HEAL, or DR first.",
+    "placeholder": "Search topics, symptoms, tests, habits, or food ideas…",
+    "safetyNotice": "Find helps locate education. It does not diagnose symptoms or select treatment.",
+    "emptyState": "Type a word or phrase to search Patient Care.",
+    "noResults": "No matching education was found. Try a shorter or different phrase.",
+    "showAll": "Show all results",
+    "resultLimit": 8,
+    "resultTypes": {
+      "shine": "SHINE",
+      "heal": "HEAL",
+      "dr": "DR",
+      "food": "Food idea"
+    },
+    "modeLabels": {
+      "shine": "Teaching",
+      "heal": "Practical support",
+      "dr": "Health information",
+      "food": "Food idea"
+    },
+    "aliases": [
+      {
+        "term": "tired all the time",
+        "targetIds": [
+          "fatigue"
+        ]
+      },
+      {
+        "term": "tiredness",
+        "targetIds": [
+          "fatigue"
+        ]
+      },
+      {
+        "term": "low ferritin",
+        "targetIds": [
+          "iron-deficiency"
+        ]
+      },
+      {
+        "term": "low iron",
+        "targetIds": [
+          "iron-deficiency"
+        ]
+      },
+      {
+        "term": "iron infusion",
+        "targetIds": [
+          "supplement-routes",
+          "iron-supplement"
+        ]
+      },
+      {
+        "term": "IV iron",
+        "targetIds": [
+          "supplement-routes",
+          "iron-supplement"
+        ]
+      },
+      {
+        "term": "iron tablets",
+        "targetIds": [
+          "iron-supplement"
+        ]
+      },
+      {
+        "term": "low sugar",
+        "targetIds": [
+          "low-sugar-symptoms"
+        ]
+      },
+      {
+        "term": "high sugar",
+        "targetIds": [
+          "high-sugar-symptoms"
+        ]
+      },
+      {
+        "term": "A1c",
+        "targetIds": [
+          "hba1c"
+        ]
+      },
+      {
+        "term": "high BP",
+        "targetIds": [
+          "hypertension",
+          "bp-range"
+        ]
+      },
+      {
+        "term": "blood pressure reading",
+        "targetIds": [
+          "bp-range",
+          "bp-home-monitoring"
+        ]
+      },
+      {
+        "term": "snoring",
+        "targetIds": [
+          "sleep-apnea"
+        ]
+      },
+      {
+        "term": "breathing stops in sleep",
+        "targetIds": [
+          "sleep-apnea"
+        ]
+      },
+      {
+        "term": "cannot sleep",
+        "targetIds": [
+          "insomnia"
+        ]
+      },
+      {
+        "term": "restless legs",
+        "targetIds": [
+          "restless-legs"
+        ]
+      },
+      {
+        "term": "constipated",
+        "targetIds": [
+          "constipation"
+        ]
+      },
+      {
+        "term": "throwing up",
+        "targetIds": [
+          "gastroenteritis"
+        ]
+      },
+      {
+        "term": "diarrhea",
+        "targetIds": [
+          "gastroenteritis"
+        ]
+      },
+      {
+        "term": "dehydrated",
+        "targetIds": [
+          "hydration-support"
+        ]
+      }
+    ],
+    "entryTitle": "Find a topic",
+    "entryText": "Search all teaching, health information, practical support, and food ideas in one place.",
+    "entryAction": "Open Find",
+    "urgentLabel": "Urgent help",
+    "focusRelevant": "Relevant to {focus}",
+    "ironGuideLink": "Open Iron Learning Guide"
+  },
+  "guides": {
+    "iron": {
+      "title": "Iron Learning Guide",
+      "subtitle": "Choose what you want to understand, then open existing Patient Care education or add an existing Action Path item.",
+      "safetyNotice": "This guide organizes existing education. It does not diagnose iron deficiency, interpret laboratory results, or choose oral versus injection or infusion treatment.",
+      "choices": [
+        {
+          "id": "understand",
+          "label": "Understand low iron or anemia"
+        },
+        {
+          "id": "food",
+          "label": "Find food guidance"
+        },
+        {
+          "id": "oral",
+          "label": "Review oral iron information"
+        },
+        {
+          "id": "infusion",
+          "label": "Understand injection or infusion information"
+        },
+        {
+          "id": "side-effects",
+          "label": "Review side effects or constipation"
+        },
+        {
+          "id": "follow-up",
+          "label": "Prepare for tests or follow-up"
+        }
+      ],
+      "recommendations": {
+        "understand": [
+          {
+            "entityId": "iron-deficiency"
+          },
+          {
+            "entityId": "anemia"
+          },
+          {
+            "itemId": "iron-deficiency",
+            "group": "helpfulTasks",
+            "taskId": "iron-deficiency-task-symptoms"
+          }
+        ],
+        "food": [
+          {
+            "entityId": "iron-deficiency"
+          },
+          {
+            "foodId": "egg-vegetable-plate"
+          },
+          {
+            "foodId": "fortified-cereal-fruit"
+          },
+          {
+            "foodId": "lentil-vegetable-soup"
+          },
+          {
+            "itemId": "iron-deficiency",
+            "group": "foodIdeas",
+            "taskId": "iron-deficiency-food-heme"
+          }
+        ],
+        "oral": [
+          {
+            "entityId": "iron-supplement"
+          },
+          {
+            "entityId": "supplement-routes"
+          },
+          {
+            "itemId": "iron-supplement",
+            "group": "helpfulTasks",
+            "taskId": "iron-lib-task-label"
+          }
+        ],
+        "infusion": [
+          {
+            "entityId": "supplement-routes"
+          },
+          {
+            "entityId": "iron-supplement"
+          },
+          {
+            "itemId": "supplement-routes",
+            "group": "helpfulTasks",
+            "taskId": "route-task-reason"
+          }
+        ],
+        "side-effects": [
+          {
+            "entityId": "constipation"
+          },
+          {
+            "entityId": "iron-supplement"
+          },
+          {
+            "itemId": "constipation",
+            "group": "helpfulTasks",
+            "taskId": "constipation-task-diary"
+          }
+        ],
+        "follow-up": [
+          {
+            "entityId": "iron-deficiency"
+          },
+          {
+            "entityId": "anemia"
+          },
+          {
+            "itemId": "iron-deficiency",
+            "group": "questions",
+            "taskId": "iron-deficiency-q-cause"
+          }
+        ]
+      },
+      "primaryLimit": 3,
+      "labels": {
+        "moreOptions": "More options",
+        "openTopic": "Open topic",
+        "addAction": "Add action",
+        "added": "Added",
+        "chooseIntent": "What would you like help finding?",
+        "back": "Back to Find",
+        "selectedIntent": "Selected purpose",
+        "foodIdea": "Food idea",
+        "noOptions": "No existing destination is available for this choice."
+      },
+      "entryIds": [
+        "iron-deficiency",
+        "anemia",
+        "iron-supplement",
+        "supplement-routes"
+      ]
+    }
   }
 };

@@ -4,7 +4,20 @@
 
 This is the single repository history file. It consolidates prior release notes, research-batch records, source-register notes, and quality-review summaries. Detailed clinical source identifiers and entity-level metadata remain authoritative in `data/content.js` and `data/schema.json`.
 
+
 ## Current release
+
+### v047 — Find and Guide
+
+- Added `#/find`, a deterministic offline search across visible researched SHINE, HEAL, DR, and Diet Builder food content.
+- Added practical aliases with fail-closed validation and stable local scoring.
+- Kept SHINE Focus as a secondary tie-breaker only; exact matches and urgent-help visibility remain primary.
+- Capped Sleep Wizard results at three primary actions, with additional matches under More matched actions.
+- Added `#/guide/iron`, a non-diagnostic navigation guide that reuses existing pages and Action Path tasks.
+- Added no clinical claims, editorial sources, dosing, QR codes, schedule builder, backend, authentication, or prescribing logic.
+- Preserved localStorage key `pc_pilot_v022_profile`, profile version 22, and existing saved-data compatibility.
+
+## Previous current release
 
 ### v046 — SHINE Focus Foundation
 

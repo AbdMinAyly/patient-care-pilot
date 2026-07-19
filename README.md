@@ -28,7 +28,7 @@ The active task prompt defines what to build. `PATIENT_CARE_RULES.md` defines ho
 
 # Patient Care
 
-Patient Care is an offline, dependency-free SHINE + HEAL + DR teaching and planning application.
+Patient Care v047 is an offline, dependency-free SHINE + HEAL + DR teaching and planning application with unified Find and a non-diagnostic Iron Learning Guide.
 
 ## Run
 

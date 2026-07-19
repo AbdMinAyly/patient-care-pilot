@@ -1,87 +1,87 @@
 {
   "schemaVersion": 21,
-  "contentVersion": "v046",
+  "contentVersion": "v047",
   "batch": {
-    "id": "FEATURE_SHINE_FOCUS_FOUNDATION",
-    "title": "SHINE Focus Foundation",
+    "id": "FEATURE_FIND_AND_GUIDE",
+    "title": "Find and Guide",
     "deliveryStatus": "implemented",
-    "baseline": "v045",
-    "sequenceNote": "SHINE becomes a selectable browsing focus rather than a saved Plan item. One primary focus and one optional secondary focus guide direct HEAL and DR relationship highlighting. No clinical claims, source registrations, approval states, dosing rules, QR features, or scheduling features are changed.",
-    "implementationRecord": "docs/product/V046_SHINE_FOCUS_FOUNDATION.md"
+    "baseline": "v046",
+    "sequenceNote": "Unified deterministic offline search uses SHINE Focus only as secondary context. Sleep Wizard results are capped at three primary actions. The Iron Learning Guide organizes existing researched pages and tasks without diagnosis, test interpretation, treatment selection, or dosing.",
+    "implementationRecord": "docs/HISTORY.md"
   },
   "completedBatches": [
     {
       "id": "BATCH_01_ENERGY_IRON",
       "title": "Energy, Fatigue, and Iron",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_01_ENERGY_IRON.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_02_SLEEP_DAYTIME_FUNCTION",
       "title": "Sleep and Daytime Function",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_02_SLEEP_DAYTIME_FUNCTION.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_03_DIABETES_GLUCOSE",
       "title": "Diabetes and Glucose",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_03_DIABETES_GLUCOSE.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_04_BLOOD_PRESSURE",
       "title": "Blood Pressure",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_04_BLOOD_PRESSURE.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_05_CHOLESTEROL_HEART",
       "title": "Cholesterol and Heart Health",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_05_CHOLESTEROL_HEART.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_06_DIGESTIVE_SUPPORT",
       "title": "Digestive Support",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_06_DIGESTIVE_SUPPORT.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_07_MOOD_STRESS",
       "title": "Mood and Stress",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_07_MOOD_STRESS.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_08_SUPPLEMENT_LIBRARY",
       "title": "Supplement Library",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_08_SUPPLEMENT_LIBRARY.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_09_EMERGENCY_SAFETY",
       "title": "Emergency and Safety Pass",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_09_EMERGENCY_SAFETY.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_10_IMMUNITY_INFECTION",
       "title": "Immunity and Infection Prevention",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_10_IMMUNITY_INFECTION.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_12_NUTRITION_HEALTHY_EATING",
       "title": "Nutrition and Healthy Eating",
       "status": "researched",
-      "researchRegister": "docs/research/BATCH_12_NUTRITION_HEALTHY_EATING.md"
+      "researchRegister": "docs/HISTORY.md"
     },
     {
       "id": "BATCH_13_CLINICAL_CONSISTENCY_REVIEW",
       "title": "Cross-App Clinical Consistency and Quality Review",
       "status": "quality-reviewed",
-      "researchRegister": "docs/research/BATCH_13_CLINICAL_CONSISTENCY_REVIEW.md",
-      "qualityReport": "docs/quality/V042_CLINICAL_CONSISTENCY_REPORT.md"
+      "researchRegister": "docs/HISTORY.md",
+      "qualityReport": "docs/HISTORY.md"
     }
   ],
   "contentStatus": {
@@ -674,5 +674,12 @@
     "savedProfileField": "sleepWizard",
     "manualTaskSelectionOnSleepPage": false,
     "manualTaskSelectionAvailableThroughHeal": true
+  },
+  "findAndGuide": {
+    "searchConfig": "search",
+    "guideConfig": "guides.iron",
+    "resultLimit": 8,
+    "offlineOnly": true,
+    "diagnostic": false
   }
 }
