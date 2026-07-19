@@ -56,14 +56,23 @@ jobs:
       - name: Browser, responsive, and print verification
         shell: bash
         run: |
+          set -o pipefail
           cat .github/v045-verify.b64 | tr -d '\n' | base64 -d | gzip -d > /tmp/v045-browser/verify.mjs
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/v045-http.log 2>&1 &
           sleep 2
           cd /tmp/v045-browser
-          node verify.mjs
+          node verify.mjs 2>&1 | tee "$GITHUB_WORKSPACE/v045-browser-report.txt"
+
+      - name: Upload browser verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v045-browser-report
+          path: v045-browser-report.txt
+          if-no-files-found: warn
 
       - name: Commit repaired v045 source
-        if: steps.repair.outputs.applied == 'true'
+        if: steps.repair.outputs.applied == 'true' && success()
         shell: bash
         run: |
           rm -f .github/v045-repair.*.b64
@@ -74,7 +83,7 @@ jobs:
           git push
 
       - name: Remove temporary verification helpers
-        if: steps.repair.outputs.applied == 'false'
+        if: steps.repair.outputs.applied == 'false' && success()
         shell: bash
         run: |
           rm -f .github/v045-verify.b64 .github/workflows/export-v045.yml
