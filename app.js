@@ -308,7 +308,7 @@ function defaultProfile(){
     questions:[],
     planTasks:[],
     sleepWizard:{conditions:[],schedule:[],patterns:[],factors:[]},
-    guided:{shineAnswers:{},routineChoices:[],medicalProfile:[],dietSetup:{completed:false,answers:{}},pendingMedical:[],confirmedMedical:[]},
+    guided:{shineAnswers:{},shineCompleted:false,routineChoices:[],medicalProfile:[],dietSetup:{completed:false,answers:{}},pendingMedical:[],confirmedMedical:[]},
     planNotes:{daily:'',food:'',treatment:'',doctor:''},
     createdAt:new Date().toISOString()
   };
@@ -339,7 +339,7 @@ function profile(){
         patterns:Array.isArray(parsed.sleepWizard?.patterns)?parsed.sleepWizard.patterns:[],
         factors:Array.isArray(parsed.sleepWizard?.factors)?parsed.sleepWizard.factors:[]
       },
-      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[],dietSetup:{...base.guided.dietSetup,...(parsed.guided?.dietSetup||{}),answers:{...(parsed.guided?.dietSetup?.answers||{})}},pendingMedical:Array.isArray(parsed.guided?.pendingMedical)?parsed.guided.pendingMedical:[],confirmedMedical:Array.isArray(parsed.guided?.confirmedMedical)?parsed.guided.confirmedMedical:[]},
+      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},shineCompleted:parsed.guided?.shineCompleted===true,routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[],dietSetup:{...base.guided.dietSetup,...(parsed.guided?.dietSetup||{}),answers:{...(parsed.guided?.dietSetup?.answers||{})}},pendingMedical:Array.isArray(parsed.guided?.pendingMedical)?parsed.guided.pendingMedical:[],confirmedMedical:Array.isArray(parsed.guided?.confirmedMedical)?parsed.guided.confirmedMedical:[]},
       planNotes:{...base.planNotes,...(parsed.planNotes||{})}
     };
   }catch(e){
@@ -647,7 +647,7 @@ function renderProgressiveDr(){
 function renderShine(){
   setActive('shine');
   const c=guidedConfig().shine;
-  if(!selectedShineFocus().length){app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');return;}
+  if(profile().guided.shineCompleted!==true){app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');return;}
   app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderPriorityLauncher()}<section class="grid shine-focus-grid">${DATA.shine.map(renderGuidedShineCard).join('')}</section></div>`;
 }
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
@@ -1485,7 +1485,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-priority-next]')){shinePriorityStep++;renderPriorityWizard();return}
   if(e.target.closest('[data-priority-back]')){shinePriorityStep=Math.max(0,shinePriorityStep-1);renderPriorityWizard();return}
   if(e.target.closest('[data-priority-retake]')){shinePriorityStep=0;shinePriorityAnswers={};renderPriorityWizard();return}
-  if(e.target.closest('[data-priority-apply]')){const p=profile();p.shineFocus=scoreShinePriority().map(x=>x.id);p.guided.shineAnswers={...shinePriorityAnswers};saveProfile(p);closePriorityWizard();renderShine();return}
+  if(e.target.closest('[data-priority-apply]')){const p=profile();p.shineFocus=scoreShinePriority().map(x=>x.id);p.guided.shineAnswers={...shinePriorityAnswers};p.guided.shineCompleted=true;saveProfile(p);closePriorityWizard();renderShine();return}
   if(e.target.closest('[data-save-routine]')){const p=profile();p.guided.routineChoices=[...document.querySelectorAll('[data-routine-choice]:checked')].map(x=>x.dataset.routineChoice);saveProfile(p);renderRoutineBuilder();return}
   if(e.target.closest('[data-save-medical-profile]')){const p=profile();p.guided.medicalProfile=[...document.querySelectorAll('[data-medical-profile]:checked')].map(x=>x.dataset.medicalProfile);saveProfile(p);location.hash='#/dr';return}
 

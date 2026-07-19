@@ -190,3 +190,9 @@ The following remain deferred unless explicitly requested:
 - Medical findings are never migrated silently; DR requires explicit confirmation before revealing support cards.
 - Confirmed iron deficiency reveals existing Iron Support while dosing and schedule generation remain locked.
 - Shinopedia remains the deliberate full-library view.
+
+
+### SHINE first-entry gate
+
+- SHINE now remains on a single Choose Your Priority action until the new priority wizard is explicitly completed.
+- Legacy SHINE focus selections no longer bypass the progressive-reveal entry screen.
