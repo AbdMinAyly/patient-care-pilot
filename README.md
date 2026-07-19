@@ -1,33 +1,60 @@
-# Patient Care v044 — Focused Sleep HEAL Wizard
+# Patient Care v045 — Clarity Pass
 
-This release simplifies the v043 Sleep pilot without changing the underlying content, recommendations, navigation, or SHINE Path design.
+This release reduces default-screen overload while preserving the complete researched content library and all clinical safety controls.
 
-## Change
+## Main changes
 
-- Sleep sections 1–5 remain unchanged.
-- The guided Sleep HEAL Wizard remains the final next-step experience.
-- The duplicate **Manual Choices** card and full task list were removed from the Sleep page.
-- Manual lifestyle exploration remains available through HEAL search and HEAL topic pages.
-- Wizard and HEAL actions continue to use the same saved-task system for Your Plan and SHINE Path.
+- Ordinary HEAL and DR pages now open with an **At a glance** view.
+- Full teaching remains available through **Read full teaching details**.
+- Warning-oriented existing teaching is repeated in a visible **Important** notice.
+- Action Path groups use compact native disclosure controls.
+- Placeholder content is excluded from normal lists and search.
+- Exercise remains visible in SHINE as **Coming soon**.
+- Detail pages include clear back links.
+- The duplicate generic doctor-question button was removed.
+- Plan routes and task counts were corrected.
+- JSON backup appears once under Plan Overview options.
+- Your SHINE Path remains available as an optional visualization.
 
 ## Preserved
 
-- All other SHINE, HEAL, and DR pages
-- Central SHINE Path design
+- All researched medical and public-health content
+- Sleep HEAL Wizard and saved selections
 - Diet Builder
+- SHINE Path design
 - Bottom navigation
-- localStorage profile compatibility
+- `pc_pilot_v022_profile` localStorage compatibility
+- Profile version 22
 - Offline operation
-- Clinical-review and safety locks
+- Clinical-review queues and medication/supplement dosing locks
 
-## Package
+## Deferred
 
-- `index.html`
-- `styles.css`
-- `app.js`
-- `data/content.js`
-- `data/schema.json`
-- `patient-care-v044-standalone-mobile.html`
-- `docs/product/V044_FOCUSED_SLEEP_HEAL_WIZARD.md`
-- `upload_to_github.cmd`
-- `test_patient_care_localhost.bat`
+- QR codes
+- Patient schedule builders
+- Backend services
+- Authentication
+- New clinical pathways
+- Standalone HTML generation
+
+## Files
+
+- `index.html` — application shell
+- `styles.css` — established visual system
+- `clarity-v045.css` — v045 presentation overrides
+- `app.js` — established rendering and behavior
+- `clarity-v045.js` — v045 clarity behavior
+- `data/content.js` — patient-facing content
+- `data/schema.json` — content schema and release metadata
+- `open_local_preview.cmd` — local preview helper
+- `upload_to_github.cmd` — Windows upload helper
+- `VERSION.txt` — release version
+- `docs/product/V045_CLARITY_PASS.md` — implementation record
+
+## Preview
+
+Run `open_local_preview.cmd`, or open `index.html` directly in a modern browser.
+
+## Safety
+
+Patient Care is educational only. It does not diagnose, prescribe, or replace clinical assessment. Do not publish patient-identifying information.
