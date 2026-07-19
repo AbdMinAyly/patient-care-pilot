@@ -11,4 +11,21 @@ s = s.replace("shine_focus='''      \"clearPlan\": \"Clear Your Plan\"", "shine_
 s = s.replace('''        <div class="plan-subsection"><h3>${esc(clarity.nextActionsEyebrow)}</h3>${renderPlanTaskRows(planTasksForCore(p,'daily'))}</div>
       </div>''','''      </div>
       <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'daily'))}</div>''',2)
+s += '''
+
+# Normalize generated text files to one terminal newline.
+for rel in [
+    'PATIENT_CARE_CORE.md',
+    'docs/PATIENT_CARE_CORE.md',
+    'README.md',
+    'VERSION.txt',
+    'app.js',
+    'data/content.js',
+    'data/schema.json',
+    'index.html',
+    'styles.css',
+]:
+    target = root / rel
+    target.write_text(target.read_text().rstrip() + '\\n')
+'''
 p.write_text(s)
