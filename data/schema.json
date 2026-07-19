@@ -1,13 +1,13 @@
 {
   "schemaVersion": 21,
-  "contentVersion": "v044",
+  "contentVersion": "v045",
   "batch": {
-    "id": "FEATURE_FOCUSED_SLEEP_HEAL_WIZARD",
-    "title": "Focused Sleep HEAL Wizard",
+    "id": "FEATURE_CLARITY_PASS",
+    "title": "Clarity Pass",
     "deliveryStatus": "implemented",
-    "baseline": "v043",
-    "sequenceNote": "Sleep-only pattern refinement. The duplicate manual Action Path is removed from the Sleep page; manual exploration remains available through HEAL. No clinical claims or source registrations are introduced.",
-    "implementationRecord": "docs/product/V044_FOCUSED_SLEEP_HEAL_WIZARD.md"
+    "baseline": "v044",
+    "sequenceNote": "Presentation and navigation change only. Full researched content remains available through progressive disclosure; placeholders are hidden from normal discovery; Plan routes and task counts are corrected. No medical content changes, new sources, clinical approval changes, QR codes, or scheduling work are introduced.",
+    "implementationRecord": "docs/product/V045_CLARITY_PASS.md"
   },
   "completedBatches": [
     {

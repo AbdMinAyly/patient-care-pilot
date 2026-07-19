@@ -178,10 +178,70 @@ function validateContent(data){
 validateContent(DATA);
 
 const shineById=Object.fromEntries(DATA.shine.map(x=>[x.id,x]));
-function allHealItems(){return DATA.healSections.flatMap(s=>s.items.map(i=>({...i,section:s.title,sectionId:s.id,area:'heal'})))}
-function allDrItems(){return DATA.drSections.flatMap(s=>s.items.map(i=>({...i,section:s.title,sectionId:s.id,area:'dr'})))}
-function findHeal(id){return allHealItems().find(x=>x.id===id)}
-function findDr(id){return allDrItems().find(x=>x.id===id)}
+function isPlaceholder(item){
+  return item?.contentStatus === 'placeholder';
+}
+function visibleItems(items){
+  return (items||[]).filter(item=>!isPlaceholder(item));
+}
+function rawHealItems(){
+  return DATA.healSections.flatMap(section=>(section.items||[]).map(item=>({...item,section:section.title,sectionId:section.id,area:'heal'})));
+}
+function rawDrItems(){
+  return DATA.drSections.flatMap(section=>(section.items||[]).map(item=>({...item,section:section.title,sectionId:section.id,area:'dr'})));
+}
+function renderDetailNavigation(area,item){
+  const labels=DATA.ui.clarity||{};
+  if(area==='shine')return `<a class="detail-back" href="#/shine">${esc(labels.backToShine||'← Back to SHINE')}</a>`;
+  const sectionId=item?.sectionId||'';
+  const sectionTitle=item?.section||area.toUpperCase();
+  const prefix=labels.backToSectionPrefix||'← Back to';
+  return `<a class="detail-back" href="#/${area}/${esc(sectionId)}">${esc(prefix)} ${esc(sectionTitle)}</a>`;
+}
+function warningTeachingPoints(item){
+  const pattern=/(seek\s+(?:urgent|emergency|prompt)|call\s+(?:local\s+)?emergency|red\s+flags?|serious\s+(?:warning|risks?)|emergency\s+symptoms?|urgent\s+symptoms?|immediate\s+(?:danger|emergency)|requires?\s+(?:urgent|emergency)|urgent\s+help|emergency\s+(?:help|care|services?))/i;
+  return [...new Set((item?.body||[]).filter(point=>pattern.test(point)))];
+}
+function renderAtAGlance(item){
+  if(item?.sectionId==='er')return '';
+  const points=(item?.body||[]).slice(0,2);
+  if(!points.length)return '';
+  const label=DATA.ui.clarity?.atAGlance||'At a glance';
+  return `<section class="at-a-glance"><h3>${esc(label)}</h3><ul class="bullets">${points.map(point=>`<li>${esc(point)}</li>`).join('')}</ul></section>`;
+}
+function renderImportantTeaching(item){
+  const warnings=warningTeachingPoints(item);
+  if(!warnings.length)return '';
+  const label=DATA.ui.clarity?.important||'Important';
+  return `<aside class="important-teaching" role="note"><h3>${esc(label)}</h3><ul>${warnings.map(point=>`<li>${esc(point)}</li>`).join('')}</ul></aside>`;
+}
+function renderTeachingDetails(item){
+  const emergency=item?.sectionId==='er';
+  const label=DATA.ui.clarity?.readFullTeachingDetails||'Read full teaching details';
+  return `<details class="teaching-details" ${emergency?'open':''}><summary><span>${esc(label)}</span><strong>${(item?.body||[]).length}</strong></summary><div class="teaching-details-body"><ul class="bullets">${(item?.body||[]).map(point=>`<li>${esc(point)}</li>`).join('')}</ul></div></details>`;
+}
+function taskCountForCore(profileData,core){return (profileData.planTasks||[]).filter(task=>taskStage(task)===core).length}
+function planTasksForCore(profileData,coreId){return (profileData.planTasks||[]).filter(task=>taskStage(task)===coreId)}
+function renderPlanTaskRows(tasks){
+  if(!tasks.length)return '<div class="plan-empty">No next-step tasks saved yet.</div>';
+  return tasks.map(task=>`<div class="plan-row task-plan-row"><div><strong>${esc(task.title)}</strong><span>${esc(task.itemTitle)} • ${esc(task.groupLabel)}</span></div><button class="mini-remove no-print" data-remove-task-key="${esc(task.key)}">Remove</button></div>`).join('');
+}
+function renderNextActions(profileData){
+  const tasks=(profileData.planTasks||[]).slice(0,3);
+  if(!tasks.length)return '';
+  const labels=DATA.ui.clarity||{};
+  return `<section class="plan-next-actions"><div><p class="eyebrow">${esc(labels.nextActionsEyebrow||'NEXT ACTIONS')}</p><h2>${esc(labels.nextActionsTitle||'What you saved to do or discuss')}</h2></div>${tasks.map(task=>`<article><strong>${esc(task.title)}</strong><span>${esc(task.itemTitle)} • ${esc(task.groupLabel)}</span></article>`).join('')}</section>`;
+}
+function focusPageHeading(){
+  requestAnimationFrame(()=>{
+    const heading=document.querySelector('main h1, main h2, #app h1, #app h2');
+    if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}
+  });
+}
+function allHealItems(){return visibleItems(rawHealItems())}
+function allDrItems(){return visibleItems(rawDrItems())}
+function findHeal(id){return rawHealItems().find(item=>item.id===id)}
+function findDr(id){return rawDrItems().find(item=>item.id===id)}
 function findDietItem(id){return DATA.dietBuilder.items.find(x=>x.id===id)}
 function focusById(id){return DATA.dietBuilder.focusOptions.find(x=>x.id===id)}
 function mealById(id){return DATA.dietBuilder.mealOptions.find(x=>x.id===id)}
@@ -244,10 +304,9 @@ function hero(mode,title,text){
 }
 function linkifyShine(text,current){
   let out=esc(text);
-  DATA.shine.forEach(s=>{
-    if(s.id===current)return;
-    const title=escapeRegExp(s.title);
-    out=out.replace(new RegExp(`\\b(${title})\\b`,'gi'),`<a class="inline-shine" href="#/shine/${s.id}">$1</a>`);
+  DATA.shine.forEach(topic=>{
+    if(topic.id===current||isPlaceholder(topic))return;
+    out=out.replace(new RegExp(`\\b(${escapeRegExp(topic.title)})\\b`,'gi'),`<a class="inline-shine" href="#/shine/${topic.id}">$1</a>`);
   });
   return out;
 }
@@ -271,13 +330,20 @@ function healHabitRows(rows,heading,intro){
   </div>`;
 }
 function sectionCards(sections,area){
-  return sections.map(sec=>`<a class="card mode-card ${area}" href="#/${area}/${sec.id}"><div class="big-letter">${esc(sec.icon)}</div><h3>${esc(sec.title)}</h3><p>${esc(sec.subtitle)}</p></a>`).join('');
+  return sections.map(section=>{
+    const items=visibleItems(section.items);
+    if(!items.length)return '';
+    return `<a class="card mode-card ${area}" href="#/${area}/${section.id}"><div class="big-letter">${esc(section.icon)}</div><h3>${esc(section.title)}</h3><p>${esc(section.subtitle)}</p></a>`;
+  }).join('');
 }
 
 function renderShine(){
   setActive('shine');
+  const label=DATA.ui.clarity?.comingSoon||'Coming soon';
   app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}
-    <section class="grid">${DATA.shine.map(s=>`<a class="card mode-card shine" href="#/shine/${s.id}"><div class="big-letter">${s.letter}</div><h3>${esc(s.title)}</h3><p>${esc(s.subtitle)}</p></a>`).join('')}</section>
+    <section class="grid">${DATA.shine.map(topic=>isPlaceholder(topic)
+      ? `<article class="card mode-card shine placeholder-card" aria-disabled="true"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p><span class="coming-soon">${esc(label)}</span></article>`
+      : `<a class="card mode-card shine" href="#/shine/${topic.id}"><div class="big-letter">${esc(topic.letter)}</div><h3>${esc(topic.title)}</h3><p>${esc(topic.subtitle)}</p></a>`).join('')}</section>
   </div>`;
 }
 let sleepWizardState=null;
@@ -439,23 +505,27 @@ function addAllSleepWizardRecommendations(){
 
 function renderShineTopic(id){
   setActive('shine');
-  const s=shineById[id]||DATA.shine[0];
-  const headings=s.headings||{};
-  app.innerHTML=`<div class="screen"><section class="detail shine">
-    <p class="eyebrow">SHINE / ${esc(s.title)}</p>
-    <h2>${esc(s.title)}</h2>
-    <p class="lead">${esc(s.subtitle)}</p>
-    <div class="info-card primary">
-      <h3>${esc(headings.why||('1. Why '+s.title+' matters'))}</h3>
-      <ul class="bullets">${(s.why||[]).map(x=>`<li>${linkifyShine(x,s.id)}</li>`).join('')}</ul>
-      <div class="savebar no-print"><button class="btn shine" data-add="shine" data-id="${s.id}">Add to Your Plan</button></div>
-    </div>
-    <div class="info-card"><h3>${esc(headings.positive||('2. How '+s.title+' helps SHINE'))}</h3>${connectionRows(s.good||[],s.id)}</div>
-    <div class="info-card"><h3>${esc(headings.negative||('3. How weak '+s.title+' affects SHINE'))}</h3>${connectionRows(s.bad||[],s.id)}</div>
-    ${healHabitRows(s.healLinks,headings.habits,s.habitIntro)}
-    ${conditionRows(s.drLinks,headings.conditions)}
-    ${s.id==='sleep'?renderSleepWizardLaunch(s):''}
-    ${s.id==='sleep'?'':renderActionPath({...s,section:'SHINE',sectionId:'shine'})}
+  const topic=shineById[id];
+  if(!topic||isPlaceholder(topic)){
+    history.replaceState(null,'','#/shine');
+    renderShine();
+    return;
+  }
+  const headings=topic.headings||{};
+  const saveLabel=DATA.ui.clarity?.saveTopic||'Add to Your Plan';
+  const healLinks=(topic.healLinks||[]).filter(link=>{const target=findHeal(link.id);return target&&!isPlaceholder(target)});
+  const drLinks=(topic.drLinks||[]).filter(link=>{const target=findDr(link.id);return target&&!isPlaceholder(target)});
+  app.innerHTML=`<div class="screen"><section class="detail shine readable-detail">
+    ${renderDetailNavigation('shine',topic)}
+    <p class="eyebrow">SHINE / ${esc(topic.title)}</p>
+    <h2 tabindex="-1">${esc(topic.title)}</h2>
+    <p class="lead">${esc(topic.subtitle)}</p>
+    <div class="info-card primary"><h3>${esc(headings.why||('1. Why '+topic.title+' matters'))}</h3><ul class="bullets">${(topic.why||[]).map(point=>`<li>${linkifyShine(point,topic.id)}</li>`).join('')}</ul><div class="savebar no-print"><button class="btn shine" data-add="shine" data-id="${topic.id}">${esc(saveLabel)}</button></div></div>
+    <div class="info-card"><h3>${esc(headings.positive||('2. How '+topic.title+' helps SHINE'))}</h3>${connectionRows(topic.good||[],topic.id)}</div>
+    <div class="info-card"><h3>${esc(headings.negative||('3. How weak '+topic.title+' affects SHINE'))}</h3>${connectionRows(topic.bad||[],topic.id)}</div>
+    ${healHabitRows(healLinks,headings.habits,topic.habitIntro)}
+    ${conditionRows(drLinks,headings.conditions)}
+    ${topic.id==='sleep'?renderSleepWizardLaunch(topic):renderActionPath({...topic,section:'SHINE',sectionId:'shine'})}
   </section></div>`;
 }
 function renderHeal(){
@@ -475,15 +545,17 @@ function renderDr(){
   setupSearch('dr');
 }
 function renderList(area,id){
-  if(area==='heal' && id==='diet') return renderDietBuilder();
+  if(area==='heal'&&id==='diet')return renderDietBuilder();
   setActive(area);
   const sections=area==='heal'?DATA.healSections:DATA.drSections;
-  const sec=sections.find(x=>x.id===id)||sections[0];
+  const section=sections.find(value=>value.id===id)||sections[0];
+  const items=visibleItems(section.items);
   app.innerHTML=`<div class="screen"><section class="detail ${area}">
+    <a class="detail-back" href="#/${area}">← Back to ${area.toUpperCase()}</a>
     <p class="eyebrow">${area.toUpperCase()}</p>
-    <h2>${esc(sec.title)}</h2>
-    <p class="lead">${esc(sec.subtitle)}</p>
-    <div class="grid">${sec.items.map(i=>`<a class="card" href="#/${area}/item/${i.id}"><h3>${esc(i.title)}</h3><p>${esc(i.subtitle)}</p></a>`).join('')}</div>
+    <h2 tabindex="-1">${esc(section.title)}</h2>
+    <p class="lead">${esc(section.subtitle)}</p>
+    <div class="grid">${items.map(item=>`<a class="card" href="#/${area}/item/${item.id}"><h3>${esc(item.title)}</h3><p>${esc(item.subtitle)}</p></a>`).join('')}</div>
   </section></div>`;
 }
 function isLockedItem(item){
@@ -511,12 +583,17 @@ function renderActionPath(item){
   const groups=actionPathGroups(item);
   if(!groups.length)return '';
   const labels=DATA.ui.actionPath||{};
-  return `<section class="action-path">
+  const emergency=item.sectionId==='er';
+  return `<section class="action-path compact-action-path">
     <div class="action-path-head"><p class="eyebrow">ACTION PATH</p><h3>${esc(labels.title||'Your next-step tasks')}</h3><p>${esc(labels.intro||'Choose the tasks that fit your situation.')}</p></div>
-    <div class="action-groups">${groups.map(([key,icon,label])=>`<div class="action-group ${key}"><h4><span>${icon}</span>${esc(label)}</h4>${item.actionPath[key].map(t=>{
-      const saved=taskIsSaved(item.id,key,t.id);
-      return `<article class="action-task"><div><strong>${esc(t.title)}</strong>${t.detail?`<p>${esc(t.detail)}</p>`:''}</div><button class="task-add ${saved?'saved':''} no-print" data-add-task="1" data-item="${esc(item.id)}" data-group="${esc(key)}" data-task="${esc(t.id)}">${saved?(labels.added||'Added')+' ✓':labels.add||'Add task'}</button></article>`
-    }).join('')}</div>`).join('')}</div>
+    <div class="action-groups">${groups.map(([key,icon,label])=>{
+      const open=key==='helpfulTasks'||(emergency&&(key==='questions'||key==='helpfulTasks'));
+      const tasks=item.actionPath[key];
+      return `<details class="action-group ${key}" ${open?'open':''}><summary><span><b aria-hidden="true">${icon}</b>${esc(label)}</span><strong>${tasks.length}</strong></summary><div class="action-group-body">${tasks.map(task=>{
+        const saved=taskIsSaved(item.id,key,task.id);
+        return `<article class="action-task"><div><strong>${esc(task.title)}</strong>${task.detail?`<p>${esc(task.detail)}</p>`:''}</div><button class="task-add ${saved?'saved':''} no-print" data-add-task="1" data-item="${esc(item.id)}" data-group="${esc(key)}" data-task="${esc(task.id)}">${saved?(labels.added||'Added')+' ✓':labels.add||'Add task'}</button></article>`;
+      }).join('')}</div></details>`;
+    }).join('')}</div>
   </section>`;
 }
 function findAnyEntity(itemId){
@@ -540,19 +617,24 @@ function findActionTask(itemId,group,taskId){
 function renderItem(area,id){
   setActive(area);
   const item=area==='heal'?findHeal(id):findDr(id);
-  if(!item){area==='heal'?renderHeal():renderDr();return}
+  if(!item||isPlaceholder(item)){
+    history.replaceState(null,'',`#/${area}`);
+    area==='heal'?renderHeal():renderDr();
+    return;
+  }
   const locked=isLockedItem(item);
-  app.innerHTML=`<div class="screen"><section class="detail ${area}">
+  const saveLabel=DATA.ui.clarity?.saveTopic||'Add to Your Plan';
+  app.innerHTML=`<div class="screen"><section class="detail ${area} readable-detail">
+    ${renderDetailNavigation(area,item)}
     <p class="eyebrow">${area.toUpperCase()} / ${esc(item.section)}</p>
-    <h2>${esc(item.title)}</h2>
+    <h2 tabindex="-1">${esc(item.title)}</h2>
     <p class="lead">${esc(item.subtitle)}</p>
     ${locked?'<div class="notice">Medication or supplement dosing is not shown here. Bring this topic to a clinician or pharmacist before starting, stopping, or changing treatment.</div>':''}
-    <div class="info-card"><h3>Teaching points</h3><ul class="bullets">${(item.body||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    ${renderImportantTeaching(item)}
+    ${renderAtAGlance(item)}
+    ${renderTeachingDetails(item)}
     ${renderActionPath(item)}
-    <div class="savebar no-print">
-      <button class="btn ${area}" data-add="${area}" data-id="${item.id}">Add to Your Plan</button>
-      ${area==='dr'?`<button class="btn ghost" data-question="What should I ask my doctor about ${esc(item.title)}?">Save question for doctor</button>`:''}
-    </div>
+    <div class="savebar no-print"><button class="btn ${area}" data-add="${area}" data-id="${item.id}">${esc(saveLabel)}</button></div>
   </section></div>`;
 }
 function setupSearch(area){
@@ -562,8 +644,8 @@ function setupSearch(area){
   input.addEventListener('input',()=>{
     const q=input.value.trim().toLowerCase();
     if(!q){results.innerHTML='<div class="empty">Type to search '+area.toUpperCase()+' content.</div>';return}
-    const hits=items.filter(i=>(i.title+' '+i.subtitle+' '+(i.body||[]).join(' ')+' '+i.section).toLowerCase().includes(q)).slice(0,8);
-    results.innerHTML=hits.length?hits.map(i=>`<a class="result" href="#/${area}/item/${i.id}"><strong>${esc(i.title)}</strong><span>${esc(i.section)} — ${esc(i.subtitle)}</span></a>`).join(''):'<div class="empty">No results yet.</div>';
+    const hits=items.filter(item=>(item.title+' '+item.subtitle+' '+(item.body||[]).join(' ')+' '+item.section).toLowerCase().includes(q)).slice(0,8);
+    results.innerHTML=hits.length?hits.map(item=>`<a class="result" href="#/${area}/item/${item.id}"><strong>${esc(item.title)}</strong><span>${esc(item.section)} — ${esc(item.subtitle)}</span></a>`).join(''):'<div class="empty">No results yet.</div>';
   });
 }
 
@@ -668,13 +750,14 @@ function itemTitle(area,id){
   if(area==='diet')return findDietItem(id)?.title||id;
   return id;
 }
-function countCore(p,core){
-  const heal=(p.heal||[]).map(findHeal).filter(Boolean);
-  const dr=(p.dr||[]).map(findDr).filter(Boolean);
-  if(core==='daily') return (p.shine||[]).length + heal.filter(x=>x.sectionId==='lifestyle').length;
-  if(core==='food') return (p.dietItems||[]).length + heal.filter(x=>x.sectionId==='diet').length;
-  if(core==='treatment') return heal.filter(x=>x.sectionId==='supplements').length + dr.filter(x=>x.sectionId==='medications').length;
-  if(core==='doctor') return dr.filter(x=>x.sectionId!=='medications').length + (p.questions||[]).length + (p.planTasks||[]).length;
+function countCore(profileData,core){
+  const heal=(profileData.heal||[]).map(findHeal).filter(Boolean);
+  const dr=(profileData.dr||[]).map(findDr).filter(Boolean);
+  const tasks=taskCountForCore(profileData,core);
+  if(core==='daily')return (profileData.shine||[]).length+heal.filter(item=>item.sectionId==='lifestyle').length+tasks;
+  if(core==='food')return (profileData.dietItems||[]).length+heal.filter(item=>item.sectionId==='diet').length+tasks;
+  if(core==='treatment')return heal.filter(item=>item.sectionId==='supplements').length+dr.filter(item=>item.sectionId==='medications').length+tasks;
+  if(core==='doctor')return dr.filter(item=>item.sectionId!=='medications').length+(profileData.questions||[]).length+tasks;
   return 0;
 }
 function planCoreCards(p){
@@ -719,26 +802,14 @@ function focusSummary(ids){
 function totalPlanItems(p){
   return countCore(p,'daily')+countCore(p,'food')+countCore(p,'treatment')+countCore(p,'doctor');
 }
-function coreBreakdown(p,core){
-  const heal=(p.heal||[]).map(findHeal).filter(Boolean);
-  const dr=(p.dr||[]).map(findDr).filter(Boolean);
-  if(core==='daily')return [
-    ['SHINE lessons',(p.shine||[]).length],
-    ['Lifestyle habits',heal.filter(x=>x.sectionId==='lifestyle').length]
-  ];
-  if(core==='food')return [
-    ['Food items',(p.dietItems||[]).length],
-    ['Diet guidance',heal.filter(x=>x.sectionId==='diet').length]
-  ];
-  if(core==='treatment')return [
-    ['Supplements',heal.filter(x=>x.sectionId==='supplements').length],
-    ['Medications',dr.filter(x=>x.sectionId==='medications').length]
-  ];
-  if(core==='doctor')return [
-    ['Health topics',dr.filter(x=>x.sectionId!=='medications').length],
-    ['Saved tasks',(p.planTasks||[]).length],
-    ['Doctor questions',(p.questions||[]).length]
-  ];
+function coreBreakdown(profileData,core){
+  const heal=(profileData.heal||[]).map(findHeal).filter(Boolean);
+  const dr=(profileData.dr||[]).map(findDr).filter(Boolean);
+  const tasks=taskCountForCore(profileData,core);
+  if(core==='daily')return [['SHINE lessons',(profileData.shine||[]).length],['Lifestyle habits',heal.filter(item=>item.sectionId==='lifestyle').length],['Next actions',tasks]];
+  if(core==='food')return [['Food items',(profileData.dietItems||[]).length],['Diet guidance',heal.filter(item=>item.sectionId==='diet').length],['Next actions',tasks]];
+  if(core==='treatment')return [['Supplements',heal.filter(item=>item.sectionId==='supplements').length],['Medications',dr.filter(item=>item.sectionId==='medications').length],['Next actions',tasks]];
+  if(core==='doctor')return [['Health topics',dr.filter(item=>item.sectionId!=='medications').length],['Questions',(profileData.questions||[]).length],['Next actions',tasks]];
   return [];
 }
 function planOverviewCards(p){
@@ -760,23 +831,18 @@ function renderPlanOverview(){
   setActive('summary');
   const p=profile();
   const labels=DATA.plan.overview||{};
+  const clarity=DATA.ui.clarity||{};
   const total=totalPlanItems(p);
   app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}
     <div class="plan-privacy">${esc(DATA.plan.privacy)}</div>
     ${printSafetyNotice()}
     <section class="plan-overview">
-      <div class="plan-overview-summary">
-        <h2>${esc(labels.title||'Your plan at a glance')}</h2>
-        <p>${esc(labels.intro||'See everything you have saved before opening a core.')}</p>
-        <div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel||'Total saved items')}</span></div>
-      </div>
+      <div class="plan-overview-summary"><h2 tabindex="-1">${esc(labels.title||'Your plan at a glance')}</h2><p>${esc(labels.intro||'See everything you have saved before opening a core.')}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel||'Total saved items')}</span></div></div>
+      ${renderNextActions(p)}
       ${total===0?`<div class="plan-empty">${esc(labels.empty||'Your plan is empty.')}</div>`:''}
       ${planOverviewCards(p)}
-      <div class="plan-overview-actions no-print">
-        <a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(labels.detailsButton||'Open Your SHINE Path')}</a>
-        <button class="btn ghost" onclick="window.print()">Print Your Plan</button>
-        <button class="btn ghost" data-download="1">Download JSON</button>
-      </div>
+      <div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems||'Review all saved items')}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath||'Visualize Your SHINE Path')}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan||'Print Your Plan')}</button></div>
+      <details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions||'More options')}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup||'Download JSON backup')}</button></details>
     </section>
   </div>`;
 }
@@ -989,7 +1055,6 @@ function renderShinePath(){
     <section class="shine-path-actions no-print">
       <a class="btn ghost button-link" href="#/plan">${esc(config.backButton)}</a>
       <button class="btn shine-path-button" onclick="window.print()">${esc(config.printButton)}</button>
-      <button class="btn ghost" data-download="1">Download JSON</button>
     </section>
   </div>`;
 }
@@ -1012,6 +1077,7 @@ function renderPlanDetails(coreId=null){
         <div class="plan-subsection"><h3>SHINE lessons</h3>${simpleSavedRows(p.shine||[],'shine','No SHINE lessons added yet.')}</div>
         <div class="plan-subsection"><h3>Lifestyle habits</h3>${simpleSavedRows(lifestyleIds,'heal','No lifestyle habits added yet.')}</div>
       </div>
+      <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'daily'))}</div>
       ${coreNote('daily',p)}
     </section>`;
 
@@ -1021,6 +1087,7 @@ function renderPlanDetails(coreId=null){
         <div class="plan-subsection"><h3>Selected food items</h3>${renderDietPlanRows(p.dietItems||[])}</div>
         <div class="plan-subsection"><h3>Saved diet guidance</h3>${simpleSavedRows(dietGuidanceIds,'heal','No diet-guidance pages added yet.')}</div>
       </div>
+      <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'food'))}</div>
       <div class="savebar no-print"><a class="btn heal button-link" href="#/heal/diet">Open Diet Builder</a></div>
       ${coreNote('food',p)}
     </section>`;
@@ -1032,6 +1099,7 @@ function renderPlanDetails(coreId=null){
         <div class="plan-subsection"><h3>Supplements</h3>${simpleSavedRows(supplementIds,'heal','No supplements added yet.')}</div>
         <div class="plan-subsection"><h3>Medications</h3>${simpleSavedRows(medicationIds,'dr','No medications added yet.')}</div>
       </div>
+      <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'treatment'))}</div>
       ${coreNote('treatment',p)}
     </section>`;
 
@@ -1039,9 +1107,7 @@ function renderPlanDetails(coreId=null){
       <div class="plan-section-head"><span>🩺</span><div><small>Core 4</small><h2>Doctor & Health</h2><p>Symptoms, conditions, emergency topics, and questions for an appointment.</p></div></div>
       <div class="plan-two-col">
         <div class="plan-subsection"><h3>Health topics</h3>${simpleSavedRows(doctorIds,'dr','No symptoms or conditions added yet.')}</div>
-        <div class="plan-subsection"><h3>Saved next-step tasks</h3>
-          ${(p.planTasks||[]).length?(p.planTasks||[]).map((t,i)=>`<div class="plan-row task-plan-row"><div><strong>${esc(t.title)}</strong><span>${esc(t.itemTitle)} • ${esc(t.groupLabel)}</span></div><button class="mini-remove no-print" data-remove-task="${i}">Remove</button></div>`).join(''):'<div class="plan-empty">No next-step tasks saved yet.</div>'}
-        </div>
+        <div class="plan-subsection"><h3>Saved next-step tasks</h3>${renderPlanTaskRows(planTasksForCore(p,'doctor'))}</div>
         <div class="plan-subsection"><h3>Questions for doctor</h3>
           ${(p.questions||[]).length?(p.questions||[]).map((q,i)=>`<div class="plan-row"><div><strong>${esc(q)}</strong><span>Question</span></div><button class="mini-remove no-print" data-remove-q="${i}">Remove</button></div>`).join(''):'<div class="plan-empty">No questions saved yet.</div>'}
           <div class="core-note no-print"><label for="customQ">Add a question</label><textarea id="customQ" rows="2" placeholder="What do you want to ask the doctor?"></textarea><button class="btn dr" data-custom-q="1">Save question</button></div>
@@ -1063,8 +1129,6 @@ function renderPlanDetails(coreId=null){
     <div class="plan-details-stack">${sections}</div>
     <section class="plan-actions no-print">
       <button class="btn dark" onclick="window.print()">Print Your Plan</button>
-      <button class="btn ghost" data-download="1">Download JSON</button>
-      <button class="btn ghost danger" data-clear="1">Clear Your Plan</button>
     </section>
   </div>`;
 }
@@ -1134,11 +1198,11 @@ function saveCoreNote(core){
 }
 function download(){
   const blob=new Blob([JSON.stringify(profile(),null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='patient-care-v044-your-plan.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const anchor=document.createElement('a');
+  anchor.href=URL.createObjectURL(blob);
+  anchor.download='patient-care-v045-your-plan.json';
+  anchor.click();
+  URL.revokeObjectURL(anchor.href);
 }
 function showToast(text){
   let t=document.getElementById('toast');
@@ -1194,15 +1258,15 @@ document.addEventListener('click',e=>{
   const taskBtn=e.target.closest('[data-add-task]');
   if(taskBtn){togglePlanTask(taskBtn.dataset.item,taskBtn.dataset.group,taskBtn.dataset.task,taskBtn.dataset.origin||'manual');return}
 
-  const removeTask=e.target.closest('[data-remove-task]');
-  if(removeTask){const p=profile();p.planTasks.splice(+removeTask.dataset.removeTask,1);saveProfile(p);renderPlan();return}
+  const removeTask=e.target.closest('[data-remove-task-key]');
+  if(removeTask){const p=profile();p.planTasks=(p.planTasks||[]).filter(task=>task.key!==removeTask.dataset.removeTaskKey);saveProfile(p);route();return}
 
   const question=e.target.closest('[data-question]');
   if(question){addQuestion(question.dataset.question);return}
 
   if(e.target.closest('[data-custom-q]')){
     addQuestion(document.getElementById('customQ')?.value);
-    renderPlan();return;
+    route();return;
   }
 
   const removeQ=e.target.closest('[data-remove-q]');
@@ -1221,22 +1285,24 @@ document.addEventListener('click',e=>{
 });
 
 function route(){
-  const h=location.hash||'#/shine';
-  const parts=h.replace('#/','').split('/');
-  const [mode,a,b]=parts;
-  if(mode==='shine'&&a)return renderShineTopic(a);
-  if(mode==='shine')return renderShine();
-  if(mode==='heal'&&a==='item')return renderItem('heal',b);
-  if(mode==='heal'&&a)return renderList('heal',a);
-  if(mode==='heal')return renderHeal();
-  if(mode==='dr'&&a==='item')return renderItem('dr',b);
-  if(mode==='dr'&&a)return renderList('dr',a);
-  if(mode==='dr')return renderDr();
-  if(mode==='plan'&&a==='details')return renderShinePath();
-  if(mode==='plan'&&a==='shine-path')return renderShinePath();
-  if(mode==='plan'&&a==='core')return renderPlanDetails(b);
-  if(mode==='plan'||mode==='summary')return renderPlanOverview();
-  renderShine();
+  const hash=location.hash||'#/shine';
+  const [mode,a,b]=hash.replace('#/','').split('/');
+  let result;
+  if(mode==='shine'&&a)result=renderShineTopic(a);
+  else if(mode==='shine')result=renderShine();
+  else if(mode==='heal'&&a==='item')result=renderItem('heal',b);
+  else if(mode==='heal'&&a)result=renderList('heal',a);
+  else if(mode==='heal')result=renderHeal();
+  else if(mode==='dr'&&a==='item')result=renderItem('dr',b);
+  else if(mode==='dr'&&a)result=renderList('dr',a);
+  else if(mode==='dr')result=renderDr();
+  else if(mode==='plan'&&a==='details')result=renderPlanDetails();
+  else if(mode==='plan'&&a==='shine-path')result=renderShinePath();
+  else if(mode==='plan'&&a==='core')result=renderPlanDetails(b);
+  else if(mode==='plan'||mode==='summary')result=renderPlanOverview();
+  else result=renderShine();
+  focusPageHeading();
+  return result;
 }
 window.addEventListener('hashchange',()=>{closeSleepWizard(false);route()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('sleep-wizard-modal'))closeSleepWizard()});

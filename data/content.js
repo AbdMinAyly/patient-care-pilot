@@ -2,10 +2,10 @@
 window.PATIENT_CARE_CONTENT = {
   "meta": {
     "schemaVersion": 21,
-    "contentVersion": "v044",
+    "contentVersion": "v045",
     "offlineOnly": true,
     "referencesVisible": false,
-    "contentBatch": "FEATURE_SLEEP_HEAL_WIZARD",
+    "contentBatch": "FEATURE_CLARITY_PASS",
     "contentStatusDefinitions": {
       "placeholder": "Initial content that still requires structured research.",
       "researched": "Patient-facing content has been researched and source-registered.",
@@ -99,26 +99,42 @@ window.PATIENT_CARE_CONTENT = {
       ]
     },
     "featureRelease": {
-      "id": "FEATURE_SLEEP_HEAL_WIZARD",
-      "title": "Sleep HEAL Wizard",
+      "id": "FEATURE_CLARITY_PASS",
+      "title": "Clarity Pass",
       "status": "implemented",
-      "baseline": "v042",
-      "scope": "Sleep only",
-      "note": "Uses existing researched Sleep and HEAL tasks. It does not diagnose, prescribe, or replace manual task selection."
+      "baseline": "v044",
+      "scope": "Presentation and navigation",
+      "note": "Progressive disclosure retains complete researched content, keeps safety and dosing-lock information visible, hides placeholders from normal discovery, and corrects Plan routing and task counts. No new sources, clinical claims, QR codes, or scheduling features are introduced."
     }
   },
   "ui": {
     "modeDescriptions": {
       "shine": "Teaching for Sleep, Happiness, Immunity, Nutrition, and Exercise.",
       "heal": "Build practical diet, lifestyle, supplement, and normal-range guidance.",
-      "dr": "Doctor space: symptoms, acute conditions, chronic conditions, medications, and ER.",
+      "dr": "Doctor space: symptoms, acute conditions, chronic conditions, medications, and urgent help.",
       "summary": "A structured plan built from the lifestyle, food, treatment, and doctor items you choose."
     },
     "searchPlaceholders": {
       "heal": "Search HEAL: diet, lifestyle, supplements, BP, sugar...",
-      "dr": "Search DR: fatigue, diabetes, insulin, ER..."
+      "dr": "Search DR: fatigue, diabetes, insulin, urgent help..."
     },
     "planLabel": "Your Plan",
+    "clarity": {
+      "backToShine": "← Back to SHINE",
+      "backToSectionPrefix": "← Back to",
+      "atAGlance": "At a glance",
+      "important": "Important",
+      "readFullTeachingDetails": "Read full teaching details",
+      "comingSoon": "Coming soon",
+      "saveTopic": "Add to Your Plan",
+      "nextActionsEyebrow": "NEXT ACTIONS",
+      "nextActionsTitle": "What you saved to do or discuss",
+      "reviewAllSavedItems": "Review all saved items",
+      "visualizeShinePath": "Visualize Your SHINE Path",
+      "printPlan": "Print Your Plan",
+      "moreOptions": "More options",
+      "downloadJsonBackup": "Download JSON backup"
+    },
     "actionPath": {
       "title": "Your next-step tasks",
       "intro": "Choose only what fits your situation. Food, habits, supplements, questions, and tests are organized as planning or discussion items—not personalized treatment instructions.",
@@ -11239,7 +11255,7 @@ window.PATIENT_CARE_CONTENT = {
     },
     {
       "id": "er",
-      "title": "ER",
+      "title": "Urgent help",
       "icon": "🚨",
       "subtitle": "Red flags and emergency guidance.",
       "items": [
