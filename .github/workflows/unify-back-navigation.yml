@@ -24,7 +24,8 @@ jobs:
           git diff --check
           grep -q "function renderBackControl" app.js
           grep -q "Unified enterable-page navigation" styles.css
-          ! grep -q "←" app.js
+          grep -q "renderBackControl('#/heal','HEAL home','heal')" app.js
+          grep -q "renderBackControl('#/plan','Your Plan','summary')" app.js
       - run: |
           rm -f .github/unify-back-navigation.py .github/workflows/unify-back-navigation.yml
           git config user.name "github-actions[bot]"
