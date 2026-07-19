@@ -586,7 +586,7 @@ function medicalBuilderCards(){
 }
 function renderPedia(filter=''){
   setActive('pedia');const c=guidedConfig().pedia,cards=filter?c.cards.filter(x=>x.id===filter||filter==='heal'&&['diet','supplements'].includes(x.id)):c.cards;
-  app.innerHTML=`<div class="screen">${hero('summary',c.title,c.intro)}<section class="pedia-grid">${cards.map(card=>`<a class="pedia-card" href="${esc(card.route)}"><span>${esc(card.title)}</span><p>${esc(card.text)}</p></a>`).join('')}</section></div>`;
+  app.innerHTML=`<div class="screen">${filter?renderBackControl('#/pedia','Shinopedia','neutral'):''}${hero('summary',c.title,c.intro)}<section class="pedia-grid">${cards.map(card=>`<a class="pedia-card" href="${esc(card.route)}"><span>${esc(card.title)}</span><p>${esc(card.text)}</p></a>`).join('')}</section></div>`;
 }
 // END GUIDED HOMES AND SHINOPEDIA
 function renderShine(){
@@ -1419,7 +1419,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-priority-retake]')){shinePriorityStep=0;shinePriorityAnswers={};renderPriorityWizard();return}
   if(e.target.closest('[data-priority-apply]')){const p=profile();p.shineFocus=scoreShinePriority().map(x=>x.id);p.guided.shineAnswers={...shinePriorityAnswers};saveProfile(p);closePriorityWizard();renderShine();return}
   if(e.target.closest('[data-save-routine]')){const p=profile();p.guided.routineChoices=[...document.querySelectorAll('[data-routine-choice]:checked')].map(x=>x.dataset.routineChoice);saveProfile(p);renderRoutineBuilder();return}
-  if(e.target.closest('[data-save-medical-profile]')){const p=profile();p.guided.medicalProfile=[...document.querySelectorAll('[data-medical-profile]:checked')].map(x=>x.dataset.medicalProfile);saveProfile(p);renderDr();return}
+  if(e.target.closest('[data-save-medical-profile]')){const p=profile();p.guided.medicalProfile=[...document.querySelectorAll('[data-medical-profile]:checked')].map(x=>x.dataset.medicalProfile);saveProfile(p);location.hash='#/dr';return}
 
   const core=e.target.closest('[data-scroll-core]');
   if(core){
@@ -1520,8 +1520,8 @@ let findOrigin='#/shine';
 let guideOrigin='#/find';
 let ironGuideIntent=null;
 let pendingDietFoodId=null;
-function utilityModeFromHash(hash){const mode=String(hash||'').replace('#/','').split('/')[0];return ['shine','heal','dr','plan','summary'].includes(mode)?(mode==='plan'?'summary':mode):''}
-function utilityBackLabel(hash){const mode=utilityModeFromHash(hash);return mode==='shine'?'SHINE':mode==='heal'?'HEAL':mode==='dr'?'DR':mode==='summary'?'Your Plan':'previous page'}
+function utilityModeFromHash(hash){const mode=String(hash||'').replace('#/','').split('/')[0];return ['shine','heal','dr','pedia','plan','summary'].includes(mode)?(mode==='plan'?'summary':mode):''}
+function utilityBackLabel(hash){const mode=utilityModeFromHash(hash);return mode==='shine'?'SHINE':mode==='heal'?'HEAL':mode==='dr'?'DR':mode==='pedia'?'Shinopedia':mode==='summary'?'Your Plan':'previous page'}
 function rememberUtilityOrigin(kind){const current=location.hash||'#/shine';if(kind==='find')findOrigin=current;else guideOrigin=current}
 function openUtilityRoute(kind){rememberUtilityOrigin(kind);location.hash=kind==='find'?'#/find':'#/guide/iron'}
 function normalizeSearchText(value){return String(value||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[-‐‑–—]/g,' ').replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim()}

@@ -178,3 +178,5 @@ The following remain deferred unless explicitly requested:
 - Shinopedia is the dedicated full-library tab for SHINE, HEAL, DR, urgent, medication, supplement, tracking, task, and question destinations.
 - Existing content, IDs, routes, profile version 22, storage key, dosing locks, placeholder exclusion, and offline behavior remain unchanged.
 - The standalone Sleep Wizard is no longer shown; sleep support is reached through SHINE priority and the HEAL Routine builder.
+
+- Verification fixes ensure Medical Profile saves return to DR, filtered Shinopedia views return one level to Shinopedia, and Shinopedia remains the active navigation context for utility pages.
