@@ -1320,3 +1320,15 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 @media(prefers-reduced-motion:reduce){.detail-back{transition:none}.detail-back:hover{transform:none}}
 @media(max-width:430px){.detail-back{margin-bottom:12px;padding-right:12px;font-size:.9rem}}
 @media print{.detail-back{display:none!important}}
+
+
+/* Unified hierarchical back navigation */
+.programmatic-page-focus:focus{outline:none}
+.back-control{--back-accent:#475467;display:inline-flex;align-items:center;gap:9px;width:max-content;max-width:100%;min-height:44px;margin:0 0 14px;padding:8px 13px 8px 9px;border:1px solid color-mix(in srgb,var(--back-accent) 24%,#d9dee7);border-radius:999px;background:color-mix(in srgb,var(--back-accent) 7%,#fff);color:var(--back-accent);box-shadow:0 5px 14px rgba(17,24,39,.05);font-size:.86rem;font-weight:950;line-height:1.15;text-decoration:none;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}
+.back-control.shine{--back-accent:var(--shine)}.back-control.heal{--back-accent:#8a6200}.back-control.dr{--back-accent:var(--dr)}.back-control.summary{--back-accent:var(--summary)}
+.back-control-icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--back-accent) 18%,#e5e7eb)}
+.back-control-icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.back-control:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--back-accent) 11%,#fff);border-color:color-mix(in srgb,var(--back-accent) 40%,#d9dee7);box-shadow:0 8px 18px rgba(17,24,39,.08)}
+.back-control:focus-visible{outline:3px solid color-mix(in srgb,var(--back-accent) 48%,transparent);outline-offset:3px}
+@media(max-width:430px){.back-control{width:100%;justify-content:flex-start}}
+@media print{.back-control{display:none!important}}

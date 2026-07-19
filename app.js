@@ -226,14 +226,15 @@ function rawHealItems(){
 function rawDrItems(){
   return DATA.drSections.flatMap(section=>(section.items||[]).map(item=>({...item,section:section.title,sectionId:section.id,area:'dr'})));
 }
+function renderBackControl(href,label,mode='neutral',attrs=''){
+  return `<a class="detail-back back-control ${esc(mode)}" href="${esc(href)}" ${attrs}><span class="back-control-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M10.5 6.5 5 12l5.5 5.5M6 12h8.25a4.75 4.75 0 0 1 0 9.5H12"/></svg></span><span>${esc(label)}</span></a>`;
+}
 function renderDetailNavigation(area,item){
   const labels=DATA.ui.clarity||{};
-  if(area==='shine')return `<a class="detail-back" href="#/shine">${esc(labels.backToShine||'Back to SHINE')}</a>`;
-  if(area==='heal')return `<a class="detail-back heal-back" href="#/heal">${esc(labels.backToHeal||'Back to HEAL home')}</a>`;
+  if(area==='shine')return renderBackControl('#/shine',labels.backToShine||'SHINE home','shine');
   const sectionId=item?.sectionId||'';
   const sectionTitle=item?.section||area.toUpperCase();
-  const prefix=labels.backToSectionPrefix||'Back to';
-  return `<a class="detail-back ${esc(area)}-back" href="#/${area}/${esc(sectionId)}">${esc(prefix+' '+sectionTitle)}</a>`;
+  return renderBackControl(`#/${area}/${sectionId}`,sectionTitle,area);
 }
 function warningTeachingPoints(item){
   const pattern=/(seek\s+(?:urgent|emergency|prompt)|call\s+(?:local\s+)?emergency|red\s+flags?|serious\s+(?:warning|risks?)|emergency\s+symptoms?|urgent\s+symptoms?|immediate\s+(?:danger|emergency)|requires?\s+(?:urgent|emergency)|urgent\s+help|emergency\s+(?:help|care|services?))/i;
@@ -726,7 +727,7 @@ function renderList(area,id){
   const sections=area==='heal'?DATA.healSections:DATA.drSections;
   const sec=sections.find(section=>section.id===id)||sections[0];
   const items=visibleItems(sec.items);
-  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail ${area}"><a class="detail-back" href="#/${area}">← ${esc((DATA.ui.clarity.backToSectionPrefix||'← Back to')+' '+area.toUpperCase())}</a><p class="eyebrow">${area.toUpperCase()}</p><h2>${esc(sec.title)}</h2><p class="lead">${esc(sec.subtitle)}</p><div class="grid">${items.map(item=>`<a class="card${focusMatchClass(item.id)}" href="#/${area}/item/${esc(item.id)}">${renderFocusBadge(item.id)}<h3>${esc(item.title)}</h3><p>${esc(item.subtitle)}</p></a>`).join('')}</div></section></div>`;
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail ${area}">${renderBackControl(`#/${area}`,`${area.toUpperCase()} home`,area)}<p class="eyebrow">${area.toUpperCase()}</p><h2>${esc(sec.title)}</h2><p class="lead">${esc(sec.subtitle)}</p><div class="grid">${items.map(item=>`<a class="card${focusMatchClass(item.id)}" href="#/${area}/item/${esc(item.id)}">${renderFocusBadge(item.id)}<h3>${esc(item.title)}</h3><p>${esc(item.subtitle)}</p></a>`).join('')}</div></section></div>`;
 }
 function isLockedItem(item){
   return item && (
@@ -878,6 +879,7 @@ function renderDietBuilder(){
   setActive('heal');
   const d=DATA.dietBuilder;
   app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail heal diet-builder">
+    ${renderBackControl('#/heal','HEAL home','heal')}
     <p class="eyebrow">HEAL / DIET</p>
     <h2>${esc(d.title)}</h2>
     <p class="lead">${esc(d.subtitle)}</p>
@@ -1513,7 +1515,7 @@ function renderFindResults(results){
 function updateFindResults(){const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(!input||!target)return;findQuery=input.value;findShowAll=false;target.innerHTML=findQuery.trim()?renderFindResults(searchEntities(findQuery)):`<div class="empty-state">${esc(DATA.search.emptyState)}</div>`}
 function renderFind(){
   setActive(utilityModeFromHash(findOrigin));const s=DATA.search,results=findQuery.trim()?searchEntities(findQuery):[];
-  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail find-screen"><a class="detail-back no-print" href="${esc(findOrigin)}" data-find-back="1">← ${esc(String(s.backTo).replace('{page}',utilityBackLabel(findOrigin)))}</a><p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)}</h1><p class="lead">${esc(s.subtitle)}</p><div class="notice info-notice">${esc(s.safetyNotice)}</div><label class="find-label" for="find-query">${esc(s.title)}</label><div class="find-input-wrap"><input id="find-query" class="find-input" type="search" value="${esc(findQuery)}" placeholder="${esc(s.placeholder)}" autocomplete="off"><button type="button" class="find-clear no-print" data-find-clear="1" aria-label="${esc(s.clearSearch)}">×</button></div><div id="find-results">${findQuery.trim()?renderFindResults(results):`<div class="empty-state">${esc(s.emptyState)}</div>`}</div></section></div>`;
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail find-screen">${renderBackControl(findOrigin,String(s.backTo).replace('{page}',utilityBackLabel(findOrigin)),utilityModeFromHash(findOrigin)||'neutral','data-find-back="1"')}<p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)}</h1><p class="lead">${esc(s.subtitle)}</p><div class="notice info-notice">${esc(s.safetyNotice)}</div><label class="find-label" for="find-query">${esc(s.title)}</label><div class="find-input-wrap"><input id="find-query" class="find-input" type="search" value="${esc(findQuery)}" placeholder="${esc(s.placeholder)}" autocomplete="off"><button type="button" class="find-clear no-print" data-find-clear="1" aria-label="${esc(s.clearSearch)}">×</button></div><div id="find-results">${findQuery.trim()?renderFindResults(results):`<div class="empty-state">${esc(s.emptyState)}</div>`}</div></section></div>`;
   const input=document.getElementById('find-query');input?.addEventListener('input',updateFindResults);requestAnimationFrame(()=>{window.scrollTo(0,findScrollY);if(!findQuery)input?.focus()});
 }
 function guideEntity(id){return findAnyEntity(id)}
@@ -1525,7 +1527,7 @@ function guideRecommendationCard(rec){
 }
 function renderIronGuide(){
   setActive(utilityModeFromHash(guideOrigin));const g=DATA.guides.iron,choice=g.choices.find(x=>x.id===ironGuideIntent),recs=choice?(g.recommendations[choice.id]||[]):[],primary=recs.slice(0,g.primaryLimit),more=recs.slice(g.primaryLimit);
-  app.innerHTML=`<div class="screen"><section class="detail iron-guide-screen"><a class="detail-back no-print" href="${esc(guideOrigin)}" data-guide-back="1">← ${esc(String(g.labels.backTo).replace('{page}',guideOrigin==='#/find'?DATA.search.title:utilityBackLabel(guideOrigin)))}</a><p class="eyebrow">${esc(g.eyebrow)}</p><h1>${esc(g.title)}</h1><p class="lead">${esc(g.subtitle)}</p><div class="notice info-notice">${esc(g.safetyNotice)}</div><section class="guide-intents"><h2>${esc(g.labels.chooseIntent)}</h2><div>${g.choices.map(item=>`<button type="button" class="guide-intent ${ironGuideIntent===item.id?'selected':''}" data-guide-intent="${esc(item.id)}" aria-pressed="${ironGuideIntent===item.id}">${esc(item.label)}</button>`).join('')}</div></section>${choice?`<section class="guide-results"><div class="guide-selected-intent"><small>${esc(g.labels.selectedIntent)}</small><strong>${esc(choice.label)}</strong></div><p class="print-only"><strong>${esc(g.labels.selectedIntent)}:</strong> ${esc(choice.label)}</p>${primary.map(guideRecommendationCard).join('')||`<div class="empty-state">${esc(g.labels.noOptions)}</div>`}${more.length?`<details class="guide-more-options"><summary>${esc(g.labels.moreOptions)}</summary>${more.map(guideRecommendationCard).join('')}</details>`:''}</section>`:`<div class="guide-empty-state">${esc(g.labels.choosePrompt)}</div>`}</section></div>`;
+  app.innerHTML=`<div class="screen"><section class="detail iron-guide-screen">${renderBackControl(guideOrigin,String(g.labels.backTo).replace('{page}',guideOrigin==='#/find'?DATA.search.title:utilityBackLabel(guideOrigin)),utilityModeFromHash(guideOrigin)||'neutral','data-guide-back="1"')}<p class="eyebrow">${esc(g.eyebrow)}</p><h1>${esc(g.title)}</h1><p class="lead">${esc(g.subtitle)}</p><div class="notice info-notice">${esc(g.safetyNotice)}</div><section class="guide-intents"><h2>${esc(g.labels.chooseIntent)}</h2><div>${g.choices.map(item=>`<button type="button" class="guide-intent ${ironGuideIntent===item.id?'selected':''}" data-guide-intent="${esc(item.id)}" aria-pressed="${ironGuideIntent===item.id}">${esc(item.label)}</button>`).join('')}</div></section>${choice?`<section class="guide-results"><div class="guide-selected-intent"><small>${esc(g.labels.selectedIntent)}</small><strong>${esc(choice.label)}</strong></div><p class="print-only"><strong>${esc(g.labels.selectedIntent)}:</strong> ${esc(choice.label)}</p>${primary.map(guideRecommendationCard).join('')||`<div class="empty-state">${esc(g.labels.noOptions)}</div>`}${more.length?`<details class="guide-more-options"><summary>${esc(g.labels.moreOptions)}</summary>${more.map(guideRecommendationCard).join('')}</details>`:''}</section>`:`<div class="guide-empty-state">${esc(g.labels.choosePrompt)}</div>`}</section></div>`;
 }
 // END V047 FIND AND GUIDE
 

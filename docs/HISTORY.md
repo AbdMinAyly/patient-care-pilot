@@ -160,3 +160,11 @@ The following remain deferred unless explicitly requested:
 - Reused and restyled the existing `detail-back` pattern instead of adding another navigation component.
 - HEAL detail pages now return directly to the main HEAL page.
 - No new permanent files, routes, dependencies, clinical content, or saved-data fields were added.
+
+
+### Hierarchical back navigation
+
+- Back controls now move up exactly one menu level.
+- HEAL and DR detail pages return to their section, not directly to the home screen.
+- Diet guidance returns to Diet; Diet returns to HEAL.
+- All back controls use one shared icon-and-label component with no raw arrow text.
