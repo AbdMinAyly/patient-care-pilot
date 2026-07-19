@@ -308,7 +308,7 @@ function defaultProfile(){
     questions:[],
     planTasks:[],
     sleepWizard:{conditions:[],schedule:[],patterns:[],factors:[]},
-    guided:{shineAnswers:{},routineChoices:[],medicalProfile:[]},
+    guided:{shineAnswers:{},routineChoices:[],medicalProfile:[],dietSetup:{completed:false,answers:{}},pendingMedical:[],confirmedMedical:[]},
     planNotes:{daily:'',food:'',treatment:'',doctor:''},
     createdAt:new Date().toISOString()
   };
@@ -339,7 +339,7 @@ function profile(){
         patterns:Array.isArray(parsed.sleepWizard?.patterns)?parsed.sleepWizard.patterns:[],
         factors:Array.isArray(parsed.sleepWizard?.factors)?parsed.sleepWizard.factors:[]
       },
-      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[]},
+      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[],dietSetup:{...base.guided.dietSetup,...(parsed.guided?.dietSetup||{}),answers:{...(parsed.guided?.dietSetup?.answers||{})}},pendingMedical:Array.isArray(parsed.guided?.pendingMedical)?parsed.guided.pendingMedical:[],confirmedMedical:Array.isArray(parsed.guided?.confirmedMedical)?parsed.guided.confirmedMedical:[]},
       planNotes:{...base.planNotes,...(parsed.planNotes||{})}
     };
   }catch(e){
@@ -588,9 +588,66 @@ function renderPedia(filter=''){
   setActive('pedia');const c=guidedConfig().pedia,cards=filter?c.cards.filter(x=>x.id===filter||filter==='heal'&&['diet','supplements'].includes(x.id)):c.cards;
   app.innerHTML=`<div class="screen">${filter?renderBackControl('#/pedia','Shinopedia','neutral'):''}${hero('summary',c.title,c.intro)}<section class="pedia-grid">${cards.map(card=>`<a class="pedia-card" href="${esc(card.route)}"><span>${esc(card.title)}</span><p>${esc(card.text)}</p></a>`).join('')}</section></div>`;
 }
+
+let dietWizardStep=0;
+let dietWizardAnswers={conditions:[],goal:'',preference:''};
+function progressiveConfig(){return guidedConfig().progressiveReveal}
+function dietSetupComplete(p=profile()){return p.guided.dietSetup?.completed===true}
+function toggleArrayValue(list,value){return list.includes(value)?list.filter(x=>x!==value):[...list,value]}
+function renderSingleStart(mode,title,text,buttonLabel,buttonAttr){
+  return `<div class="screen progressive-entry ${esc(mode)}"><section class="progressive-start"><div><p class="eyebrow">START HERE</p><h1>${esc(title)}</h1><p>${esc(text)}</p></div><button type="button" class="btn ${esc(mode)} progressive-start-button" ${buttonAttr}>${esc(buttonLabel)}</button></section></div>`;
+}
+function renderDietWizard(){
+  const c=progressiveConfig().diet,step=c.steps[dietWizardStep],modal=document.getElementById('diet-start-wizard')||document.createElement('div');
+  modal.id='diet-start-wizard';modal.className='guided-modal';
+  const selected=step?.multiple?(dietWizardAnswers[step.id]||[]):dietWizardAnswers[step?.id];
+  modal.innerHTML=`<div class="guided-backdrop" data-close-diet-start="1"></div><section class="guided-dialog" role="dialog" aria-modal="true" aria-labelledby="diet-start-title"><button class="guided-close" data-close-diet-start="1" aria-label="${esc(c.close)}">×</button><p class="eyebrow">HEAL / DIET</p><h2 id="diet-start-title">${esc(c.title)}</h2>${step?`<div class="guided-progress"><span style="width:${((dietWizardStep+1)/c.steps.length)*100}%"></span></div><h3>${esc(step.title)}</h3><p>${esc(step.help)}</p><div class="guided-options">${step.options.map(option=>{const active=step.multiple?selected.includes(option.id):selected===option.id;return `<button type="button" class="guided-option ${active?'selected':''}" data-diet-step="${esc(step.id)}" data-diet-option="${esc(option.id)}" data-diet-multiple="${step.multiple?'1':'0'}">${esc(option.label)}</button>`}).join('')}</div><div class="guided-actions"><button class="btn ghost" data-diet-start-back="1" ${dietWizardStep===0?'disabled':''}>${esc(c.back)}</button><button class="btn heal" data-diet-start-next="1" ${(step.multiple?selected.length:!!selected)?'':'disabled'}>${esc(dietWizardStep===c.steps.length-1?c.finish:c.next)}</button></div>`:''}</section>`;
+  if(!modal.isConnected)document.body.appendChild(modal);
+}
+function openDietWizard(){const saved=profile().guided.dietSetup?.answers||{};dietWizardAnswers={conditions:[...(saved.conditions||[])],goal:saved.goal||'',preference:saved.preference||''};dietWizardStep=0;renderDietWizard()}
+function closeDietWizard(){document.getElementById('diet-start-wizard')?.remove()}
+function dietMedicalFindings(answers){
+  const map=progressiveConfig().diet.medicalMap||{};
+  return [...new Set((answers.conditions||[]).map(id=>map[id]).filter(Boolean))];
+}
+function saveDietSetup(){
+  const p=profile(),findings=dietMedicalFindings(dietWizardAnswers);
+  p.guided.dietSetup={completed:true,answers:{conditions:[...dietWizardAnswers.conditions],goal:dietWizardAnswers.goal,preference:dietWizardAnswers.preference}};
+  p.guided.pendingMedical=[...new Set([...(p.guided.pendingMedical||[]),...findings.filter(id=>!(p.guided.confirmedMedical||[]).includes(id))])];
+  saveProfile(p);closeDietWizard();renderHeal();
+}
+function applyDietSetupToBuilder(){
+  const a=profile().guided.dietSetup?.answers||{},map=progressiveConfig().diet.focusMap||{};
+  dietState.focus=[...new Set([...(map[a.goal]||[]),...(map[a.preference]||[])])].filter(id=>focusById(id));
+  dietState.meal='all';dietState.match='any';dietState.query='';location.hash='#/heal/diet';
+}
+function renderDietReady(){
+  const c=progressiveConfig().diet,p=profile(),a=p.guided.dietSetup.answers;
+  const labels=[...(a.conditions||[]),a.goal,a.preference].map(id=>c.optionLabels[id]).filter(Boolean);
+  return `<div class="screen progressive-entry heal"><section class="progressive-ready"><p class="eyebrow">YOUR DIET</p><h1>${esc(c.readyTitle)}</h1><p>${esc(c.readyText)}</p><div class="progressive-tags">${labels.map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="progressive-ready-actions"><button class="btn heal" data-open-diet-results="1">${esc(c.view)}</button><button class="btn ghost" data-open-diet-start="1">${esc(c.update)}</button></div></section></div>`;
+}
+function medicalLabel(id){const c=progressiveConfig().medical;return c.items[id]?.label||id}
+function renderMedicalSuggestion(id){
+  const c=progressiveConfig().medical,item=c.items[id];if(!item)return '';
+  return `<article class="medical-suggestion"><div><small>${esc(c.suggested)}</small><h2>${esc(item.label)}</h2><p>${esc(item.confirmText)}</p></div><div><button class="btn dr" data-confirm-medical="${esc(id)}">${esc(c.confirm)}</button><button class="btn ghost" data-dismiss-medical="${esc(id)}">${esc(c.dismiss)}</button></div></article>`;
+}
+function renderConfirmedSupport(id){
+  const c=progressiveConfig().medical,item=c.items[id];if(!item)return '';
+  const route=id==='iron-deficiency'?'#/guide/iron':(item.route||'#/dr/profile');
+  return `<article class="guided-builder-card medical revealed-support"><div><small>${esc(c.added)}</small><h2>${esc(item.cardTitle)}</h2><p>${esc(item.cardText)}</p></div><a class="btn dr button-link" href="${esc(route)}" ${id==='iron-deficiency'?'data-open-iron-guide="1"':''}>${esc(item.open)}</a></article>`;
+}
+function renderProgressiveDr(){
+  const c=progressiveConfig().medical,p=profile(),pending=p.guided.pendingMedical||[],confirmed=p.guided.confirmedMedical||[];
+  if(pending.length)return `<div class="screen progressive-entry dr">${renderMedicalSuggestion(pending[0])}</div>`;
+  if(confirmed.length)return `<div class="screen progressive-entry dr"><section class="progressive-support-list">${confirmed.map(renderConfirmedSupport).join('')}<a class="quiet-profile-link" href="#/dr/profile">${esc(c.updateProfile)}</a></section></div>`;
+  return renderSingleStart('dr',c.title,c.intro,c.start,'data-open-medical-profile="1"');
+}
+
 // END GUIDED HOMES AND SHINOPEDIA
 function renderShine(){
   setActive('shine');
+  const c=guidedConfig().shine;
+  if(!selectedShineFocus().length){app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');return;}
   app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderPriorityLauncher()}<section class="grid shine-focus-grid">${DATA.shine.map(renderGuidedShineCard).join('')}</section></div>`;
 }
 function sleepWizardConfig(){return shineById.sleep?.wizard||null}
@@ -772,12 +829,13 @@ function renderShineTopic(id){
   </section></div>`;
 }
 function renderHeal(){
-  setActive('heal');const c=guidedConfig().heal;
-  app.innerHTML=`<div class="screen">${hero('heal','HEAL',DATA.ui.modeDescriptions.heal)}${renderShineFocusBar()}<section class="guided-home-head"><p class="eyebrow">GUIDED BUILDERS</p><h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p></section><section class="guided-builder-grid">${c.builders.map(renderBuilderCard).join('')}</section><a class="library-link-card" href="#/pedia/heal"><strong>Browse all HEAL topics</strong><span>Open Shinopedia</span></a></div>`;
+  setActive('heal');
+  const c=progressiveConfig().diet;
+  app.innerHTML=dietSetupComplete()?renderDietReady():renderSingleStart('heal',c.title,c.intro,c.start,'data-open-diet-start="1"');
 }
 function renderDr(){
-  setActive('dr');const c=guidedConfig().dr,p=profile(),hasProfile=(p.guided.medicalProfile||[]).length>0;
-  app.innerHTML=`<div class="screen">${hero('dr','DR',DATA.ui.modeDescriptions.dr)}${renderShineFocusBar()}<section class="guided-launch medical-launch"><div><p class="eyebrow">START HERE</p><h2>${esc(c.title)}</h2><p>${esc(c.intro)}</p></div><a class="btn dr button-link" href="#/dr/profile">${esc(hasProfile?c.update:c.start)}</a></section>${hasProfile?`<section class="guided-builder-grid">${medicalBuilderCards()}</section>`:''}<a class="library-link-card" href="#/pedia"><strong>Browse all medical topics</strong><span>Open Shinopedia</span></a></div>`;
+  setActive('dr');
+  app.innerHTML=renderProgressiveDr();
 }
 function renderList(area,id){
   if(area==='heal'&&id==='diet')return renderDietBuilder();
@@ -1411,6 +1469,16 @@ function showToast(text){
 }
 
 document.addEventListener('click',e=>{
+  if(e.target.closest('[data-open-diet-start]')){openDietWizard();return}
+  if(e.target.closest('[data-close-diet-start]')){closeDietWizard();return}
+  const dietChoice=e.target.closest('[data-diet-option]');if(dietChoice){const key=dietChoice.dataset.dietStep,id=dietChoice.dataset.dietOption;if(dietChoice.dataset.dietMultiple==='1'){dietWizardAnswers[key]=toggleArrayValue(dietWizardAnswers[key]||[],id)}else dietWizardAnswers[key]=id;renderDietWizard();return}
+  if(e.target.closest('[data-diet-start-back]')){dietWizardStep=Math.max(0,dietWizardStep-1);renderDietWizard();return}
+  if(e.target.closest('[data-diet-start-next]')){if(dietWizardStep<progressiveConfig().diet.steps.length-1){dietWizardStep++;renderDietWizard()}else saveDietSetup();return}
+  if(e.target.closest('[data-open-diet-results]')){applyDietSetupToBuilder();return}
+  if(e.target.closest('[data-open-medical-profile]')){location.hash='#/dr/profile';return}
+  const confirmMedical=e.target.closest('[data-confirm-medical]');if(confirmMedical){const id=confirmMedical.dataset.confirmMedical,p=profile();p.guided.pendingMedical=(p.guided.pendingMedical||[]).filter(x=>x!==id);p.guided.confirmedMedical=[...new Set([...(p.guided.confirmedMedical||[]),id])];saveProfile(p);renderDr();return}
+  const dismissMedical=e.target.closest('[data-dismiss-medical]');if(dismissMedical){const id=dismissMedical.dataset.dismissMedical,p=profile();p.guided.pendingMedical=(p.guided.pendingMedical||[]).filter(x=>x!==id);saveProfile(p);renderDr();return}
+
   if(e.target.closest('[data-open-priority]')){shinePriorityStep=0;shinePriorityAnswers={...profile().guided.shineAnswers};renderPriorityWizard();return}
   if(e.target.closest('[data-close-priority]')){closePriorityWizard();return}
   const priorityOption=e.target.closest('[data-priority-option]');if(priorityOption){shinePriorityAnswers[priorityOption.dataset.priorityQuestion]=priorityOption.dataset.priorityOption;renderPriorityWizard();return}

@@ -1348,3 +1348,19 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
 @media(max-width:700px){.guided-launch,.guided-home-head{align-items:stretch;flex-direction:column}.guided-launch .btn{width:100%}.guided-builder-grid,.pedia-grid{grid-template-columns:1fr}}
 @media(max-width:430px){.bottom-nav{gap:4px}.navbtn{padding:8px 2px}.navbtn strong{font-size:.77rem}.navbtn span{font-size:.62rem}.guided-actions{flex-direction:column}.guided-actions .btn{width:100%}}
 @media print{.guided-launch,.guided-modal,.library-link-card{display:none!important}}
+
+
+/* Progressive reveal — one starting action at a time */
+.progressive-entry{min-height:calc(100vh - 150px);place-items:center;align-content:center}
+.progressive-start,.progressive-ready,.medical-suggestion,.progressive-support-list{width:min(680px,100%);padding:28px;border:1px solid var(--line);border-radius:28px;background:#fff}
+.progressive-start{display:grid;gap:24px;text-align:center}
+.progressive-start h1,.progressive-ready h1{margin:.15rem 0 .55rem;font-size:clamp(2rem,8vw,3.4rem);letter-spacing:-.055em}
+.progressive-start p,.progressive-ready p,.medical-suggestion p{margin:0;color:var(--muted);line-height:1.55}
+.progressive-start-button{width:100%;min-height:58px;font-size:1.05rem}
+.progressive-ready{display:grid;gap:18px}
+.progressive-tags{display:flex;flex-wrap:wrap;gap:8px}.progressive-tags span{padding:8px 10px;border-radius:999px;background:#f3f4f6;font-size:.82rem;font-weight:850}
+.progressive-ready-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.medical-suggestion{display:grid;gap:20px}.medical-suggestion>div:last-child{display:grid;grid-template-columns:1fr 1fr;gap:10px}.medical-suggestion small,.revealed-support small{font-weight:900;color:var(--dr)}
+.progressive-support-list{display:grid;gap:14px}.quiet-profile-link{justify-self:start;color:var(--dr);font-weight:850}
+@media(max-width:520px){.progressive-start,.progressive-ready,.medical-suggestion,.progressive-support-list{padding:20px}.progressive-ready-actions,.medical-suggestion>div:last-child{grid-template-columns:1fr}}
+@media print{.progressive-start-button,.progressive-ready-actions,.medical-suggestion button,.quiet-profile-link{display:none!important}}

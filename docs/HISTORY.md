@@ -180,3 +180,13 @@ The following remain deferred unless explicitly requested:
 - The standalone Sleep Wizard is no longer shown; sleep support is reached through SHINE priority and the HEAL Routine builder.
 
 - Verification fixes ensure Medical Profile saves return to DR, filtered Shinopedia views return one level to Shinopedia, and Shinopedia remains the active navigation context for utility pages.
+
+
+### Progressive reveal entry flow
+
+- SHINE shows only the priority setup until a primary focus is saved.
+- HEAL shows only Start Your Diet until the Diet setup is completed.
+- Diet answers are stored once inside the existing guided profile and may create DR suggestions.
+- Medical findings are never migrated silently; DR requires explicit confirmation before revealing support cards.
+- Confirmed iron deficiency reveals existing Iron Support while dosing and schedule generation remain locked.
+- Shinopedia remains the deliberate full-library view.

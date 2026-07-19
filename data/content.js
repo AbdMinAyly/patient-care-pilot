@@ -14324,3 +14324,44 @@ window.PATIENT_CARE_CONTENT = {
   }
 
 };
+
+
+window.PATIENT_CARE_CONTENT.guidedExperience.progressiveReveal = {
+  "diet": {
+    "title": "Start Your Diet",
+    "intro": "Answer a few questions. Only your diet setup will appear after you finish.",
+    "start": "Start Your Diet",
+    "readyTitle": "Your diet setup is ready",
+    "readyText": "Open the food library with your saved setup, or update your answers.",
+    "view": "View Your Diet",
+    "update": "Update Diet Setup",
+    "close": "Close diet setup",
+    "back": "Previous",
+    "next": "Continue",
+    "finish": "Save My Diet Setup",
+    "steps": [
+      {"id":"conditions","title":"Which known health areas should your diet setup consider?","help":"Choose only conditions or deficiencies already known to you. This does not diagnose anything.","multiple":true,"options":[{"id":"iron-deficiency","label":"Iron deficiency or low iron"},{"id":"diabetes","label":"Diabetes or blood-sugar support"},{"id":"high-blood-pressure","label":"High blood pressure"},{"id":"kidney","label":"Kidney-related food restrictions"},{"id":"none","label":"None of these"}]},
+      {"id":"goal","title":"What is your main food goal?","help":"Choose the one that matters most right now.","multiple":false,"options":[{"id":"balanced","label":"Build balanced meals"},{"id":"weight-support","label":"Weight support"},{"id":"heart-support","label":"Heart-supportive choices"},{"id":"energy-support","label":"Energy and protein support"}]},
+      {"id":"preference","title":"What should make the plan easier to use?","help":"Choose the closest fit.","multiple":false,"options":[{"id":"no-preference","label":"No special preference"},{"id":"vegetarian","label":"Vegetarian choices"},{"id":"quick","label":"Quick and practical meals"}]}
+    ],
+    "medicalMap":{"iron-deficiency":"iron-deficiency","diabetes":"diabetes","high-blood-pressure":"hypertension","kidney":"kidney-support"},
+    "focusMap":{"balanced":["balanced"],"weight-support":["balanced","fiber"],"heart-support":["heart"],"energy-support":["protein"],"vegetarian":["vegetarian"],"quick":[]},
+    "optionLabels":{"iron-deficiency":"Iron deficiency","diabetes":"Blood-sugar support","high-blood-pressure":"Blood-pressure support","kidney":"Kidney considerations","none":"No listed condition","balanced":"Balanced meals","weight-support":"Weight support","heart-support":"Heart support","energy-support":"Energy and protein","no-preference":"No special preference","vegetarian":"Vegetarian","quick":"Quick meals"}
+  },
+  "medical": {
+    "title":"Build Your Medical Profile",
+    "intro":"Start with one short setup. Relevant support appears only after you add or confirm it.",
+    "start":"Start Medical Profile",
+    "suggested":"Suggested from your Diet setup",
+    "confirm":"Add to Medical Profile",
+    "dismiss":"Not now",
+    "added":"Medical Profile support",
+    "updateProfile":"Update Medical Profile",
+    "items": {
+      "iron-deficiency":{"label":"Iron deficiency","confirmText":"Your Diet setup included iron deficiency. Add it to your Medical Profile to reveal supplement support?","cardTitle":"Supplement Support","cardText":"Open existing iron education, food guidance, side-effect support, questions, and follow-up topics. Treatment doses and schedules remain locked.","open":"Open Iron Support","route":"#/guide/iron"},
+      "diabetes":{"label":"Diabetes","confirmText":"Your Diet setup included diabetes or blood-sugar support. Add it to your Medical Profile?","cardTitle":"Condition Support","cardText":"Open existing diabetes education, tracking topics, and questions.","open":"Open Diabetes Topics","route":"#/dr/chronic"},
+      "hypertension":{"label":"High blood pressure","confirmText":"Your Diet setup included blood-pressure support. Add it to your Medical Profile?","cardTitle":"Condition Support","cardText":"Open existing blood-pressure education, home monitoring, and questions.","open":"Open Blood Pressure Topics","route":"#/dr/chronic"},
+      "kidney-support":{"label":"Kidney considerations","confirmText":"Your Diet setup included kidney-related food restrictions. Add this consideration to your Medical Profile?","cardTitle":"Care Support","cardText":"Review existing medical topics and prepare questions for your clinician.","open":"Open Medical Topics","route":"#/pedia"}
+    }
+  }
+};
