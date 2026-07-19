@@ -22,14 +22,33 @@ jobs:
         id: build
         shell: bash
         run: |
+          set -o pipefail
           if [ "$(cat VERSION.txt)" != "v046" ] || [ ! -f docs/product/V046_SHINE_FOCUS_FOUNDATION.md ]; then
-            cat .github/v046-build.*.b64 | tr -d '\n' | base64 -d | gzip -d > /tmp/build_v046.py
-            sed -i "s#root=Path('/mnt/data/v046ws/repo')#root=Path.cwd()#" /tmp/build_v046.py
-            python3 /tmp/build_v046.py
+            {
+              for file in .github/v046-build.*.b64; do wc -c "$file"; sha256sum "$file"; done
+              cat .github/v046-build.*.b64 | tr -d '\n' > /tmp/v046-build.b64
+              wc -c /tmp/v046-build.b64
+              sha256sum /tmp/v046-build.b64
+              test "$(wc -c < /tmp/v046-build.b64)" = "17136"
+              test "$(sha256sum /tmp/v046-build.b64 | cut -d' ' -f1)" = "44cc73f8c88c0c1d74ca36a1bdda76ca8ff31b0d6a9c1e40b4e0081611ba85d5"
+              base64 -d /tmp/v046-build.b64 > /tmp/v046-build.py.gz
+              gzip -t /tmp/v046-build.py.gz
+              gzip -dc /tmp/v046-build.py.gz > /tmp/build_v046.py
+              sed -i "s#root=Path('/mnt/data/v046ws/repo')#root=Path.cwd()#" /tmp/build_v046.py
+              python3 /tmp/build_v046.py
+            } 2>&1 | tee "$RUNNER_TEMP/v046-build-report.txt"
             echo "applied=true" >> "$GITHUB_OUTPUT"
           else
             echo "applied=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Upload build report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v046-build-report
+          path: ${{ runner.temp }}/v046-build-report.txt
+          if-no-files-found: warn
 
       - name: Static and preservation verification
         shell: bash
