@@ -25,15 +25,13 @@ jobs:
           set -o pipefail
           if [ "$(cat VERSION.txt)" != "v046" ] || [ ! -f docs/product/V046_SHINE_FOCUS_FOUNDATION.md ]; then
             {
-              for file in .github/v046-build.*.b64; do wc -c "$file"; sha256sum "$file"; done
               cat .github/v046-build.*.b64 | tr -d '\n' > /tmp/v046-build.b64
-              wc -c /tmp/v046-build.b64
-              sha256sum /tmp/v046-build.b64
               test "$(wc -c < /tmp/v046-build.b64)" = "17136"
               test "$(sha256sum /tmp/v046-build.b64 | cut -d' ' -f1)" = "44cc73f8c88c0c1d74ca36a1bdda76ca8ff31b0d6a9c1e40b4e0081611ba85d5"
               base64 -d /tmp/v046-build.b64 > /tmp/v046-build.py.gz
               gzip -t /tmp/v046-build.py.gz
               gzip -dc /tmp/v046-build.py.gz > /tmp/build_v046.py
+              python3 .github/v046-adapt.py
               sed -i "s#root=Path('/mnt/data/v046ws/repo')#root=Path.cwd()#" /tmp/build_v046.py
               python3 /tmp/build_v046.py
             } 2>&1 | tee "$RUNNER_TEMP/v046-build-report.txt"
@@ -68,12 +66,7 @@ jobs:
           const fs=require('fs');
           const vm=require('vm');
           const cp=require('child_process');
-          function load(text){
-            const context={window:{}};
-            vm.createContext(context);
-            vm.runInContext(text,context);
-            return context.window.PATIENT_CARE_CONTENT;
-          }
+          function load(text){const context={window:{}};vm.createContext(context);vm.runInContext(text,context);return context.window.PATIENT_CARE_CONTENT;}
           const before=load(cp.execFileSync('git',['show','origin/v045-clarity-pass:data/content.js'],{encoding:'utf8'}));
           const after=load(fs.readFileSync('data/content.js','utf8'));
           const checks=[
@@ -85,9 +78,7 @@ jobs:
             ['meta.completedBatches',before.meta.completedBatches,after.meta.completedBatches],
             ['meta.qualityReview',before.meta.qualityReview,after.meta.qualityReview]
           ];
-          for(const [label,a,b] of checks){
-            if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('Clinical content changed: '+label);
-          }
+          for(const [label,a,b] of checks){if(JSON.stringify(a)!==JSON.stringify(b))throw new Error('Clinical content changed: '+label);}
           console.log('clinical content preserved');
           NODE
 
@@ -122,7 +113,7 @@ jobs:
         if: steps.build.outputs.applied == 'true' && success()
         shell: bash
         run: |
-          rm -f .github/v046-build.*.b64
+          rm -f .github/v046-build.*.b64 .github/v046-adapt.py .github/workflows/export-v045-base-for-v046.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
