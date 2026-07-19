@@ -14082,7 +14082,8 @@ window.PATIENT_CARE_CONTENT = {
     "entryAction": "Open Find",
     "urgentLabel": "Urgent help",
     "focusRelevant": "Relevant to {focus}",
-    "ironGuideLink": "Open Iron Learning Guide"
+    "ironGuideLink": "Open Iron Learning Guide",
+    "eyebrow": "Find"
   },
   "guides": {
     "iron": {
@@ -14218,7 +14219,8 @@ window.PATIENT_CARE_CONTENT = {
         "anemia",
         "iron-supplement",
         "supplement-routes"
-      ]
+      ],
+      "eyebrow": "Guide"
     }
   }
 };
