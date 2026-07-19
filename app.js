@@ -623,16 +623,17 @@ function renderSleepWizardResults(){
   const hidden=recommendations.slice(limit);
   const renderCard=rec=>{
     const saved=taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId);
-    return `<article class="sleep-wizard-result-card"><div><strong>${esc(rec.task.title)}</strong><p>${esc(rec.reason)}</p><small>From ${esc(rec.task.itemTitle)}</small></div><button class="task-add ${saved?'saved':''}" data-add-task="1" data-origin="sleep-wizard" data-item="${esc(rec.task.itemId)}" data-group="${esc(rec.task.group)}" data-task="${esc(rec.task.taskId)}">${saved?'Added ✓':'Add to plan'}</button></article>`;
+    return `<article class="sleep-wizard-result-card"><div><span class="wizard-result-category">${esc(rec.categoryData?.title||rec.category)}</span><strong>${esc(rec.task.title)}</strong><p>${esc(rec.reason)}</p><small>From ${esc(rec.task.itemTitle)}</small></div><button class="task-add ${saved?'saved':''}" data-add-task="1" data-origin="sleep-wizard" data-item="${esc(rec.task.itemId)}" data-group="${esc(rec.task.group)}" data-task="${esc(rec.task.taskId)}">${saved?'Added ✓':'Add to plan'}</button></article>`;
   };
   const unsaved=primary.filter(rec=>!taskIsSaved(rec.task.itemId,rec.task.group,rec.task.taskId));
   const hiddenLabel=String(presentation.hiddenCountLabel||'{count} additional matched actions').replace('{count}',hidden.length).replace('{suffix}',hidden.length===1?'':'s');
+  const addLabel=String(presentation.addShownActions||'Add these {count} actions').replace('{count}',primary.length);
   return `<div class="sleep-wizard-results">
     <div class="sleep-wizard-results-head"><p class="eyebrow">YOUR MATCHED HEAL ACTIONS</p><h3>${esc(wizard.resultsTitle)}</h3><p>${esc(wizard.resultsIntro)}</p></div>
     ${sleepWizardChoiceSummary()}
     <div class="sleep-wizard-result-groups">${primary.map(renderCard).join('')}</div>
+    <button class="btn sleep-wizard-add-all" data-wizard-add-all="1" ${unsaved.length?'':'disabled'}>${esc(unsaved.length?addLabel:(wizard.addedAllLabel||'All shown actions added'))}</button>
     ${hidden.length?`<details class="wizard-more-actions"><summary>${esc(presentation.moreMatchedActions||'More matched actions')} <span>${esc(hiddenLabel)}</span></summary><div>${hidden.map(renderCard).join('')}</div></details>`:''}
-    <button class="btn sleep-wizard-add-all" data-wizard-add-all="1" ${unsaved.length?'':'disabled'}>${esc(unsaved.length?(presentation.addShownActions||'Add shown actions'):(wizard.addedAllLabel||'All shown actions added'))}</button>
   </div>`;
 }
 function renderSleepWizardModal(){
@@ -853,7 +854,7 @@ function renderDietResults(){
   target.innerHTML=items.length?items.map(item=>{
     const matched=dietState.focus.filter(f=>(item.focus||[]).includes(f)).map(f=>focusById(f)?.label).filter(Boolean);
     const saved=selected.has(item.id);
-    return `<article class="diet-item-card">
+    return `<article id="diet-item-${esc(item.id)}" class="diet-item-card${pendingDietFoodId===item.id?' find-target':''}">
       <div class="diet-item-top">
         <div><p class="diet-kicker">${esc((item.meals||[]).map(m=>mealById(m)?.label).filter(Boolean).join(' • '))}</p><h3>${esc(item.title)}</h3></div>
         <button class="diet-add ${saved?'saved':''}" data-add-diet="${item.id}">${saved?'Added ✓':'Add +'}</button>
@@ -905,7 +906,8 @@ function renderDietBuilder(){
   <aside class="diet-selection-tray no-print" id="diet-selection-tray"></aside>
   </div>`;
   renderDietResults();
-  document.getElementById('diet-query')?.addEventListener('input',e=>{dietState.query=e.target.value;renderDietResults()});
+  document.getElementById('diet-query')?.addEventListener('input',e=>{dietState.query=e.target.value;pendingDietFoodId=null;renderDietResults()});
+  if(pendingDietFoodId)requestAnimationFrame(()=>document.getElementById('diet-item-'+pendingDietFoodId)?.scrollIntoView({block:'center'}));
 }
 
 /* ---------------- Your Plan ---------------- */
@@ -1372,6 +1374,13 @@ document.addEventListener('click',e=>{
 
 
   if(e.target.closest('[data-find-show-all]')){findShowAll=true;const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(input&&target)target.innerHTML=renderFindResults(searchEntities(input.value));return}
+  const openFind=e.target.closest('[data-open-find]');if(openFind){e.preventDefault();openUtilityRoute('find');return}
+  const openGuide=e.target.closest('[data-open-iron-guide]');if(openGuide){e.preventDefault();openUtilityRoute('guide');return}
+  const findBack=e.target.closest('[data-find-back]');if(findBack){e.preventDefault();location.hash=findOrigin;return}
+  const guideBack=e.target.closest('[data-guide-back]');if(guideBack){e.preventDefault();location.hash=guideOrigin;return}
+  if(e.target.closest('[data-find-clear]')){findQuery='';findShowAll=false;findScrollY=0;renderFind();return}
+  const findResult=e.target.closest('[data-find-result]');if(findResult){findScrollY=window.scrollY}
+  const foodTarget=e.target.closest('[data-find-food]');if(foodTarget){e.preventDefault();pendingDietFoodId=foodTarget.dataset.findFood;dietState.focus=[];dietState.meal='all';dietState.match='all';dietState.query=foodTarget.dataset.findFoodTitle||'';location.hash='#/heal/diet';return}
   const guideIntent=e.target.closest('[data-guide-intent]');
   if(guideIntent){ironGuideIntent=guideIntent.dataset.guideIntent;renderIronGuide();return}
 
@@ -1434,7 +1443,16 @@ document.addEventListener('click',e=>{
 
 // BEGIN V047 FIND AND GUIDE
 let findShowAll=false;
+let findQuery='';
+let findScrollY=0;
+let findOrigin='#/shine';
+let guideOrigin='#/find';
 let ironGuideIntent=null;
+let pendingDietFoodId=null;
+function utilityModeFromHash(hash){const mode=String(hash||'').replace('#/','').split('/')[0];return ['shine','heal','dr','plan','summary'].includes(mode)?(mode==='plan'?'summary':mode):''}
+function utilityBackLabel(hash){const mode=utilityModeFromHash(hash);return mode==='shine'?'SHINE':mode==='heal'?'HEAL':mode==='dr'?'DR':mode==='summary'?'Your Plan':'previous page'}
+function rememberUtilityOrigin(kind){const current=location.hash||'#/shine';if(kind==='find')findOrigin=current;else guideOrigin=current}
+function openUtilityRoute(kind){rememberUtilityOrigin(kind);location.hash=kind==='find'?'#/find':'#/guide/iron'}
 function normalizeSearchText(value){return String(value||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[-‐‑–—]/g,' ').replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim()}
 function searchWords(value){return normalizeSearchText(value).split(' ').filter(Boolean)}
 function visibleResearched(item){return item&&item.contentStatus==='researched'&&!isPlaceholder(item)}
@@ -1446,7 +1464,15 @@ function buildSearchIndex(){
   (DATA.dietBuilder?.items||[]).filter(visibleResearched).forEach(item=>list.push({id:item.id,area:'food',title:item.title,subtitle:item.subtitle,section:DATA.search.resultTypes.food,body:[item.why,item.caution,...(item.roles||[])].join(' '),route:'#/heal/diet',food:item,order:order++}));
   return list;
 }
-function aliasMatchesFor(query){const q=normalizeSearchText(query);return (DATA.search.aliases||[]).filter(alias=>normalizeSearchText(alias.term).includes(q)||q.includes(normalizeSearchText(alias.term)))}
+function aliasMatchesFor(query){
+  const q=normalizeSearchText(query),words=searchWords(q);
+  return (DATA.search.aliases||[]).filter(alias=>{
+    const term=normalizeSearchText(alias.term),termWords=searchWords(term);
+    if(term===q)return true;
+    if(words.length<2||termWords.length<2)return false;
+    return words.every(word=>termWords.includes(word))||termWords.every(word=>words.includes(word));
+  });
+}
 function scoreSearchResult(entity,query,aliasMatches){
   const q=normalizeSearchText(query),title=normalizeSearchText(entity.title),subtitle=normalizeSearchText(entity.subtitle),section=normalizeSearchText(entity.section),body=normalizeSearchText(entity.body);
   const exactAlias=aliasMatches.some(alias=>normalizeSearchText(alias.term)===q&&(alias.targetIds||[]).includes(entity.id));
@@ -1455,8 +1481,18 @@ function scoreSearchResult(entity,query,aliasMatches){
   if(score&&entity.sectionId!=='er'&&focusBadgeForSearchEntity(entity))score+=1;
   return score;
 }
+function searchMatchReason(entity,query,aliasMatches){
+  const q=normalizeSearchText(query),title=normalizeSearchText(entity.title),subtitle=normalizeSearchText(entity.subtitle),section=normalizeSearchText(entity.section),body=normalizeSearchText(entity.body);
+  if(title===q)return DATA.search.matchLabels.title;
+  if(aliasMatches.some(alias=>normalizeSearchText(alias.term)===q&&(alias.targetIds||[]).includes(entity.id)))return DATA.search.matchLabels.alias;
+  if(title.startsWith(q)||searchWords(q).every(word=>searchWords(title).includes(word)))return DATA.search.matchLabels.title;
+  if(aliasMatches.some(alias=>(alias.targetIds||[]).includes(entity.id)))return DATA.search.matchLabels.alias;
+  if((subtitle+' '+section).includes(q))return DATA.search.matchLabels.section;
+  if(body.includes(q))return DATA.search.matchLabels.teaching;
+  return '';
+}
 function dedupeSearchResults(results){const seen=new Set();return results.filter(result=>!seen.has(result.id)&&(seen.add(result.id),true))}
-function searchEntities(query){const q=normalizeSearchText(query);if(!q)return [];const aliases=aliasMatchesFor(q);return dedupeSearchResults(buildSearchIndex().map(entity=>({...entity,score:scoreSearchResult(entity,q,aliases)})).filter(x=>x.score>0).sort((a,b)=>(b.score-a.score)||(a.order-b.order)))}
+function searchEntities(query){const q=normalizeSearchText(query);if(!q)return [];const aliases=aliasMatchesFor(q);return dedupeSearchResults(buildSearchIndex().map(entity=>({...entity,score:scoreSearchResult(entity,q,aliases),matchReason:searchMatchReason(entity,q,aliases)})).filter(x=>x.score>0).sort((a,b)=>(b.score-a.score)||(a.order-b.order)))}
 function focusBadgeForSearchEntity(entity){
   if(entity.area!=='food')return focusBadgeForItem(entity.id);
   const focusIds=selectedShineFocus();const matched=focusIds.filter(id=>(entity.food?.focus||[]).includes(id));
@@ -1465,22 +1501,31 @@ function focusBadgeForSearchEntity(entity){
 }
 function renderSearchFocusBadge(entity){const badge=focusBadgeForSearchEntity(entity);return badge?`<span class="focus-relevance-badge relevant">${esc(badge.text)}</span>`:''}
 function isIronGuideEntity(id){return (DATA.guides?.iron?.entryIds||[]).includes(id)}
-function renderIronGuideEntry(id){return isIronGuideEntity(id)?`<aside class="iron-guide-entry no-print"><a class="btn ghost button-link" href="#/guide/iron">${esc(DATA.search.ironGuideLink)}</a></aside>`:''}
-function renderFindEntry(){const s=DATA.search;return `<section class="find-entry no-print"><div><p class="eyebrow">${esc(s.eyebrow)}</p><h2>${esc(s.entryTitle)}</h2><p>${esc(s.entryText)}</p></div><a class="btn ghost button-link" href="#/find">${esc(s.entryAction)}</a></section>`}
+function renderIronGuideEntry(id){return isIronGuideEntity(id)?`<aside class="iron-guide-entry no-print"><a class="btn ghost button-link" href="#/guide/iron" data-open-iron-guide="1">${esc(DATA.search.ironGuideLink)}</a></aside>`:''}
+function renderFindEntry(){const s=DATA.search;return `<section class="find-entry no-print"><div><p class="eyebrow">${esc(s.eyebrow)}</p><h2>${esc(s.entryTitle)}</h2><p>${esc(s.entryText)}</p></div><a class="btn ghost button-link" href="#/find" data-open-find="1">${esc(s.entryAction)}</a></section>`}
+function renderIronGuideContext(results){if(!results.some(entity=>isIronGuideEntity(entity.id)))return '';const s=DATA.search;return `<aside class="find-guide-context no-print"><div><strong>${esc(s.guideContextTitle)}</strong><p>${esc(s.guideContextText)}</p></div><a class="btn ghost button-link" href="#/guide/iron" data-open-iron-guide="1">${esc(s.guideContextAction)}</a></aside>`}
 function renderFindResults(results){
-  const s=DATA.search,shown=findShowAll?results:results.slice(0,s.resultLimit);
+  const s=DATA.search,shown=findShowAll?results:results.slice(0,s.resultLimit),countText=String(s.resultCount).replace('{count}',results.length),showingText=String(s.showingCount).replace('{shown}',shown.length).replace('{count}',results.length);
   if(!results.length)return `<div class="empty-state">${esc(s.noResults)}</div>`;
-  return `<div class="find-result-list">${shown.map(entity=>`<article class="find-result-row"><a href="${esc(entity.route)}">${renderSearchFocusBadge(entity)}<span class="find-result-type">${esc(s.resultTypes[entity.area])}${entity.sectionId==='er'?' · '+esc(s.urgentLabel):''}</span><strong>${esc(entity.title)}</strong><small>${esc(entity.section)} · ${esc(s.modeLabels[entity.area])}</small><p>${esc(entity.subtitle)}</p></a>${isIronGuideEntity(entity.id)?`<a class="iron-result-guide" href="#/guide/iron">${esc(s.ironGuideLink)}</a>`:''}</article>`).join('')}</div>${!findShowAll&&results.length>s.resultLimit?`<button class="btn ghost find-show-all" data-find-show-all="1">${esc(s.showAll)} (${results.length})</button>`:''}`;
+  return `${renderIronGuideContext(results)}<div class="find-result-summary"><strong>${esc(countText)}</strong><span>${esc(showingText)}</span></div><div class="find-result-list">${shown.map(entity=>`<article class="find-result-row${entity.area==='food'&&pendingDietFoodId===entity.id?' highlighted':''}"><a href="${esc(entity.route)}" data-find-result="1" ${entity.area==='food'?`data-find-food="${esc(entity.id)}" data-find-food-title="${esc(entity.title)}"`:''}>${renderSearchFocusBadge(entity)}<span class="find-result-type">${esc(s.resultTypes[entity.area])}${entity.sectionId==='er'?' · '+esc(s.urgentLabel):''}</span><strong>${esc(entity.title)}</strong><small>${esc(entity.area==='food'?s.modeLabels.food:`${entity.section} · ${s.modeLabels[entity.area]}`)}</small><p>${esc(entity.subtitle)}</p><em>${esc(entity.matchReason)}</em></a></article>`).join('')}</div>${!findShowAll&&results.length>s.resultLimit?`<button class="btn ghost find-show-all" data-find-show-all="1">${esc(s.showAll)} (${results.length})</button>`:''}`;
 }
-function updateFindResults(){const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(!input||!target)return;const q=input.value;findShowAll=false;target.innerHTML=q.trim()?renderFindResults(searchEntities(q)):`<div class="empty-state">${esc(DATA.search.emptyState)}</div>`}
-function renderFind(){setActive('');const s=DATA.search;app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail find-screen"><p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)}</h1><p class="lead">${esc(s.subtitle)}</p><div class="notice">${esc(s.safetyNotice)}</div><label class="find-label" for="find-query">${esc(s.title)}</label><input id="find-query" class="find-input" type="search" placeholder="${esc(s.placeholder)}" autocomplete="off"><div id="find-results"><div class="empty-state">${esc(s.emptyState)}</div></div></section></div>`;document.getElementById('find-query')?.addEventListener('input',updateFindResults)}
+function updateFindResults(){const input=document.getElementById('find-query'),target=document.getElementById('find-results');if(!input||!target)return;findQuery=input.value;findShowAll=false;target.innerHTML=findQuery.trim()?renderFindResults(searchEntities(findQuery)):`<div class="empty-state">${esc(DATA.search.emptyState)}</div>`}
+function renderFind(){
+  setActive(utilityModeFromHash(findOrigin));const s=DATA.search,results=findQuery.trim()?searchEntities(findQuery):[];
+  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail find-screen"><a class="detail-back no-print" href="${esc(findOrigin)}" data-find-back="1">← ${esc(String(s.backTo).replace('{page}',utilityBackLabel(findOrigin)))}</a><p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)}</h1><p class="lead">${esc(s.subtitle)}</p><div class="notice info-notice">${esc(s.safetyNotice)}</div><label class="find-label" for="find-query">${esc(s.title)}</label><div class="find-input-wrap"><input id="find-query" class="find-input" type="search" value="${esc(findQuery)}" placeholder="${esc(s.placeholder)}" autocomplete="off"><button type="button" class="find-clear no-print" data-find-clear="1" aria-label="${esc(s.clearSearch)}">×</button></div><div id="find-results">${findQuery.trim()?renderFindResults(results):`<div class="empty-state">${esc(s.emptyState)}</div>`}</div></section></div>`;
+  const input=document.getElementById('find-query');input?.addEventListener('input',updateFindResults);requestAnimationFrame(()=>{window.scrollTo(0,findScrollY);if(!findQuery)input?.focus()});
+}
 function guideEntity(id){return findAnyEntity(id)}
 function guideRecommendationCard(rec){
-  if(rec.entityId){const item=guideEntity(rec.entityId);if(!item)return '';const route=item.area==='shine'?`#/shine/${item.id}`:`#/${item.area}/item/${item.id}`;return `<article class="guide-recommendation"><div><span>${esc(item.section||item.area.toUpperCase())}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="${route}">${esc(DATA.guides.iron.labels.openTopic)}</a></article>`;}
-  if(rec.foodId){const item=(DATA.dietBuilder.items||[]).find(x=>x.id===rec.foodId);if(!item)return '';return `<article class="guide-recommendation"><div><span>${esc(DATA.guides.iron.labels.foodIdea)}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="#/heal/diet">${esc(DATA.guides.iron.labels.openTopic)}</a></article>`;}
-  const task=findActionTask(rec.itemId,rec.group,rec.taskId);if(!task)return '';const saved=taskIsSaved(rec.itemId,rec.group,rec.taskId);return `<article class="guide-recommendation"><div><span>${esc(task.groupLabel)}</span><strong>${esc(task.title)}</strong><p>${esc(task.detail)}</p></div><button class="task-add ${saved?'saved':''} no-print" data-add-task="1" data-origin="iron-guide" data-item="${esc(rec.itemId)}" data-group="${esc(rec.group)}" data-task="${esc(rec.taskId)}">${esc(saved?DATA.guides.iron.labels.added:DATA.guides.iron.labels.addAction)}</button></article>`;
+  const g=DATA.guides.iron;
+  if(rec.entityId){const item=guideEntity(rec.entityId);if(!item)return '';const route=item.area==='shine'?`#/shine/${item.id}`:`#/${item.area}/item/${item.id}`,label=String(g.labels.openTopicTemplate).replace('{topic}',item.title);return `<article class="guide-recommendation read"><div><span>${esc(g.labels.readLabel)} · ${esc(item.section||item.area.toUpperCase())}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="${route}">${esc(label)}</a></article>`;}
+  if(rec.foodId){const item=(DATA.dietBuilder.items||[]).find(x=>x.id===rec.foodId);if(!item)return '';const label=String(g.labels.openTopicTemplate).replace('{topic}',item.title);return `<article class="guide-recommendation food"><div><span>${esc(g.labels.foodIdea)}</span><strong>${esc(item.title)}</strong><p>${esc(item.subtitle)}</p></div><a class="btn ghost button-link" href="#/heal/diet" data-find-food="${esc(item.id)}" data-find-food-title="${esc(item.title)}">${esc(label)}</a></article>`;}
+  const task=findActionTask(rec.itemId,rec.group,rec.taskId);if(!task)return '';const saved=taskIsSaved(rec.itemId,rec.group,rec.taskId);return `<article class="guide-recommendation action"><div><span>${esc(g.labels.actionLabel)} · ${esc(task.groupLabel)}</span><strong>${esc(task.title)}</strong><p>${esc(task.detail)}</p></div><button class="task-add ${saved?'saved':''} no-print" data-add-task="1" data-origin="iron-guide" data-item="${esc(rec.itemId)}" data-group="${esc(rec.group)}" data-task="${esc(rec.taskId)}">${esc(saved?g.labels.added:g.labels.addAction)}</button></article>`;
 }
-function renderIronGuide(){setActive('');const g=DATA.guides.iron,choice=g.choices.find(x=>x.id===ironGuideIntent),recs=choice?(g.recommendations[choice.id]||[]):[],primary=recs.slice(0,g.primaryLimit),more=recs.slice(g.primaryLimit);app.innerHTML=`<div class="screen"><section class="detail iron-guide-screen"><a class="detail-back no-print" href="#/find">← ${esc(g.labels.back)}</a><p class="eyebrow">${esc(g.eyebrow)}</p><h1>${esc(g.title)}</h1><p class="lead">${esc(g.subtitle)}</p><div class="notice">${esc(g.safetyNotice)}</div><section class="guide-intents"><h2>${esc(g.labels.chooseIntent)}</h2><div>${g.choices.map(item=>`<button type="button" class="guide-intent ${ironGuideIntent===item.id?'selected':''}" data-guide-intent="${esc(item.id)}" aria-pressed="${ironGuideIntent===item.id}">${esc(item.label)}</button>`).join('')}</div></section>${choice?`<section class="guide-results"><p class="print-only"><strong>${esc(g.labels.selectedIntent)}:</strong> ${esc(choice.label)}</p>${primary.map(guideRecommendationCard).join('')||`<div class="empty-state">${esc(g.labels.noOptions)}</div>`}${more.length?`<details class="guide-more-options"><summary>${esc(g.labels.moreOptions)}</summary>${more.map(guideRecommendationCard).join('')}</details>`:''}</section>`:''}</section></div>`}
+function renderIronGuide(){
+  setActive(utilityModeFromHash(guideOrigin));const g=DATA.guides.iron,choice=g.choices.find(x=>x.id===ironGuideIntent),recs=choice?(g.recommendations[choice.id]||[]):[],primary=recs.slice(0,g.primaryLimit),more=recs.slice(g.primaryLimit);
+  app.innerHTML=`<div class="screen"><section class="detail iron-guide-screen"><a class="detail-back no-print" href="${esc(guideOrigin)}" data-guide-back="1">← ${esc(String(g.labels.backTo).replace('{page}',guideOrigin==='#/find'?DATA.search.title:utilityBackLabel(guideOrigin)))}</a><p class="eyebrow">${esc(g.eyebrow)}</p><h1>${esc(g.title)}</h1><p class="lead">${esc(g.subtitle)}</p><div class="notice info-notice">${esc(g.safetyNotice)}</div><section class="guide-intents"><h2>${esc(g.labels.chooseIntent)}</h2><div>${g.choices.map(item=>`<button type="button" class="guide-intent ${ironGuideIntent===item.id?'selected':''}" data-guide-intent="${esc(item.id)}" aria-pressed="${ironGuideIntent===item.id}">${esc(item.label)}</button>`).join('')}</div></section>${choice?`<section class="guide-results"><div class="guide-selected-intent"><small>${esc(g.labels.selectedIntent)}</small><strong>${esc(choice.label)}</strong></div><p class="print-only"><strong>${esc(g.labels.selectedIntent)}:</strong> ${esc(choice.label)}</p>${primary.map(guideRecommendationCard).join('')||`<div class="empty-state">${esc(g.labels.noOptions)}</div>`}${more.length?`<details class="guide-more-options"><summary>${esc(g.labels.moreOptions)}</summary>${more.map(guideRecommendationCard).join('')}</details>`:''}</section>`:`<div class="guide-empty-state">${esc(g.labels.choosePrompt)}</div>`}</section></div>`;
+}
 // END V047 FIND AND GUIDE
 
 function route(){
@@ -1514,6 +1559,6 @@ window.addEventListener('afterprint',()=>{
   printDisclosureDetails.forEach(detail=>{detail.open=false});
   printDisclosureDetails=[];
 });
-window.addEventListener('hashchange',()=>{closeSleepWizard(false);closeShineFocusReplace();route()});
+window.addEventListener('hashchange',()=>{if(location.hash!=='#/find')findScrollY=window.scrollY;closeSleepWizard(false);closeShineFocusReplace();route()});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(document.getElementById('shine-focus-modal'))closeShineFocusReplace();else if(document.getElementById('sleep-wizard-modal'))closeSleepWizard()});
 route();

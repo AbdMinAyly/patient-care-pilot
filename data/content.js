@@ -1206,7 +1206,7 @@ window.PATIENT_CARE_CONTENT = {
           "primaryLimit": 3,
           "moreMatchedActions": "More matched actions",
           "hiddenCountLabel": "{count} additional matched action{suffix}",
-          "addShownActions": "Add shown actions"
+          "addShownActions": "Add these {count} actions"
         }
       }
     },
@@ -14083,7 +14083,15 @@ window.PATIENT_CARE_CONTENT = {
     "urgentLabel": "Urgent help",
     "focusRelevant": "Relevant to {focus}",
     "ironGuideLink": "Open Iron Learning Guide",
-    "eyebrow": "Find"
+    "eyebrow": "Find",
+    "backTo": "Back to {page}",
+    "clearSearch": "Clear search",
+    "resultCount": "{count} results",
+    "showingCount": "Showing {shown} of {count}",
+    "guideContextTitle": "Not sure which iron topic to open?",
+    "guideContextText": "Use the Iron Learning Guide to choose among existing education and actions.",
+    "guideContextAction": "Open Iron Learning Guide",
+    "matchLabels": {"title": "Title match", "alias": "Related search term", "section": "Found in topic details", "teaching": "Found in teaching"}
   },
   "guides": {
     "iron": {

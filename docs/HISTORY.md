@@ -141,3 +141,15 @@ The following remain deferred unless explicitly requested:
 - prescribing logic
 - treatment-selection logic
 - standalone bundled HTML
+
+### v047 polish pass
+
+- Preserved Find queries, result expansion, and return position while opening topics.
+- Added origin-aware Back behavior for Find and the Iron Learning Guide.
+- Simplified result density, added result counts, clear search, and neutral match explanations.
+- Replaced repeated Iron Guide links with one contextual guide card.
+- Made food-result destinations open and highlight the selected Diet Builder item.
+- Clarified Read, Food idea, and Plan action recommendation types.
+- Added an Iron Guide empty state and persistent selected-intent context.
+- Restored Sleep Wizard category context and moved the explicit three-action add control before additional matches.
+- Refined neutral safety notices, narrow-screen actions, badges, and spacing.
