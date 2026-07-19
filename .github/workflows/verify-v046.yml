@@ -95,7 +95,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          cat .github/v046-verify.*.b64 | tr -d '\n' | base64 -d | gzip -d > /tmp/v046-browser/verify.mjs
+          cat .github/v046-verify-fixed.*.b64 | tr -d '\n' > /tmp/v046-verify.b64
+          test "$(wc -c < /tmp/v046-verify.b64)" = "5184"
+          test "$(sha256sum /tmp/v046-verify.b64 | cut -d' ' -f1)" = "0a64016f20a30f1eff9e8c72d0146dbafdabd22e1be46a5a72f885d50d301e58"
+          base64 -d /tmp/v046-verify.b64 | gzip -d > /tmp/v046-browser/verify.mjs
           python3 -m http.server 8766 --bind 127.0.0.1 > /tmp/v046-http.log 2>&1 &
           sleep 2
           cd /tmp/v046-browser
@@ -124,7 +127,7 @@ jobs:
         if: steps.build.outputs.applied == 'false' && success()
         shell: bash
         run: |
-          rm -f .github/v046-verify.*.b64 .github/workflows/verify-v046.yml
+          rm -f .github/v046-verify*.b64 .github/workflows/verify-v046.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
