@@ -92,3 +92,5 @@ jobs:
           git add -A
           git commit -m "Remove temporary v045 verification helpers"
           git push
+
+# trigger: capture current browser failures
