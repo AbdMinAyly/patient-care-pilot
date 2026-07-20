@@ -700,17 +700,17 @@ function renderShineWelcome(){
       </div>
 
       <div class="shine-meaning meaning-left" aria-label="S Sleep, H Happiness, I Immunity">
-        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">☾</span><b>S</b><strong>Sleep</strong></div>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z"/></svg></span><b>S</b><strong>Sleep</strong></div>
         <span class="meaning-connector" aria-hidden="true">✦</span>
-        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">❧</span><b>H</b><strong>Happiness</strong></div>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 13c2.6 3.2 7.4 3.2 10 0M8 9h.01M16 9h.01"/><circle cx="12" cy="12" r="9"/></svg></span><b>H</b><strong>Happiness</strong></div>
         <span class="meaning-connector" aria-hidden="true">✦</span>
-        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">◊</span><b>I</b><strong>Immunity</strong></div>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true"><path></path><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.5 2.8 8.1 7 10 4.2-1.9 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><b>I</b><strong>Immunity</strong></div>
       </div>
 
       <div class="shine-meaning meaning-right" aria-label="N Nutrition, E Exercise">
-        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">♨</span><b>N</b><strong>Nutrition</strong></div>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11h16v2a8 8 0 0 1-16 0v-2Z"/><path d="M8 7c0-1 1-1.3 1-2.5M12 7c0-1 1-1.3 1-2.5M16 7c0-1 1-1.3 1-2.5"/></svg></span><b>N</b><strong>Nutrition</strong></div>
         <span class="meaning-connector" aria-hidden="true">✦</span>
-        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">☀</span><b>E</b><strong>Exercise</strong></div>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 6v12M17 6v12M4 9h3M4 15h3M17 9h3M17 15h3M9 8h6v8H9z"/></svg></span><b>E</b><strong>Exercise</strong></div>
       </div>
 
       <div class="shine-horizon" aria-hidden="true">
@@ -724,12 +724,14 @@ function renderShineWelcome(){
       <button type="button" class="shine-welcome-cta" data-open-priority="1">
         <span>${esc(c.start||'Choose your priority')}</span><i aria-hidden="true">✦</i>
       </button>
+      <a class="shine-welcome-skip" href="#/pedia">Skip for now</a>
     </section>
   </div>`;
 }
 function renderShine(){
   setActive('shine');
   const p=profile();
+  document.body.classList.toggle('shine-intro-active',p.guided.shineCompleted!==true);
   if(p.guided.shineCompleted!==true){
     app.innerHTML=renderShineWelcome();
     return;
@@ -1756,6 +1758,7 @@ function renderIronGuide(){
 // END V047 FIND AND GUIDE
 
 function route(){
+  document.body.classList.remove('shine-intro-active');
   const hash=location.hash||'#/shine';
   const [mode,a,b]=hash.replace('#/','').split('/');
   let result;

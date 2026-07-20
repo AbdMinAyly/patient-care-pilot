@@ -216,3 +216,11 @@ The following remain deferred unless explicitly requested:
 
 - Added a direct user-authored `main` commit after the SHINE welcome implementation so GitHub Pages can detect and publish the newest branch state.
 - No application behavior, clinical content, saved data, routes, dependencies, or release metadata changed in this deployment-only commit.
+
+
+### SHINE focused introduction polish
+
+- Hid the global bottom navigation while the first-entry SHINE welcome is visible.
+- Added a Skip for now link that appears after two seconds and opens Shinopedia.
+- Added reduced-motion-safe entrance, logo, label, and action animations.
+- Replaced decorative acronym symbols with clearer sleep, happiness, immunity, nutrition, and exercise icons.

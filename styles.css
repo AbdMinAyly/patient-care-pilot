@@ -1437,3 +1437,34 @@ h1[tabindex="-1"]:focus,h2[tabindex="-1"]:focus{outline:none}
   .shine-horizon{height:36%;bottom:12%}.shine-welcome-cta{min-height:58px;padding:12px 22px}
 }
 @media(prefers-reduced-motion:reduce){.shine-welcome-cta{transition:none}}
+
+
+/* SHINE focused introduction polish */
+body.shine-intro-active{overflow:hidden}
+body.shine-intro-active .bottom-nav{display:none}
+body.shine-intro-active .app{padding-bottom:0}
+.shine-welcome{animation:shineWelcomeEnter .75s cubic-bezier(.2,.8,.2,1) both}
+.shine-guide-star{animation:shineStarPulse 2.8s ease-in-out infinite}
+.shine-welcome-brand h1{animation:shineTitleRise .8s .12s cubic-bezier(.2,.8,.2,1) both}
+.shine-meaning-item{animation:shineMeaningIn .55s cubic-bezier(.2,.8,.2,1) both}
+.meaning-left .shine-meaning-item:nth-of-type(1){animation-delay:.2s}
+.meaning-left .shine-meaning-item:nth-of-type(3){animation-delay:.32s}
+.meaning-left .shine-meaning-item:nth-of-type(5){animation-delay:.44s}
+.meaning-right .shine-meaning-item:nth-of-type(1){animation-delay:.26s}
+.meaning-right .shine-meaning-item:nth-of-type(3){animation-delay:.38s}
+.meaning-icon{display:grid;place-items:center;width:24px;height:24px}
+.meaning-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shine-welcome-cta{animation:shineCtaRise .65s .55s cubic-bezier(.2,.8,.2,1) both}
+.shine-welcome-skip{position:absolute;z-index:7;left:50%;bottom:1.4%;min-height:44px;display:flex;align-items:center;justify-content:center;padding:8px 18px;transform:translateX(-50%);color:#7f2637;font-weight:700;text-decoration:none;opacity:0;pointer-events:none;animation:shineSkipReveal .35s ease 2s forwards}
+.shine-welcome-skip:focus-visible{outline:3px solid #fff;outline-offset:2px;border-radius:999px}
+@keyframes shineWelcomeEnter{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+@keyframes shineTitleRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes shineMeaningIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes shineCtaRise{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%)}}
+@keyframes shineSkipReveal{to{opacity:.82;pointer-events:auto}}
+@keyframes shineStarPulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.13)}}
+@media(max-height:700px){.shine-welcome-cta{bottom:7%}.shine-welcome-skip{bottom:.2%}}
+@media(prefers-reduced-motion:reduce){
+  .shine-welcome,.shine-guide-star,.shine-welcome-brand h1,.shine-meaning-item,.shine-welcome-cta{animation:none}
+  .shine-welcome-skip{animation:none;opacity:1;pointer-events:auto}
+}
