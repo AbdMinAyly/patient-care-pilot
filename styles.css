@@ -1499,3 +1499,10 @@ body.shine-intro-active .app{padding-bottom:0}
   .meaning-right{top:26%}
   .shine-welcome-skip{top:max(8px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));bottom:auto}
 }
+
+
+/* SHINE acronym columns true vertical centering */
+.shine-meaning{top:50%;transform:translateY(-50%)}
+.meaning-right{top:50%}
+@media(max-width:430px){.shine-meaning,.meaning-right{top:50%}}
+@media(max-height:700px){.shine-meaning,.meaning-right{top:50%}}
