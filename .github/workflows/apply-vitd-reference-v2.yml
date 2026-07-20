@@ -1,4 +1,5 @@
 # IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
+# trigger: local maintenance 600 800 1000 or 50000 monthly
 name: Apply vitamin D reference v2
 on:
   push:
