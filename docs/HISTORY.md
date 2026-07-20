@@ -211,3 +211,8 @@ The following remain deferred unless explicitly requested:
 - Replaced the first-entry SHINE placeholder with a responsive guiding-light welcome screen.
 - The screen displays the SHINE wordmark, “Your guiding light,” the five SHINE meanings, and one priority-wizard button only.
 - The design is implemented with accessible HTML and CSS rather than an unresponsive image hotspot.
+
+### GitHub Pages deployment retrigger
+
+- Added a direct user-authored `main` commit after the SHINE welcome implementation so GitHub Pages can detect and publish the newest branch state.
+- No application behavior, clinical content, saved data, routes, dependencies, or release metadata changed in this deployment-only commit.
