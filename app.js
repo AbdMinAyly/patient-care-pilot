@@ -680,12 +680,58 @@ function renderProgressiveDr(){
 }
 
 // END GUIDED HOMES AND SHINOPEDIA
+function renderShineWelcome(){
+  const c=guidedConfig().shine;
+  return `<div class="screen shine-welcome-screen">
+    <section class="shine-welcome" aria-labelledby="shine-welcome-title">
+      <div class="shine-welcome-sky" aria-hidden="true">
+        <span class="shine-orbit orbit-one"></span>
+        <span class="shine-orbit orbit-two"></span>
+        <span class="shine-spark spark-one">✦</span>
+        <span class="shine-spark spark-two">✦</span>
+        <span class="shine-spark spark-three">✦</span>
+      </div>
+
+      <div class="shine-welcome-brand">
+        <span class="shine-guide-star" aria-hidden="true">✦</span>
+        <h1 id="shine-welcome-title">SHINE</h1>
+        <span class="shine-brand-rule" aria-hidden="true"><i>✦</i></span>
+        <p>Your guiding light</p>
+      </div>
+
+      <div class="shine-meaning meaning-left" aria-label="S Sleep, H Happiness, I Immunity">
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">☾</span><b>S</b><strong>Sleep</strong></div>
+        <span class="meaning-connector" aria-hidden="true">✦</span>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">❧</span><b>H</b><strong>Happiness</strong></div>
+        <span class="meaning-connector" aria-hidden="true">✦</span>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">◊</span><b>I</b><strong>Immunity</strong></div>
+      </div>
+
+      <div class="shine-meaning meaning-right" aria-label="N Nutrition, E Exercise">
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">♨</span><b>N</b><strong>Nutrition</strong></div>
+        <span class="meaning-connector" aria-hidden="true">✦</span>
+        <div class="shine-meaning-item"><span class="meaning-icon" aria-hidden="true">☀</span><b>E</b><strong>Exercise</strong></div>
+      </div>
+
+      <div class="shine-horizon" aria-hidden="true">
+        <span class="shine-sun"></span>
+        <span class="shine-mountain mountain-left"></span>
+        <span class="shine-mountain mountain-right"></span>
+        <span class="shine-wave wave-one"></span>
+        <span class="shine-wave wave-two"></span>
+      </div>
+
+      <button type="button" class="shine-welcome-cta" data-open-priority="1">
+        <span>${esc(c.start||'Choose your priority')}</span><i aria-hidden="true">✦</i>
+      </button>
+    </section>
+  </div>`;
+}
 function renderShine(){
   setActive('shine');
   const p=profile();
-  const c=guidedConfig().shine;
-  if(profile().guided.shineCompleted!==true){
-    app.innerHTML=renderSingleStart('shine',c.title,c.intro,c.start,'data-open-priority="1"');
+  if(p.guided.shineCompleted!==true){
+    app.innerHTML=renderShineWelcome();
     return;
   }
   app.innerHTML=`<div class="screen">${hero('shine','SHINE',DATA.ui.modeDescriptions.shine)}${renderPriorityLauncher()}<section class="grid shine-focus-grid">${DATA.shine.map(renderGuidedShineCard).join('')}</section></div>`;

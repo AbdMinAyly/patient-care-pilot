@@ -204,3 +204,10 @@ The following remain deferred unless explicitly requested:
 - The reset removes the entire `pc_pilot_v022_profile` record, including wizard completion, guided profile answers, priorities, Diet setup, DR confirmations, saved topics, tasks, questions, notes, and food selections.
 - A destructive confirmation is required before deletion.
 - After confirmation, the app returns to the initial SHINE priority screen.
+
+
+### SHINE guiding-light welcome
+
+- Replaced the first-entry SHINE placeholder with a responsive guiding-light welcome screen.
+- The screen displays the SHINE wordmark, “Your guiding light,” the five SHINE meanings, and one priority-wizard button only.
+- The design is implemented with accessible HTML and CSS rather than an unresponsive image hotspot.
