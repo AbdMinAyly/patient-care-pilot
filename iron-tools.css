@@ -1,0 +1,15 @@
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
+.iron-card>span{background:linear-gradient(145deg,#b6422f,#7e241b);color:#fff;font-weight:900;letter-spacing:-.03em}
+.iron-card.iv>span{background:linear-gradient(145deg,#5d3f96,#34265f)}
+.iron-builder .vitd-protocol-preview{border-left-color:#a23f2e;background:#fff8f3}
+.iron-patient-active .bottom-nav{display:none}
+.iron-patient-page{min-height:100vh;background:linear-gradient(180deg,#fff4ea 0,#fffaf5 44%,#f7efe9 100%)}
+.iron-hero{background:radial-gradient(circle at 50% 4%,rgba(255,255,255,.95),transparent 32%),linear-gradient(145deg,#8e2f23,#c45b3d);color:#fff}
+.iron-hero .eyebrow,.iron-hero p{color:rgba(255,255,255,.9)}
+.iron-hero .vitd-sun{background:#fff2e8;color:#8e2f23;box-shadow:0 14px 36px rgba(64,15,8,.22)}
+.iron-hero .vitd-sun span{font-size:1.2rem;font-weight:900}
+.iron-patient-page .vitd-phase-head>span{background:#9c3b2a;color:#fff}
+.iron-patient-page .vitd-dose-card{border-color:#ead2c7}
+.iron-patient-page .vitd-dose-card.done{background:#f7e3d8;border-color:#b95b42}
+.iron-patient-page .vitd-dose-check{border-color:#b95b42;color:#8e2f23}
+@media(max-width:520px){.iron-builder .vitd-form-grid{grid-template-columns:1fr}.iron-patient-page .vitd-journey-main{padding-inline:14px}}
