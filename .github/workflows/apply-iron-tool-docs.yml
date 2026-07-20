@@ -1,0 +1,40 @@
+# IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
+name: Apply iron tool rules and validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/apply_iron_tool_docs.py'
+      - '.github/workflows/apply-iron-tool-docs.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply documentation
+        run: python .github/apply_iron_tool_docs.py
+      - name: Validate
+        run: |
+          node --check app.js
+          node --check vitd-protocol-v2.js
+          node --check iron-tools.js
+          node -e "const fs=require('fs'),vm=require('vm');const c={window:{}};vm.createContext(c);vm.runInContext(fs.readFileSync('data/content.js','utf8'),c);"
+          node -e "JSON.parse(require('fs').readFileSync('data/schema.json','utf8'))"
+          git diff --check
+          grep -q "Ferrous gluconate" iron-tools.js
+          grep -q "Liposomal iron" iron-tools.js
+          grep -q "IV iron calculator" iron-tools.js
+          grep -q "pc_pilot_v022_profile" app.js
+      - name: Commit and clean helper
+        run: |
+          rm -f .github/apply_iron_tool_docs.py .github/workflows/apply-iron-tool-docs.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add PATIENT_CARE_RULES.md docs/HISTORY.md .github
+          git commit -m "Document oral and IV iron clinician tools"
+          git push
