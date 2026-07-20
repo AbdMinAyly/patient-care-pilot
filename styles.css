@@ -1531,3 +1531,13 @@ body.heal-intro-active .app{padding-bottom:0}
 @media(max-width:430px){.heal-welcome-screen{padding:5px}.heal-welcome{min-height:calc(100svh - 10px);border-radius:27px}.heal-brand{top:7%;width:82%}.heal-emblem{width:68px;height:68px}.heal-theme{width:80px}.heal-theme span{width:48px;height:48px}.heal-theme strong{font-size:.75rem}.heal-fusion{left:5%;right:5%;bottom:14%}.heal-motion-person{left:2%;transform:scale(.78) rotate(-8deg);transform-origin:bottom}.heal-welcome-cta{width:85%;min-height:65px;bottom:3.5%}}
 @media(max-height:700px){.heal-brand{top:4%}.heal-emblem{width:52px;height:52px}.heal-brand h1{font-size:55px}.heal-theme{top:48%;gap:3px}.heal-theme span{width:42px;height:42px}.heal-fusion{height:34%;bottom:15%}.heal-welcome-cta{min-height:58px;padding:12px 22px}}
 @media(prefers-reduced-motion:reduce){.heal-welcome,.heal-emblem,.heal-welcome-cta{animation:none}}
+
+
+/* HEAL medical-profile diet handoff */
+.diet-profile-dialog{background:linear-gradient(160deg,#fffdf2,#fff7cf);border-color:#f0d271}
+.diet-profile-dialog .eyebrow{color:#8a6500}
+.diet-profile-dialog h2{max-width:620px}
+.diet-profile-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+.diet-profile-empty{padding:16px;border:1px dashed #d9b744;border-radius:16px;background:rgba(255,255,255,.64)}
+.diet-profile-empty p{margin:.35rem 0 0}
+@media(max-width:560px){.diet-profile-options{grid-template-columns:1fr}}

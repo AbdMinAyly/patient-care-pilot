@@ -639,6 +639,29 @@ function toggleArrayValue(list,value){return list.includes(value)?list.filter(x=
 function renderSingleStart(mode,title,text,buttonLabel,buttonAttr){
   return `<div class="screen progressive-entry ${esc(mode)}"><section class="progressive-start"><div><p class="eyebrow">START HERE</p><h1>${esc(title)}</h1><p>${esc(text)}</p></div><button type="button" class="btn ${esc(mode)} progressive-start-button" ${buttonAttr}>${esc(buttonLabel)}</button></section></div>`;
 }
+
+function dietProfileMatches(){
+  const intake=doctorIntakeData();
+  const first=progressiveConfig().diet.steps[0];
+  const options=first?.options||[];
+  const rules={
+    diabetes:/diabet|glucose|blood sugar/i,
+    hypertension:/blood pressure|hypertension/i,
+    dyslipidemia:/cholesterol|heart/i,
+    asthma:/asthma/i,
+    b12:/\bb12\b|vitamin b/i,
+    d3:/vitamin d|\bd3\b/i,
+    iron:/iron/i
+  };
+  const selected=[...(intake.conditions||[]),...(intake.deficiencies||[])];
+  return options.filter(option=>selected.some(id=>rules[id]?.test(option.label||'')));
+}
+function renderDietProfileStart(){
+  const matches=dietProfileMatches();
+  const intake=doctorIntakeData();
+  const hasProfile=intake.completed===true;
+  return `<div class="guided-backdrop" data-close-diet-start="1"></div><section class="guided-dialog diet-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="diet-profile-title"><button class="guided-close" data-close-diet-start="1" aria-label="Close">×</button><p class="eyebrow">HEAL / YOUR PROFILE</p><h2 id="diet-profile-title">${hasProfile?'Based on your medical profile, which of these would you like to work on?':'Build your medical profile first'}</h2>${hasProfile?`<p>Choose any areas you want your food ideas to support. These are planning filters, not treatment recommendations.</p>${matches.length?`<div class="guided-options diet-profile-options">${matches.map(option=>`<button type="button" class="guided-option ${(dietWizardAnswers.conditions||[]).includes(option.id)?'selected':''}" data-diet-profile-option="${esc(option.id)}" aria-pressed="${(dietWizardAnswers.conditions||[]).includes(option.id)}">${esc(option.label)}</button>`).join('')}</div>`:`<div class="diet-profile-empty"><strong>No direct nutrition matches were found.</strong><p>You can still continue and choose a general goal.</p></div>`}<div class="guided-actions"><button class="btn ghost" data-close-diet-start="1">Not now</button><button class="btn heal" data-diet-profile-continue="1">Continue</button></div>`:`<p>Complete the DR health profile so HEAL can show relevant nutrition focus choices without asking you to repeat the same medical history.</p><div class="guided-actions"><button class="btn ghost" data-close-diet-start="1">Not now</button><a class="btn dr button-link" href="#/dr">Open DR profile</a></div>`}</section>`;
+}
 function renderDietWizard(){
   const c=progressiveConfig().diet,step=c.steps[dietWizardStep],modal=document.getElementById('diet-start-wizard')||document.createElement('div');
   modal.id='diet-start-wizard';modal.className='guided-modal';
@@ -646,7 +669,7 @@ function renderDietWizard(){
   modal.innerHTML=`<div class="guided-backdrop" data-close-diet-start="1"></div><section class="guided-dialog" role="dialog" aria-modal="true" aria-labelledby="diet-start-title"><button class="guided-close" data-close-diet-start="1" aria-label="${esc(c.close)}">×</button><p class="eyebrow">HEAL / DIET</p><h2 id="diet-start-title">${esc(c.title)}</h2>${step?`<div class="guided-progress"><span style="width:${((dietWizardStep+1)/c.steps.length)*100}%"></span></div><h3>${esc(step.title)}</h3><p>${esc(step.help)}</p><div class="guided-options">${step.options.map(option=>{const active=step.multiple?selected.includes(option.id):selected===option.id;return `<button type="button" class="guided-option ${active?'selected':''}" data-diet-step="${esc(step.id)}" data-diet-option="${esc(option.id)}" data-diet-multiple="${step.multiple?'1':'0'}">${esc(option.label)}</button>`}).join('')}</div><div class="guided-actions"><button class="btn ghost" data-diet-start-back="1" ${dietWizardStep===0?'disabled':''}>${esc(c.back)}</button><button class="btn heal" data-diet-start-next="1" ${(step.multiple?selected.length:!!selected)?'':'disabled'}>${esc(dietWizardStep===c.steps.length-1?c.finish:c.next)}</button></div>`:''}</section>`;
   if(!modal.isConnected)document.body.appendChild(modal);
 }
-function openDietWizard(){const saved=profile().guided.dietSetup?.answers||{};dietWizardAnswers={conditions:[...(saved.conditions||[])],goal:saved.goal||'',preference:saved.preference||''};dietWizardStep=0;renderDietWizard()}
+function openDietWizard(){const saved=profile().guided.dietSetup?.answers||{};dietWizardAnswers={conditions:[...(saved.conditions||[])],goal:saved.goal||'',preference:saved.preference||''};dietWizardStep=-1;const modal=document.getElementById('diet-start-wizard')||document.createElement('div');modal.id='diet-start-wizard';modal.className='guided-modal';modal.innerHTML=renderDietProfileStart();if(!modal.isConnected)document.body.appendChild(modal)}
 function closeDietWizard(){document.getElementById('diet-start-wizard')?.remove()}
 function dietMedicalFindings(answers){
   const map=progressiveConfig().diet.medicalMap||{};
@@ -1598,6 +1621,8 @@ document.addEventListener('input',e=>{if(!['doctor-height','doctor-weight'].incl
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-open-diet-start]')){openDietWizard();return}
   if(e.target.closest('[data-close-diet-start]')){closeDietWizard();return}
+  const dietProfileChoice=e.target.closest('[data-diet-profile-option]');if(dietProfileChoice){dietWizardAnswers.conditions=toggleArrayValue(dietWizardAnswers.conditions||[],dietProfileChoice.dataset.dietProfileOption);const modal=document.getElementById('diet-start-wizard');if(modal)modal.innerHTML=renderDietProfileStart();return}
+  if(e.target.closest('[data-diet-profile-continue]')){dietWizardStep=1;renderDietWizard();return}
   const dietChoice=e.target.closest('[data-diet-option]');if(dietChoice){const key=dietChoice.dataset.dietStep,id=dietChoice.dataset.dietOption;if(dietChoice.dataset.dietMultiple==='1'){dietWizardAnswers[key]=toggleArrayValue(dietWizardAnswers[key]||[],id)}else dietWizardAnswers[key]=id;renderDietWizard();return}
   if(e.target.closest('[data-diet-start-back]')){dietWizardStep=Math.max(0,dietWizardStep-1);renderDietWizard();return}
   if(e.target.closest('[data-diet-start-next]')){if(dietWizardStep<progressiveConfig().diet.steps.length-1){dietWizardStep++;renderDietWizard()}else saveDietSetup();return}

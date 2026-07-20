@@ -238,3 +238,11 @@ The following remain deferred unless explicitly requested:
 - Replaced the first-entry HEAL placeholder with a focused gold HEAL introduction that combines nourishment and movement symbolism.
 - Kept Start your diet as the single primary action and hid global navigation during the introduction.
 - Replaced DR welcome text bubbles with stethoscope, pills, injection, and surgical-mask icons.
+
+
+### HEAL medical-profile diet handoff
+
+- HEAL now reads the saved DR health profile before starting Diet setup.
+- The first Diet prompt asks which medically relevant nutrition areas the user wants to work on, using existing Diet Wizard options only.
+- The flow avoids repeating medical-history questions and continues into the existing goal and preference steps.
+- The handoff remains educational and does not interpret BMI, diagnose, prescribe, or select treatment.
