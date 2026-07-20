@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. -->
-<!-- build: local-vitamin-d-protocol-july-2026 -->
+<!-- build: vitamin-d-qr-route-fix -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -30,5 +30,9 @@
 <script src="qr.js"></script>
 <script src="app.js"></script>
 <script src="vitd-protocol-v2.js"></script>
+<script>
+/* Re-run patient schedule routing after the version-2 renderer has loaded. */
+if(location.hash.startsWith('#/patient/vitamin-d/'))route();
+</script>
 </body>
 </html>
