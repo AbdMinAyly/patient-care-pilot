@@ -246,3 +246,12 @@ The following remain deferred unless explicitly requested:
 - The first Diet prompt asks which medically relevant nutrition areas the user wants to work on, using existing Diet Wizard options only.
 - The flow avoids repeating medical-history questions and continues into the existing goal and preference steps.
 - The handoff remains educational and does not interpret BMI, diagnose, prescribe, or select treatment.
+
+
+### Physician Mode — Vitamin D Journey
+
+- Added one clinician-only tool that generates the explicitly approved local vitamin D clinic pathways.
+- Added dated weekly and monthly phases, repeat-test timing, clinician-selected maintenance text, a local QR code, and a non-identifying patient link.
+- Added an interactive mobile patient page with local completion tracking, Home Screen instructions, native sharing, calendar export, and PNG backup.
+- Kept the tool static and backend-free; the URL contains schedule data only and no patient name, date of birth, record number, or medical history.
+- Preserved all existing dosing locks outside this narrowly approved Physician Mode tool.

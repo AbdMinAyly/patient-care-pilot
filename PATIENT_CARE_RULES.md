@@ -142,3 +142,8 @@ Git history remains the recovery mechanism. Do not rewrite or flatten history me
 ## Find and Guide Pattern — v047
 
 Find uses deterministic local search over visible researched content. It helps users locate education but does not diagnose symptoms, interpret tests, or select treatment. Guides may organize existing researched pages and Action Path tasks, but must not create new clinical instructions. SHINE Focus may provide secondary context but must never override safety, exact search matches, or urgent-help visibility.
+
+
+## 14. Narrow Physician Mode exception — vitamin D schedules
+
+The user has explicitly approved one clinician-only dosing exception: Physician Mode may generate the dated vitamin D schedule defined by the approved local clinic pathways below 20 ng/mL and 20–30 ng/mL. The clinician must confirm the protocol and safety review before export. The patient link must contain no identifying information. This exception does not unlock or alter any existing medication or supplement dosing field, does not authorize autonomous prescribing, and does not apply to any other treatment or schedule.

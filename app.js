@@ -1267,7 +1267,7 @@ function renderPlanOverview(){
   const labels=DATA.plan.overview||{};
   const clarity=DATA.ui.clarity;
   const total=totalPlanItems(p);
-  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}<div class="plan-privacy">${esc(DATA.plan.privacy)}</div>${renderPlanShineFocusSummary(p)}${printSafetyNotice()}<section class="plan-overview"><div class="plan-overview-summary"><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel)}</span></div></div>${renderNextActions(p)}${total===0?`<div class="plan-empty">${esc(labels.empty)}</div>`:''}${planOverviewCards(p)}<div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems)}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath)}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan)}</button></div><details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions)}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup)}</button><button class="btn ghost danger" data-clear-all="1">Clear All Data</button></details></section></div>`;
+  app.innerHTML=`<div class="screen">${hero('summary',DATA.plan.title,DATA.plan.subtitle)}<div class="plan-privacy">${esc(DATA.plan.privacy)}</div>${renderPlanShineFocusSummary(p)}${printSafetyNotice()}<section class="plan-overview"><div class="plan-overview-summary"><h2>${esc(labels.title)}</h2><p>${esc(labels.intro)}</p><div class="plan-overview-total"><strong>${total}</strong><span>${esc(labels.totalLabel)}</span></div></div>${renderNextActions(p)}${total===0?`<div class="plan-empty">${esc(labels.empty)}</div>`:''}${planOverviewCards(p)}<div class="plan-overview-actions no-print"><a class="btn dark button-link" href="#/plan/details">${esc(clarity.reviewAllSavedItems)}</a><a class="btn shine-path-button button-link" href="#/plan/shine-path">${esc(clarity.visualizeShinePath)}</a><button class="btn ghost" onclick="window.print()">${esc(clarity.printPlan)}</button></div><details class="plan-more-options no-print"><summary>${esc(clarity.moreOptions)}</summary><button class="btn ghost" data-download="1">${esc(clarity.downloadJsonBackup)}</button><button class="btn ghost danger" data-clear-all="1">Clear All Data</button><a class="btn ghost button-link" href="#/physician" data-open-physician-mode="1">Physician Mode</a></details></section></div>`;
 }
 function uniquePathItems(items){
   const seen=new Set();
@@ -1823,7 +1823,97 @@ function renderIronGuide(){
 }
 // END V047 FIND AND GUIDE
 
+// BEGIN PHYSICIAN VITAMIN D TOOL
+const VITD_PROGRESS_PREFIX='pc_vitd_progress_';
+const VITD_MAINTENANCE={
+  '1000-daily':'1,000 IU once daily',
+  '1500-daily':'1,500 IU once daily',
+  '2000-daily':'2,000 IU once daily',
+  '50000-monthly':'50,000 IU once monthly',
+  'custom':'Custom clinician plan'
+};
+function vitdDate(value){return new Date(String(value)+'T12:00:00')}
+function vitdIso(date){return date.toISOString().slice(0,10)}
+function vitdAddDays(value,days){const d=typeof value==='string'?vitdDate(value):new Date(value);d.setDate(d.getDate()+days);return d}
+function vitdAddMonths(value,months){const d=typeof value==='string'?vitdDate(value):new Date(value);const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+months);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d}
+function vitdPretty(value){return vitdDate(value).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
+function vitdProtocol(levelNg){if(levelNg<20)return {id:'under20',label:'Below 20 ng/mL',weekly:8,monthly:4};if(levelNg<=30)return {id:'20to30',label:'20–30 ng/mL',weekly:4,monthly:4};return null}
+function vitdScheduleFromInput(data){
+  const levelNg=data.unit==='nmol'?Number(data.level)/2.5:Number(data.level);
+  const protocol=vitdProtocol(levelNg);
+  if(!protocol)return null;
+  const weekly=Array.from({length:protocol.weekly},(_,i)=>vitdIso(vitdAddDays(data.startDate,i*7)));
+  const firstMonthly=vitdAddMonths(weekly[weekly.length-1],1);
+  const monthly=Array.from({length:protocol.monthly},(_,i)=>vitdIso(vitdAddMonths(firstMonthly,i)));
+  const repeat=vitdIso(vitdAddMonths(monthly[monthly.length-1],1));
+  return {v:1,p:protocol.id,s:data.startDate,w:protocol.weekly,m:protocol.monthly,r:repeat,mt:data.maintenance||'custom',c:String(data.clinic||'').trim().slice(0,80)};
+}
+function vitdExpandSchedule(schedule){
+  const weekly=Array.from({length:Number(schedule.w)||0},(_,i)=>vitdIso(vitdAddDays(schedule.s,i*7)));
+  const firstMonthly=vitdAddMonths(weekly[weekly.length-1],1);
+  const monthly=Array.from({length:Number(schedule.m)||0},(_,i)=>vitdIso(vitdAddMonths(firstMonthly,i)));
+  return {weekly,monthly,repeat:schedule.r||vitdIso(vitdAddMonths(monthly[monthly.length-1],1))};
+}
+function vitdEncode(value){return btoa(unescape(encodeURIComponent(JSON.stringify(value)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function vitdDecode(value){try{const s=String(value).replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(s+'==='.slice((s.length+3)%4))))) }catch(e){return null}}
+function vitdPatientUrl(schedule){return location.origin+location.pathname+location.search+'#/patient/vitamin-d/'+vitdEncode(schedule)}
+function renderPhysicianMode(){
+  document.body.classList.add('physician-mode-active');
+  document.body.classList.remove('vitd-patient-active');
+  setActive('summary');
+  app.innerHTML=`<div class="screen physician-screen"><section class="physician-hero"><div class="physician-mark" aria-hidden="true">✚</div><div><p class="eyebrow">CLINICIAN TOOLS</p><h1>Physician Mode</h1><p>Clinician-confirmed tools that create clear patient handouts without storing identifying information.</p></div></section><section class="physician-tool-grid"><a class="physician-tool-card" href="#/physician/vitamin-d"><span aria-hidden="true">☀</span><div><small>AVAILABLE TOOL</small><h2>Export vitamin D schedule</h2><p>Generate dated weekly and monthly doses, a patient QR link, calendar file, and interactive mobile schedule.</p></div><b>Open →</b></a></section><aside class="physician-warning"><strong>Clinician use only.</strong> This mode does not diagnose, select treatment independently, or replace review of contraindications, comorbidities, medicines, pregnancy, kidney function, calcium status, or local policy.</aside><a class="btn ghost button-link" href="#/plan">Return to Your Plan</a></div>`;
+}
+function renderVitaminDTool(){
+  document.body.classList.add('physician-mode-active');
+  document.body.classList.remove('vitd-patient-active');
+  setActive('summary');
+  const today=new Date().toISOString().slice(0,10);
+  app.innerHTML=`<div class="screen physician-screen"><section class="vitd-builder"><a class="detail-back back-control dr" href="#/physician"><span class="back-control-icon" aria-hidden="true">←</span><span>Physician Mode</span></a><header><p class="eyebrow">PHYSICIAN MODE / VITAMIN D</p><h1>Generate a patient schedule</h1><p>Uses the selected clinic protocol only after clinician confirmation. The patient link contains schedule details but no name, date of birth, record number, or medical history.</p></header><form id="vitd-builder-form"><div class="vitd-form-grid"><label>25-hydroxyvitamin D level<input id="vitd-level" type="number" min="1" max="300" step="0.1" required></label><label>Unit<select id="vitd-unit"><option value="ng">ng/mL</option><option value="nmol">nmol/L</option></select></label><label>First dose date<input id="vitd-start" type="date" value="${today}" required></label><label>Maintenance after repeat test<select id="vitd-maintenance"><option value="1000-daily">1,000 IU daily</option><option value="1500-daily">1,500 IU daily</option><option value="2000-daily" selected>2,000 IU daily</option><option value="50000-monthly">50,000 IU monthly</option><option value="custom">Custom clinician plan</option></select></label><label class="vitd-clinic-field">Clinic label (optional)<input id="vitd-clinic" maxlength="80" placeholder="Clinic or service name"></label></div><div id="vitd-protocol-preview" class="vitd-protocol-preview"><strong>Enter the vitamin D level.</strong><span>The tool supports the approved clinic pathways below 20 ng/mL and 20–30 ng/mL.</span></div><fieldset class="vitd-safety"><legend>Required clinician confirmations</legend><label><input type="checkbox" data-vitd-confirm required><span>This is an adult patient and the result is 25-hydroxyvitamin D in the selected unit.</span></label><label><input type="checkbox" data-vitd-confirm required><span>I reviewed pregnancy, calcium status, kidney disease or stones, granulomatous disease, malabsorption or bariatric history, and interacting medicines.</span></label><label><input type="checkbox" data-vitd-confirm required><span>I independently reviewed and selected this clinic protocol. The app is generating dates, not prescribing autonomously.</span></label></fieldset><button class="btn dr vitd-generate" type="submit">Confirm and generate patient schedule</button></form><section id="vitd-export" class="vitd-export" hidden></section></section></div>`;
+  updateVitdProtocolPreview();
+}
+function updateVitdProtocolPreview(){
+  const target=document.getElementById('vitd-protocol-preview');if(!target)return;
+  const level=Number(document.getElementById('vitd-level')?.value),unit=document.getElementById('vitd-unit')?.value||'ng';
+  if(!level){target.innerHTML='<strong>Enter the vitamin D level.</strong><span>The tool supports the approved clinic pathways below 20 ng/mL and 20–30 ng/mL.</span>';return}
+  const ng=unit==='nmol'?level/2.5:level,p=vitdProtocol(ng);
+  if(!p){target.classList.add('out-of-range');target.innerHTML=`<strong>Outside this clinic tool.</strong><span>${ng.toFixed(1)} ng/mL does not match either built-in pathway. Use a custom clinician plan.</span>`;return}
+  target.classList.remove('out-of-range');target.innerHTML=`<strong>${p.label} pathway</strong><span>50,000 IU once weekly for ${p.weekly} weeks, then 50,000 IU once monthly for 4 months, then wait 1 month and repeat the vitamin D level.</span>`;
+}
+function renderVitdExport(schedule){
+  const target=document.getElementById('vitd-export');if(!target)return;
+  const dates=vitdExpandSchedule(schedule),url=vitdPatientUrl(schedule);
+  target.hidden=false;
+  target.innerHTML=`<div class="vitd-export-head"><div><p class="eyebrow">PATIENT HANDOFF</p><h2>Vitamin D Journey is ready</h2><p>Have the patient scan the QR code or share the link. Review every date before handoff.</p></div><div id="vitd-qr" class="vitd-qr" aria-label="QR code for patient schedule"></div></div><div class="vitd-export-summary"><article><small>Weekly phase</small><strong>${schedule.w} doses</strong><span>${vitdPretty(dates.weekly[0])} – ${vitdPretty(dates.weekly.at(-1))}</span></article><article><small>Monthly phase</small><strong>${schedule.m} doses</strong><span>${vitdPretty(dates.monthly[0])} – ${vitdPretty(dates.monthly.at(-1))}</span></article><article><small>Repeat level</small><strong>${vitdPretty(dates.repeat)}</strong><span>Maintenance or another course requires clinician review.</span></article></div><label class="vitd-link-label">Patient link<input id="vitd-patient-link" readonly value="${esc(url)}"></label><div class="vitd-export-actions"><button class="btn dr" data-vitd-open-patient="1">Open patient page</button><button class="btn ghost" data-vitd-copy-link="1">Copy link</button><button class="btn ghost" data-vitd-share-link="1">Share</button></div><aside class="vitd-export-note">The QR/link is equivalent to a paper handout. Anyone who has it can open the schedule. Do not add patient-identifying information.</aside>`;
+  target.dataset.schedule=vitdEncode(schedule);
+  try{const qr=qrcode(0,'M');qr.addData(url);qr.make();document.getElementById('vitd-qr').innerHTML=qr.createSvgTag({cellSize:5,margin:4,scalable:true})}catch(e){document.getElementById('vitd-qr').innerHTML='<p>QR generation failed. Use the patient link.</p>'}
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function vitdProgressKey(code){let h=2166136261;for(let i=0;i<code.length;i++){h^=code.charCodeAt(i);h=Math.imul(h,16777619)}return VITD_PROGRESS_PREFIX+(h>>>0).toString(36)}
+function vitdLoadProgress(code){try{return JSON.parse(localStorage.getItem(vitdProgressKey(code)))||[]}catch(e){return []}}
+function vitdSaveProgress(code,done){localStorage.setItem(vitdProgressKey(code),JSON.stringify([...done]))}
+function renderVitaminDPatient(code){
+  const schedule=vitdDecode(code);
+  document.body.classList.add('vitd-patient-active');document.body.classList.remove('physician-mode-active','shine-intro-active','heal-intro-active','dr-intro-active');
+  if(!schedule||schedule.v!==1){app.innerHTML='<div class="screen"><section class="detail"><h1>This schedule link is invalid</h1><p>Ask the clinic to generate a new link.</p></section></div>';return}
+  const dates=vitdExpandSchedule(schedule),doses=[...dates.weekly.map((date,i)=>({id:'w'+i,date,phase:'Weekly',label:`Weekly dose ${i+1} of ${dates.weekly.length}`})),...dates.monthly.map((date,i)=>({id:'m'+i,date,phase:'Monthly',label:`Monthly dose ${i+1} of ${dates.monthly.length}`}))];
+  const done=new Set(vitdLoadProgress(code)),completed=doses.filter(x=>done.has(x.id)).length,next=doses.find(x=>!done.has(x.id));
+  app.innerHTML=`<div class="vitd-patient-page"><header class="vitd-journey-hero"><div class="vitd-sun" aria-hidden="true"><span style="--progress:${Math.round(completed/Math.max(doses.length,1)*100)}%">☀</span></div><p class="eyebrow">YOUR VITAMIN D JOURNEY</p><h1>One dose at a time</h1><p>${schedule.c?esc(schedule.c)+' prepared this schedule. ':''}Mark each dose when completed and keep the repeat-test date visible.</p><div class="vitd-progress"><div><span style="width:${Math.round(completed/Math.max(doses.length,1)*100)}%"></span></div><strong>${completed} of ${doses.length} doses completed</strong></div>${next?`<aside class="vitd-next"><small>NEXT DOSE</small><strong>${esc(next.label)}</strong><span>${vitdPretty(next.date)} · 50,000 IU</span></aside>`:`<aside class="vitd-next complete"><strong>Replacement schedule completed</strong><span>Follow the repeat-test and clinician review plan below.</span></aside>`}</header><main class="vitd-journey-main"><section class="vitd-phase"><div class="vitd-phase-head"><span>1</span><div><small>WEEKLY PHASE</small><h2>Build the foundation</h2></div></div><div class="vitd-dose-list">${dates.weekly.map((date,i)=>vitdDoseCard('w'+i,`Weekly dose ${i+1}`,date,done)).join('')}</div></section><section class="vitd-phase monthly"><div class="vitd-phase-head"><span>2</span><div><small>MONTHLY PHASE</small><h2>Keep the momentum</h2></div></div><div class="vitd-dose-list">${dates.monthly.map((date,i)=>vitdDoseCard('m'+i,`Monthly dose ${i+1}`,date,done)).join('')}</div></section><section class="vitd-repeat"><span aria-hidden="true">🧪</span><div><small>REPEAT VITAMIN D LEVEL</small><h2>${vitdPretty(dates.repeat)}</h2><p>Wait one month after the final monthly dose, then repeat the level as directed. Maintenance or another replacement course requires clinician review.</p></div></section><section class="vitd-maintenance"><small>PLANNED MAINTENANCE AFTER REVIEW</small><h2>${esc(VITD_MAINTENANCE[schedule.mt]||'Custom clinician plan')}</h2><p>Start only after the clinician reviews the repeat result and confirms the plan.</p></section><section class="vitd-save-card"><h2>Save this journey to your phone</h2><div class="vitd-save-actions"><button class="btn dr" data-vitd-share-patient="1">Share or save link</button><button class="btn ghost" data-vitd-calendar="1">Add dates to calendar</button><button class="btn ghost" data-vitd-image="1">Save as image</button><button class="btn ghost" data-vitd-copy-patient="1">Copy link</button></div><details><summary>Add to your Home Screen</summary><div class="vitd-home-help"><p><strong>iPhone:</strong> open in Safari, tap Share, then Add to Home Screen.</p><p><strong>Android:</strong> open in Chrome, tap the menu, then Add to Home screen or Install app.</p></div></details></section><aside class="vitd-patient-safety"><strong>Use only this confirmed schedule.</strong><p>Do not take 50,000 IU more often than shown. Contact the clinic if the product strength is different, a dose was taken incorrectly, pregnancy or a new medical condition occurs, or new medicines are started.</p></aside></main></div>`;
+  app.dataset.vitdCode=code;app.dataset.vitdSchedule=vitdEncode(schedule);
+}
+function vitdDoseCard(id,label,date,done){const checked=done.has(id);return `<label class="vitd-dose-card ${checked?'done':''}"><input type="checkbox" data-vitd-dose="${id}" ${checked?'checked':''}><span class="vitd-dose-check">${checked?'✓':''}</span><span><small>${esc(label)}</small><strong>${vitdPretty(date)}</strong><em>50,000 IU · ${id.startsWith('w')?'once weekly':'once monthly'}</em></span></label>`}
+function refreshVitdPatientProgress(){const code=app.dataset.vitdCode;if(code)renderVitaminDPatient(code)}
+function vitdDownload(filename,type,content){const blob=new Blob([content],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function vitdIcs(schedule){const dates=vitdExpandSchedule(schedule),all=[...dates.weekly.map((d,i)=>({d,t:`Vitamin D weekly dose ${i+1}`})),...dates.monthly.map((d,i)=>({d,t:`Vitamin D monthly dose ${i+1}`})),{d:dates.repeat,t:'Repeat vitamin D level'}];const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Patient Care//Vitamin D Journey//EN',...all.flatMap((x,i)=>['BEGIN:VEVENT',`UID:vitd-${i}-${x.d}@patient-care`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${x.d.replace(/-/g,'')}`,`SUMMARY:${x.t}`,'DESCRIPTION:Follow the clinician-confirmed Vitamin D Journey schedule.','END:VEVENT']),'END:VCALENDAR'].join('\r\n')}
+function vitdSaveImage(schedule){const dates=vitdExpandSchedule(schedule),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=1080;canvas.height=1500;ctx.fillStyle='#fff8dd';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#8b5e00';ctx.textAlign='center';ctx.font='bold 76px system-ui';ctx.fillText('Vitamin D Journey',540,115);ctx.font='34px system-ui';ctx.fillText('Clinician-confirmed schedule',540,170);ctx.fillStyle='#c68a00';ctx.beginPath();ctx.arc(540,270,64,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='64px system-ui';ctx.fillText('☀',540,292);ctx.textAlign='left';ctx.fillStyle='#4b3a08';ctx.font='bold 36px system-ui';ctx.fillText('Weekly phase',90,400);ctx.font='28px system-ui';dates.weekly.forEach((d,i)=>ctx.fillText(`${i+1}. ${vitdPretty(d)} — 50,000 IU`,110,455+i*52));let y=500+dates.weekly.length*52;ctx.font='bold 36px system-ui';ctx.fillText('Monthly phase',90,y);ctx.font='28px system-ui';dates.monthly.forEach((d,i)=>ctx.fillText(`${i+1}. ${vitdPretty(d)} — 50,000 IU`,110,y+55+i*52));y+=110+dates.monthly.length*52;ctx.font='bold 36px system-ui';ctx.fillText('Repeat vitamin D level',90,y);ctx.font='30px system-ui';ctx.fillText(vitdPretty(dates.repeat),110,y+52);ctx.font='bold 34px system-ui';ctx.fillText('Maintenance after clinician review',90,y+135);ctx.font='28px system-ui';ctx.fillText(VITD_MAINTENANCE[schedule.mt]||'Custom clinician plan',110,y+185);ctx.font='24px system-ui';ctx.fillStyle='#6b5a29';wrapCanvasText(ctx,'Do not take 50,000 IU more often than shown. Contact the clinic if the strength differs or the plan changes.',90,1360,900,34);canvas.toBlob(blob=>{if(!blob)return;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='vitamin-d-journey.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)},'image/png')}
+function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){const words=text.split(' ');let line='';for(const word of words){const test=line+word+' ';if(ctx.measureText(test).width>maxWidth&&line){ctx.fillText(line,x,y);line=word+' ';y+=lineHeight}else line=test}ctx.fillText(line,x,y)}
+// END PHYSICIAN VITAMIN D TOOL
+
 function route(){
+  const specialHash=location.hash||'#/shine';
+  if(specialHash==='#/physician'){renderPhysicianMode();focusPageHeading();return}
+  if(specialHash==='#/physician/vitamin-d'){renderVitaminDTool();focusPageHeading();return}
+  if(specialHash.startsWith('#/patient/vitamin-d/')){renderVitaminDPatient(specialHash.slice('#/patient/vitamin-d/'.length));return}
+  document.body.classList.remove('physician-mode-active','vitd-patient-active');
   document.body.classList.remove('shine-intro-active');
   const hash=location.hash||'#/shine';
   const [mode,a,b]=hash.replace('#/','').split('/');
@@ -1861,3 +1951,31 @@ window.addEventListener('afterprint',()=>{
 window.addEventListener('hashchange',()=>{if(location.hash!=='#/find')findScrollY=window.scrollY;closeSleepWizard(false);closeShineFocusReplace();route()});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(document.getElementById('shine-focus-modal'))closeShineFocusReplace();else if(document.getElementById('sleep-wizard-modal'))closeSleepWizard()});
 route();
+
+
+// Physician Mode and patient schedule interactions
+for(const eventName of ['input','change'])document.addEventListener(eventName,e=>{if(e.target?.id==='vitd-level'||e.target?.id==='vitd-unit')updateVitdProtocolPreview()});
+document.addEventListener('submit',e=>{
+  if(e.target?.id!=='vitd-builder-form')return;
+  e.preventDefault();
+  const data={level:document.getElementById('vitd-level').value,unit:document.getElementById('vitd-unit').value,startDate:document.getElementById('vitd-start').value,maintenance:document.getElementById('vitd-maintenance').value,clinic:document.getElementById('vitd-clinic').value};
+  const schedule=vitdScheduleFromInput(data);
+  if(!schedule){alert('This vitamin D level is outside the two built-in clinic pathways. Use a custom clinician plan.');return}
+  renderVitdExport(schedule);
+});
+document.addEventListener('change',e=>{
+  const dose=e.target.closest?.('[data-vitd-dose]');if(!dose)return;
+  const code=app.dataset.vitdCode;if(!code)return;
+  const done=new Set(vitdLoadProgress(code));dose.checked?done.add(dose.dataset.vitdDose):done.delete(dose.dataset.vitdDose);vitdSaveProgress(code,done);refreshVitdPatientProgress();
+});
+document.addEventListener('click',async e=>{
+  const exportBox=document.getElementById('vitd-export'),encoded=exportBox?.dataset.schedule,schedule=encoded?vitdDecode(encoded):null;
+  if(e.target.closest('[data-vitd-open-patient]')&&schedule){location.hash='#/patient/vitamin-d/'+vitdEncode(schedule);return}
+  if(e.target.closest('[data-vitd-copy-link]')){const value=document.getElementById('vitd-patient-link')?.value;if(value){await navigator.clipboard?.writeText(value);showToast('Patient link copied')}return}
+  if(e.target.closest('[data-vitd-share-link]')&&schedule){const url=vitdPatientUrl(schedule);if(navigator.share)await navigator.share({title:'Vitamin D Journey',text:'Open your vitamin D schedule',url});else{await navigator.clipboard?.writeText(url);showToast('Patient link copied')}return}
+  const patientSchedule=app.dataset.vitdSchedule?vitdDecode(app.dataset.vitdSchedule):null;
+  if(e.target.closest('[data-vitd-share-patient]')&&patientSchedule){if(navigator.share)await navigator.share({title:'Vitamin D Journey',text:'My vitamin D schedule',url:location.href});else{await navigator.clipboard?.writeText(location.href);showToast('Schedule link copied')}return}
+  if(e.target.closest('[data-vitd-copy-patient]')){await navigator.clipboard?.writeText(location.href);showToast('Schedule link copied');return}
+  if(e.target.closest('[data-vitd-calendar]')&&patientSchedule){vitdDownload('vitamin-d-journey.ics','text/calendar;charset=utf-8',vitdIcs(patientSchedule));return}
+  if(e.target.closest('[data-vitd-image]')&&patientSchedule){vitdSaveImage(patientSchedule);return}
+});
