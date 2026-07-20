@@ -1,0 +1,29 @@
+# IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
+name: Update canonical local path
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/update-local-path.yml
+      - .github/update-local-path.py
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - run: python3 .github/update-local-path.py
+      - run: |
+          grep -Fq 'C:\Projects\PatientCare\patient-care-pilot' PATIENT_CARE_RULES.md
+          git diff --check
+      - run: |
+          rm -f .github/update-local-path.py .github/workflows/update-local-path.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Record canonical local repository path"
+          git push
