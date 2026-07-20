@@ -308,7 +308,7 @@ function defaultProfile(){
     questions:[],
     planTasks:[],
     sleepWizard:{conditions:[],schedule:[],patterns:[],factors:[]},
-    guided:{shineAnswers:{},shineCompleted:false,routineChoices:[],medicalProfile:[],dietSetup:{completed:false,answers:{}},pendingMedical:[],confirmedMedical:[]},
+    guided:{shineAnswers:{},shineCompleted:false,routineChoices:[],medicalProfile:[],doctorIntake:{completed:false,age:'',gender:'',conditions:[],heightCm:'',weightKg:'',deficiencies:[],bmi:null},dietSetup:{completed:false,answers:{}},pendingMedical:[],confirmedMedical:[]},
     planNotes:{daily:'',food:'',treatment:'',doctor:''},
     createdAt:new Date().toISOString()
   };
@@ -339,7 +339,7 @@ function profile(){
         patterns:Array.isArray(parsed.sleepWizard?.patterns)?parsed.sleepWizard.patterns:[],
         factors:Array.isArray(parsed.sleepWizard?.factors)?parsed.sleepWizard.factors:[]
       },
-      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},shineCompleted:parsed.guided?.shineCompleted===true,routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[],dietSetup:{...base.guided.dietSetup,...(parsed.guided?.dietSetup||{}),answers:{...(parsed.guided?.dietSetup?.answers||{})}},pendingMedical:Array.isArray(parsed.guided?.pendingMedical)?parsed.guided.pendingMedical:[],confirmedMedical:Array.isArray(parsed.guided?.confirmedMedical)?parsed.guided.confirmedMedical:[]},
+      guided:{...base.guided,...(parsed.guided||{}),shineAnswers:{...(parsed.guided?.shineAnswers||{})},shineCompleted:parsed.guided?.shineCompleted===true,routineChoices:Array.isArray(parsed.guided?.routineChoices)?parsed.guided.routineChoices:[],medicalProfile:Array.isArray(parsed.guided?.medicalProfile)?parsed.guided.medicalProfile:[],doctorIntake:{...base.guided.doctorIntake,...(parsed.guided?.doctorIntake||{}),conditions:Array.isArray(parsed.guided?.doctorIntake?.conditions)?parsed.guided.doctorIntake.conditions:[],deficiencies:Array.isArray(parsed.guided?.doctorIntake?.deficiencies)?parsed.guided.doctorIntake.deficiencies:[]},dietSetup:{...base.guided.dietSetup,...(parsed.guided?.dietSetup||{}),answers:{...(parsed.guided?.dietSetup?.answers||{})}},pendingMedical:Array.isArray(parsed.guided?.pendingMedical)?parsed.guided.pendingMedical:[],confirmedMedical:Array.isArray(parsed.guided?.confirmedMedical)?parsed.guided.confirmedMedical:[]},
       planNotes:{...base.planNotes,...(parsed.planNotes||{})}
     };
   }catch(e){
@@ -612,10 +612,15 @@ function renderRoutineResults(ids){
   const c=guidedConfig().routine,targets=[...new Set(c.choices.filter(x=>ids.includes(x.id)).flatMap(x=>x.targets||[]))].map(findHeal).filter(x=>x&&!isPlaceholder(x));
   return `<section class="guided-results"><h2>${esc(c.saved)}</h2>${targets.length?targets.map(item=>`<a class="guided-result-link" href="#/heal/item/${esc(item.id)}"><strong>${esc(item.title)}</strong><span>${esc(item.section)}</span></a>`).join(''):`<p>${esc(c.empty)}</p>`}</section>`;
 }
-function renderMedicalProfile(){
-  setActive('dr');const c=guidedConfig().dr,p=profile(),selected=new Set(p.guided.medicalProfile||[]);
-  app.innerHTML=`<div class="screen">${renderShineFocusBar()}<section class="detail dr guided-page">${renderBackControl('#/dr','DR','dr')}<p class="eyebrow">DR PROFILE</p><h1>${esc(c.title)}</h1><p class="lead">${esc(c.intro)}</p><div class="guided-check-grid">${c.options.map(option=>`<label class="guided-check"><input type="checkbox" data-medical-profile="${esc(option.id)}" ${selected.has(option.id)?'checked':''}><span><strong>${esc(option.label)}</strong></span></label>`).join('')}</div><button class="btn dr" data-save-medical-profile="1">${esc(c.save)}</button></section></div>`;
-}
+function doctorIntakeData(){return profile().guided.doctorIntake||defaultProfile().guided.doctorIntake}
+function calculateBmi(h,w){h=Number(h)/100;w=Number(w);return h>0&&w>0?Math.round(w/(h*h)*10)/10:null}
+function renderDoctorWelcome(){return `<div class="screen doctor-welcome-screen"><section class="doctor-welcome"><div class="doctor-symbol">✚</div><p class="eyebrow">DR</p><h1>Know your health picture</h1><p>A clear profile helps organize the education and questions most relevant to you.</p><div class="doctor-points"><span>AGE</span><span>PMH</span><span>BMI</span><span>LABS</span></div><button class="doctor-start" data-open-doctor-intake="1">Build my health profile <b>→</b></button><small>Saved only on this device</small></section></div>`}
+function renderMedicalProfile(){document.body.classList.remove('dr-intro-active');setActive('dr');const a=doctorIntakeData(),b=calculateBmi(a.heightCm,a.weightKg),c=(x,y)=>x.includes(y)?'checked':'';app.innerHTML=`<div class="screen doctor-intake-screen"><section class="doctor-intake">${renderBackControl('#/dr','DR','dr')}<header><p class="eyebrow">YOUR HEALTH PROFILE</p><h1>Let’s build your doctor page</h1><p>Enter what you know. You can update this later.</p></header><form id="doctor-intake-form">
+<section><h2>1. About you</h2><div class="doctor-fields"><label>Age<input id="doctor-age" type="number" min="1" max="120" value="${esc(a.age)}" required></label><label>Gender<select id="doctor-gender" required><option value="">Choose</option><option value="female" ${a.gender==='female'?'selected':''}>Female</option><option value="male" ${a.gender==='male'?'selected':''}>Male</option><option value="other" ${a.gender==='other'?'selected':''}>Other</option><option value="prefer-not" ${a.gender==='prefer-not'?'selected':''}>Prefer not to say</option></select></label></div></section>
+<section><h2>2. Past medical history</h2><p>Choose diagnosed chronic conditions that apply.</p><div class="doctor-choices"><label><input type="checkbox" data-doctor-condition="diabetes" ${c(a.conditions,'diabetes')}><span><b>DM</b>Diabetes</span></label><label><input type="checkbox" data-doctor-condition="hypertension" ${c(a.conditions,'hypertension')}><span><b>HTN</b>High blood pressure</span></label><label><input type="checkbox" data-doctor-condition="dyslipidemia" ${c(a.conditions,'dyslipidemia')}><span><b>DLP</b>High cholesterol</span></label><label><input type="checkbox" data-doctor-condition="asthma" ${c(a.conditions,'asthma')}><span><b>ASTHMA</b>Asthma</span></label></div></section>
+<section><h2>3. Height, weight and BMI</h2><div class="doctor-fields"><label>Height (cm)<input id="doctor-height" type="number" min="80" max="250" step="0.1" value="${esc(a.heightCm)}" required></label><label>Weight (kg)<input id="doctor-weight" type="number" min="20" max="400" step="0.1" value="${esc(a.weightKg)}" required></label></div><output id="doctor-bmi"><span>Your BMI</span><strong>${b??'—'}</strong><small>Calculation only; discuss interpretation with your clinician.</small></output></section>
+<section><h2>4. Known vitamin or mineral deficiencies</h2><p>Select only deficiencies you were told you have.</p><div class="doctor-choices"><label><input type="checkbox" data-doctor-deficiency="b12" ${c(a.deficiencies,'b12')}><span><b>B12</b>Vitamin B12</span></label><label><input type="checkbox" data-doctor-deficiency="d3" ${c(a.deficiencies,'d3')}><span><b>D3</b>Vitamin D</span></label><label><input type="checkbox" data-doctor-deficiency="iron" ${c(a.deficiencies,'iron')}><span><b>Fe</b>Iron</span></label></div></section>
+<div class="doctor-actions"><button type="button" class="btn ghost" data-doctor-cancel="1">Back</button><button class="btn dr" type="submit">Save my health profile</button></div></form></section></div>`}
 function medicalBuilderCards(){
   const c=guidedConfig().dr,p=profile();
   return (p.guided.medicalProfile||[]).map(id=>c.builders[id]).filter(Boolean).map(builder=>`<article class="guided-builder-card medical"><div><h3>${esc(builder.title)}</h3><p>${esc(builder.text)}</p></div><a class="btn ghost button-link" href="${esc(builder.route)}">Open</a></article>`).join('');
@@ -674,6 +679,7 @@ function renderConfirmedSupport(id){
 }
 function renderProgressiveDr(){
   const c=progressiveConfig().medical,p=profile(),pending=p.guided.pendingMedical||[],confirmed=p.guided.confirmedMedical||[];
+  if(p.guided.doctorIntake?.completed!==true)return renderDoctorWelcome();
   if(pending.length)return `<div class="screen progressive-entry dr">${renderMedicalSuggestion(pending[0])}</div>`;
   if(confirmed.length)return `<div class="screen progressive-entry dr"><section class="progressive-support-list">${confirmed.map(renderConfirmedSupport).join('')}<a class="quiet-profile-link" href="#/dr/profile">${esc(c.updateProfile)}</a></section></div>`;
   return renderSingleStart('dr',c.title,c.intro,c.start,'data-open-medical-profile="1"');
@@ -921,10 +927,7 @@ function renderHeal(){
   const c=progressiveConfig().diet;
   app.innerHTML=dietSetupComplete()?renderDietReady():renderSingleStart('heal',c.title,c.intro,c.start,'data-open-diet-start="1"');
 }
-function renderDr(){
-  setActive('dr');
-  app.innerHTML=renderProgressiveDr();
-}
+function renderDr(){setActive('dr');const first=profile().guided.doctorIntake?.completed!==true;document.body.classList.toggle('dr-intro-active',first);app.innerHTML=renderProgressiveDr()}
 function renderList(area,id){
   if(area==='heal'&&id==='diet')return renderDietBuilder();
   setActive(area);
@@ -1556,6 +1559,9 @@ function showToast(text){
   window.__toastTimer=setTimeout(()=>t.classList.remove('show'),1500);
 }
 
+document.addEventListener('submit',e=>{if(e.target.id!=='doctor-intake-form')return;e.preventDefault();const age=document.getElementById('doctor-age').value,gender=document.getElementById('doctor-gender').value,heightCm=document.getElementById('doctor-height').value,weightKg=document.getElementById('doctor-weight').value,bmi=calculateBmi(heightCm,weightKg);if(!age||!gender||!bmi){showToast('Complete age, gender, height, and weight');return}const conditions=[...document.querySelectorAll('[data-doctor-condition]:checked')].map(x=>x.dataset.doctorCondition),deficiencies=[...document.querySelectorAll('[data-doctor-deficiency]:checked')].map(x=>x.dataset.doctorDeficiency),p=profile();p.guided.doctorIntake={completed:true,age,gender,conditions,heightCm,weightKg,deficiencies,bmi};p.guided.medicalProfile=[...new Set([...(p.guided.medicalProfile||[]),...conditions])];if(deficiencies.includes('iron')&&!(p.guided.confirmedMedical||[]).includes('iron-deficiency'))p.guided.pendingMedical=[...new Set([...(p.guided.pendingMedical||[]),'iron-deficiency'])];saveProfile(p);document.body.classList.remove('dr-intro-active');location.hash='#/dr'});
+document.addEventListener('input',e=>{if(!['doctor-height','doctor-weight'].includes(e.target.id))return;const o=document.getElementById('doctor-bmi');if(o)o.querySelector('strong').textContent=calculateBmi(document.getElementById('doctor-height').value,document.getElementById('doctor-weight').value)??'—'});
+
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-open-diet-start]')){openDietWizard();return}
   if(e.target.closest('[data-close-diet-start]')){closeDietWizard();return}
@@ -1563,6 +1569,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-diet-start-back]')){dietWizardStep=Math.max(0,dietWizardStep-1);renderDietWizard();return}
   if(e.target.closest('[data-diet-start-next]')){if(dietWizardStep<progressiveConfig().diet.steps.length-1){dietWizardStep++;renderDietWizard()}else saveDietSetup();return}
   if(e.target.closest('[data-open-diet-results]')){applyDietSetupToBuilder();return}
+  if(e.target.closest('[data-open-doctor-intake]')){location.hash='#/dr/profile';return}
+  if(e.target.closest('[data-doctor-cancel]')){location.hash='#/dr';return}
   if(e.target.closest('[data-open-medical-profile]')){location.hash='#/dr/profile';return}
   const confirmMedical=e.target.closest('[data-confirm-medical]');if(confirmMedical){const id=confirmMedical.dataset.confirmMedical,p=profile();p.guided.pendingMedical=(p.guided.pendingMedical||[]).filter(x=>x!==id);p.guided.confirmedMedical=[...new Set([...(p.guided.confirmedMedical||[]),id])];saveProfile(p);renderDr();return}
   const dismissMedical=e.target.closest('[data-dismiss-medical]');if(dismissMedical){const id=dismissMedical.dataset.dismissMedical,p=profile();p.guided.pendingMedical=(p.guided.pendingMedical||[]).filter(x=>x!==id);saveProfile(p);renderDr();return}

@@ -224,3 +224,10 @@ The following remain deferred unless explicitly requested:
 - Added a Skip for now link that appears after two seconds and opens Shinopedia.
 - Added reduced-motion-safe entrance, logo, label, and action animations.
 - Replaced decorative acronym symbols with clearer sleep, happiness, immunity, nutrition, and exercise icons.
+
+
+### DR health-profile onboarding
+
+- Added a focused blue DR welcome and a local profile form for age, gender, selected chronic conditions, height, weight, BMI, and known B12, vitamin D, or iron deficiency.
+- BMI is displayed as a calculation only without diagnosis or category interpretation.
+- Iron deficiency continues through explicit confirmation; no dosing, treatment selection, or laboratory interpretation was added.
