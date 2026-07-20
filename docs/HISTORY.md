@@ -255,3 +255,10 @@ The following remain deferred unless explicitly requested:
 - Added an interactive mobile patient page with local completion tracking, Home Screen instructions, native sharing, calendar export, and PNG backup.
 - Kept the tool static and backend-free; the URL contains schedule data only and no patient name, date of birth, record number, or medical history.
 - Preserved all existing dosing locks outside this narrowly approved Physician Mode tool.
+
+## Dual vitamin D protocol selector
+
+- Added visible Endocrine Society 2024 guidance and Local clinic protocol cards.
+- Kept the current guideline card informational because it does not define the app’s level-based replacement schedule.
+- Made local weekly, monthly, and repeat-test intervals editable before clinician confirmation.
+- Preserved QR, mobile patient page, calendar, image export, privacy limits, and existing dosing locks outside Physician Mode.
