@@ -128,6 +128,12 @@ Validation must fail closed using the existing content-error screen when require
 
 ## 13. Repository workflow
 
+The canonical local Windows repository path is:
+
+`C:\Projects\PatientCare\patient-care-pilot`
+
+Use this path in local preview scripts, refresh scripts, and repository instructions unless the user explicitly provides a newer location. Do not use the previous OneDrive-based path.
+
 This pilot uses one repository and one active branch: `main`. Make requested edits directly to `main` unless the user explicitly requests another workflow. Do not create branches, pull requests, forks, clones, releases, or version repositories without explicit instruction.
 
 Git history remains the recovery mechanism. Do not rewrite or flatten history merely to make the repository look cleaner.
