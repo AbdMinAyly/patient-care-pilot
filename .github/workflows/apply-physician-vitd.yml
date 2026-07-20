@@ -1,0 +1,46 @@
+# IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
+name: Apply Physician Mode vitamin D tool
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/apply-physician-vitd.py
+      - .github/workflows/apply-physician-vitd.yml
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Vendor local QR generator
+        run: |
+          curl -fsSL https://unpkg.com/qrcode-generator@1.4.4/qrcode.js -o qr.js
+          { printf '%s\n' '// IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.'; cat qr.js; } > qr.tmp
+          mv qr.tmp qr.js
+      - name: Apply app changes
+        run: python3 .github/apply-physician-vitd.py
+      - name: Validate
+        run: |
+          node --check app.js
+          node --check qr.js
+          node -e "global.window={};require('./data/content.js');console.log(window.PATIENT_CARE_CONTENT.meta.contentVersion)"
+          node -e "JSON.parse(require('fs').readFileSync('data/schema.json','utf8'));console.log('schema ok')"
+          git diff --check
+          grep -q "BEGIN PHYSICIAN VITAMIN D TOOL" app.js
+          grep -q "#/patient/vitamin-d/" app.js
+          grep -q "Physician Mode vitamin D Journey" styles.css
+          grep -q '<script src="qr.js"></script>' index.html
+          grep -q "Narrow Physician Mode exception" PATIENT_CARE_RULES.md
+          test -s qr.js
+      - name: Commit and clean temporary workflow
+        run: |
+          rm -f .github/apply-physician-vitd.py .github/workflows/apply-physician-vitd.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add Physician Mode vitamin D Journey"
+          git push
