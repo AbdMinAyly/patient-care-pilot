@@ -231,3 +231,10 @@ The following remain deferred unless explicitly requested:
 - Added a focused blue DR welcome and a local profile form for age, gender, selected chronic conditions, height, weight, BMI, and known B12, vitamin D, or iron deficiency.
 - BMI is displayed as a calculation only without diagnosis or category interpretation.
 - Iron deficiency continues through explicit confirmation; no dosing, treatment selection, or laboratory interpretation was added.
+
+
+### HEAL nourishment and movement welcome
+
+- Replaced the first-entry HEAL placeholder with a focused gold HEAL introduction that combines nourishment and movement symbolism.
+- Kept Start your diet as the single primary action and hid global navigation during the introduction.
+- Replaced DR welcome text bubbles with stethoscope, pills, injection, and surgical-mask icons.

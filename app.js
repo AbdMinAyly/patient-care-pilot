@@ -525,6 +525,7 @@ function clearPlanItems(){
 }
 
 function setActive(mode){
+  document.body.classList.remove('shine-intro-active','heal-intro-active','dr-intro-active');
   ['shine','heal','dr','pedia','summary'].forEach(m=>{
     const el=document.getElementById('nav-'+m);
     if(!el)return;
@@ -614,7 +615,7 @@ function renderRoutineResults(ids){
 }
 function doctorIntakeData(){return profile().guided.doctorIntake||defaultProfile().guided.doctorIntake}
 function calculateBmi(h,w){h=Number(h)/100;w=Number(w);return h>0&&w>0?Math.round(w/(h*h)*10)/10:null}
-function renderDoctorWelcome(){return `<div class="screen doctor-welcome-screen"><section class="doctor-welcome"><div class="doctor-symbol">✚</div><p class="eyebrow">DR</p><h1>Know your health picture</h1><p>A clear profile helps organize the education and questions most relevant to you.</p><div class="doctor-points"><span>AGE</span><span>PMH</span><span>BMI</span><span>LABS</span></div><button class="doctor-start" data-open-doctor-intake="1">Build my health profile <b>→</b></button><small>Saved only on this device</small></section></div>`}
+function renderDoctorWelcome(){return `<div class="screen doctor-welcome-screen"><section class="doctor-welcome"><div class="doctor-symbol">✚</div><p class="eyebrow">DR</p><h1>Know your health picture</h1><p>A clear profile helps organize the education and questions most relevant to you.</p><div class="doctor-points doctor-icon-points" aria-label="Medical care symbols"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3v5a6 6 0 0 0 12 0V3M6 3H4m14 0h2M12 14v2a4 4 0 0 0 8 0v-1"/><circle cx="20" cy="13" r="2"/></svg></span><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m8 16 8-8a4 4 0 0 0-6-6l-8 8a4 4 0 0 0 6 6Z"/><path d="m7 5 6 6"/></svg></span><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m14 4 6 6M12 6l6 6M4 20l5-5M7 17l-2-2 9-9 4 4-9 9-2-2ZM3 21l3-1"/></svg></span><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9c2-2 5-3 8-3s6 1 8 3v7c-2 2-5 3-8 3s-6-1-8-3V9Z"/><path d="M4 10 1 8m19 2 3-2M8 11h8m-8 3h8"/></svg></span></div><button class="doctor-start" data-open-doctor-intake="1">Build my health profile <b>→</b></button><small>Saved only on this device</small></section></div>`}
 function renderMedicalProfile(){document.body.classList.remove('dr-intro-active');setActive('dr');const a=doctorIntakeData(),b=calculateBmi(a.heightCm,a.weightKg),c=(x,y)=>x.includes(y)?'checked':'';app.innerHTML=`<div class="screen doctor-intake-screen"><section class="doctor-intake">${renderBackControl('#/dr','DR','dr')}<header><p class="eyebrow">YOUR HEALTH PROFILE</p><h1>Let’s build your doctor page</h1><p>Enter what you know. You can update this later.</p></header><form id="doctor-intake-form">
 <section><h2>1. About you</h2><div class="doctor-fields"><label>Age<input id="doctor-age" type="number" min="1" max="120" value="${esc(a.age)}" required></label><label>Gender<select id="doctor-gender" required><option value="">Choose</option><option value="female" ${a.gender==='female'?'selected':''}>Female</option><option value="male" ${a.gender==='male'?'selected':''}>Male</option><option value="other" ${a.gender==='other'?'selected':''}>Other</option><option value="prefer-not" ${a.gender==='prefer-not'?'selected':''}>Prefer not to say</option></select></label></div></section>
 <section><h2>2. Past medical history</h2><p>Choose diagnosed chronic conditions that apply.</p><div class="doctor-choices"><label><input type="checkbox" data-doctor-condition="diabetes" ${c(a.conditions,'diabetes')}><span><b>DM</b>Diabetes</span></label><label><input type="checkbox" data-doctor-condition="hypertension" ${c(a.conditions,'hypertension')}><span><b>HTN</b>High blood pressure</span></label><label><input type="checkbox" data-doctor-condition="dyslipidemia" ${c(a.conditions,'dyslipidemia')}><span><b>DLP</b>High cholesterol</span></label><label><input type="checkbox" data-doctor-condition="asthma" ${c(a.conditions,'asthma')}><span><b>ASTHMA</b>Asthma</span></label></div></section>
@@ -922,10 +923,42 @@ function renderShineTopic(id){
     ${renderActionPath({...topic,section:'SHINE',sectionId:'shine'})}
   </section></div>`;
 }
+function renderHealWelcome(){
+  return `<div class="screen heal-welcome-screen">
+    <section class="heal-welcome" aria-labelledby="heal-welcome-title">
+      <div class="heal-rays" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="heal-brand">
+        <span class="heal-emblem" aria-hidden="true"><svg viewBox="0 0 120 120"><path d="M24 58h72c0 25-15 40-36 40S24 83 24 58Z"/><path d="M60 57C57 34 43 22 27 20c1 18 12 31 33 37ZM61 57c3-23 17-35 33-37-1 18-12 31-33 37Z"/><path d="M60 20v37"/></svg></span>
+        <h1 id="heal-welcome-title">HEAL</h1>
+        <span class="heal-brand-rule" aria-hidden="true"><i>✦</i></span>
+        <p>Build your health</p>
+      </div>
+      <div class="heal-theme heal-theme-left" aria-label="Diet and habits">
+        <div><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 11h16v2a8 8 0 0 1-16 0v-2Z"/><path d="M8 7c0-1 1-1.3 1-2.5M12 7c0-1 1-1.3 1-2.5M16 7c0-1 1-1.3 1-2.5"/></svg></span><strong>Diet</strong></div>
+        <b aria-hidden="true">✦</b>
+        <div><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 20c1-7 5-11 14-15-1 8-5 13-14 15Z"/><path d="M7 17c3-2 6-5 9-9"/></svg></span><strong>Habits</strong></div>
+      </div>
+      <div class="heal-theme heal-theme-right" aria-label="Exercise, energy and routine">
+        <div><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m10 8 4 2 3 4M10 8l-3 5-3 1m9-3-2 4 4 5m-4-5-5 4"/></svg></span><strong>Exercise</strong></div>
+        <b aria-hidden="true">✦</b>
+        <div><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m13 2-7 12h6l-1 8 7-12h-6l1-8Z"/></svg></span><strong>Energy</strong></div>
+        <b aria-hidden="true">✦</b>
+        <div><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></span><strong>Routine</strong></div>
+      </div>
+      <div class="heal-fusion" aria-hidden="true">
+        <div class="heal-motion-person"><span></span><i></i><b></b></div>
+        <div class="heal-food-bowl"><span></span><i></i><b></b><em></em></div>
+        <div class="heal-motion-path"></div>
+      </div>
+      <button type="button" class="heal-welcome-cta" data-open-diet-start="1"><span>Start your diet</span><i aria-hidden="true">✦</i></button>
+    </section>
+  </div>`;
+}
 function renderHeal(){
   setActive('heal');
-  const c=progressiveConfig().diet;
-  app.innerHTML=dietSetupComplete()?renderDietReady():renderSingleStart('heal',c.title,c.intro,c.start,'data-open-diet-start="1"');
+  const first=!dietSetupComplete();
+  document.body.classList.toggle('heal-intro-active',first);
+  app.innerHTML=first?renderHealWelcome():renderDietReady();
 }
 function renderDr(){setActive('dr');const first=profile().guided.doctorIntake?.completed!==true;document.body.classList.toggle('dr-intro-active',first);app.innerHTML=renderProgressiveDr()}
 function renderList(area,id){
