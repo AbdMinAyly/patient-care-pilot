@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. -->
-<!-- build: vitamin-d-qr-route-fix -->
+<!-- build: physician-oral-and-iv-iron-tools -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -8,6 +8,7 @@
 <title>Patient Care v047 — Guided Homes</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="vitd-protocol-v2.css">
+<link rel="stylesheet" href="iron-tools.css">
 <style>
 /* Keep the requested bottom-navigation order explicit even if other layout rules are cached. */
 #nav-shine{order:1}
@@ -34,5 +35,6 @@
 /* Re-run patient schedule routing after the version-2 renderer has loaded. */
 if(location.hash.startsWith('#/patient/vitamin-d/'))route();
 </script>
+<script src="iron-tools.js"></script>
 </body>
 </html>
