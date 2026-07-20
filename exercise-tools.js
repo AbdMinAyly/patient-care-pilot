@@ -1,0 +1,46 @@
+// IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
+(function(){
+'use strict';
+const EXERCISE_KEY='pc_exercise_builder_v1';
+const ACTIVITY_LABELS={walk:'Brisk walking',cycle:'Cycling',swim:'Swimming or water exercise',dance:'Dancing',home:'Home cardio',gym:'Gym cardio'};
+function loadExercise(){try{return JSON.parse(localStorage.getItem(EXERCISE_KEY))||{}}catch(e){return {}}}
+function saveExercise(value){localStorage.setItem(EXERCISE_KEY,JSON.stringify(value))}
+function daysFromForm(){return [...document.querySelectorAll('[data-ex-day]:checked')].map(x=>x.value)}
+function activitiesFromForm(){return [...document.querySelectorAll('[data-ex-activity]:checked')].map(x=>x.value)}
+function prettyDay(day){return ({mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday',sun:'Sunday'})[day]||day}
+function targetMinutes(level){return level==='inactive'?60:level==='some'?120:150}
+function distribute(total,days){if(!days.length)return [];const base=Math.floor(total/days.length/5)*5,extra=total-base*days.length;return days.map((day,i)=>({day,minutes:base+(i<Math.ceil(extra/5)?5:0)}))}
+function buildPlan(data){
+  const aerobicTarget=targetMinutes(data.level),sessions=distribute(aerobicTarget,data.days),activities=data.activities.length?data.activities:['walk'];
+  return {v:1,...data,aerobicTarget,sessions:sessions.map((x,i)=>({...x,activity:activities[i%activities.length]})),strengthDays:Number(data.strengthDays),created:new Date().toISOString()};
+}
+function renderExerciseBuilder(){
+  document.body.classList.remove('heal-intro-active');setActive('heal');
+  const saved=loadExercise(),today=new Date().toISOString().slice(0,10);
+  app.innerHTML=`<div class="screen">${typeof renderShineFocusBar==='function'?renderShineFocusBar():''}<section class="detail heal exercise-builder">${typeof renderBackControl==='function'?renderBackControl('#/heal','HEAL','heal'):''}<p class="eyebrow">HEAL BUILDER</p><h1>Build your exercise week</h1><p class="lead">Start from your current level and make a realistic weekly plan. Some activity is better than none, and progress can be gradual.</p><aside class="exercise-safety"><strong>Check before starting.</strong><p>Stop and seek medical help for chest pain, fainting, severe breathlessness, or a new neurological symptom. Ask a clinician before vigorous exercise when you have an unstable condition, recent surgery, pregnancy-related restrictions, or have been inactive with significant medical concerns.</p></aside><form id="exercise-builder-form"><section><h2>1. Where are you starting?</h2><div class="exercise-choice-grid"><label><input type="radio" name="ex-level" value="inactive" ${saved.level==='inactive'||!saved.level?'checked':''}><span><strong>Mostly inactive</strong><small>Begin with a smaller weekly target.</small></span></label><label><input type="radio" name="ex-level" value="some" ${saved.level==='some'?'checked':''}><span><strong>Some activity</strong><small>Build toward the standard target.</small></span></label><label><input type="radio" name="ex-level" value="active" ${saved.level==='active'?'checked':''}><span><strong>Already active</strong><small>Plan around 150 minutes or more.</small></span></label></div></section><section><h2>2. Pick activities you can repeat</h2><div class="exercise-check-grid">${Object.entries(ACTIVITY_LABELS).map(([id,label])=>`<label><input type="checkbox" data-ex-activity value="${id}" ${(saved.activities||['walk']).includes(id)?'checked':''}><span>${label}</span></label>`).join('')}</div></section><section><h2>3. Choose your available days</h2><div class="exercise-day-grid">${['mon','tue','wed','thu','fri','sat','sun'].map(day=>`<label><input type="checkbox" data-ex-day value="${day}" ${(saved.days||['mon','wed','fri']).includes(day)?'checked':''}><span>${prettyDay(day).slice(0,3)}</span></label>`).join('')}</div></section><section><h2>4. Add strength work</h2><label class="exercise-field">Strength-training days per week<select id="ex-strength"><option value="0" ${saved.strengthDays===0?'selected':''}>Not yet</option><option value="1" ${saved.strengthDays===1?'selected':''}>1 day</option><option value="2" ${saved.strengthDays===2||saved.strengthDays==null?'selected':''}>2 days</option><option value="3" ${saved.strengthDays===3?'selected':''}>3 days</option></select></label><label class="exercise-field">Plan start date<input id="ex-start" type="date" value="${saved.startDate||today}"></label></section><button class="btn heal" type="submit">Build my week</button></form><section id="exercise-results"></section></section></div>`;
+  if(saved.sessions)renderExerciseResults(saved);
+}
+function renderExerciseResults(plan){
+  const target=document.getElementById('exercise-results');if(!target)return;
+  target.innerHTML=`<section class="exercise-plan"><header><p class="eyebrow">YOUR STARTING WEEK</p><h2>${plan.aerobicTarget} minutes planned</h2><p>This is a starting plan, not a maximum. Increase gradually as tolerated.</p></header><div class="exercise-session-list">${plan.sessions.map((s,i)=>`<article><span>${i+1}</span><div><strong>${prettyDay(s.day)}</strong><p>${ACTIVITY_LABELS[s.activity]||'Chosen activity'} · ${s.minutes} minutes</p><small>Use a pace where you can talk but not sing for moderate intensity.</small></div></article>`).join('')}</div><section class="exercise-strength"><strong>Strength training</strong><p>${plan.strengthDays?`${plan.strengthDays} day${plan.strengthDays===1?'':'s'} this week, covering major muscle groups.`:'Not added yet. Add one short session when ready.'}</p></section><aside><strong>Longer-term target</strong><p>Work toward at least 150 minutes of moderate activity each week plus muscle strengthening on 2 days. Older adults should also include balance activity.</p></aside><div class="exercise-actions"><button class="btn ghost" data-ex-print="1">Print plan</button><button class="btn ghost" data-ex-clear="1">Start over</button></div></section>`;
+  target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function activateExerciseCard(){
+  if(location.hash!=='#/heal')return;
+  const cards=[...document.querySelectorAll('.guided-builder-card')];
+  const card=cards.find(x=>/exercise/i.test(x.textContent||''));
+  if(!card)return;
+  card.classList.remove('disabled');
+  card.querySelector('.coming-soon')?.remove();
+  let action=card.querySelector('a,button');
+  if(!action){action=document.createElement('a');action.className='btn ghost button-link';card.appendChild(action)}
+  action.textContent='Open builder';action.setAttribute('href','#/heal/exercise');
+}
+const originalRenderHeal=window.renderHeal;
+if(typeof originalRenderHeal==='function')window.renderHeal=function(){const result=originalRenderHeal.apply(this,arguments);requestAnimationFrame(activateExerciseCard);return result};
+const originalRoute=window.route;
+if(typeof originalRoute==='function')window.route=function(){if(location.hash==='#/heal/exercise'){renderExerciseBuilder();if(typeof focusPageHeading==='function')focusPageHeading();return}const result=originalRoute.apply(this,arguments);requestAnimationFrame(activateExerciseCard);return result};
+document.addEventListener('submit',e=>{if(e.target.id!=='exercise-builder-form')return;e.preventDefault();const days=daysFromForm(),activities=activitiesFromForm();if(!days.length){showToast('Choose at least one available day');return}if(!activities.length){showToast('Choose at least one activity');return}const data={level:document.querySelector('input[name="ex-level"]:checked')?.value||'inactive',activities,days,strengthDays:Number(document.getElementById('ex-strength').value),startDate:document.getElementById('ex-start').value};const plan=buildPlan(data);saveExercise(plan);renderExerciseResults(plan)});
+document.addEventListener('click',e=>{if(e.target.closest('[data-ex-print]')){window.print();return}if(e.target.closest('[data-ex-clear]')){localStorage.removeItem(EXERCISE_KEY);renderExerciseBuilder();return}});
+if(location.hash==='#/heal/exercise')renderExerciseBuilder();else requestAnimationFrame(activateExerciseCard);
+})();
