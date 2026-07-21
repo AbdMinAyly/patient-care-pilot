@@ -28,7 +28,7 @@ Use `//` for JavaScript, `/* */` for CSS, `<!-- -->` for HTML and Markdown, `REM
 
 Patient Care is an offline, dependency-free patient-education and personal-planning application organized around SHINE, HEAL, DR, Diet Builder, and Your Plan.
 
-The product must remain educational. It must not diagnose, interpret laboratory results, prescribe treatment, select medication, expose hidden dosing, or replace clinical assessment.
+The product must remain educational. It must not diagnose, interpret laboratory results, prescribe treatment, select medication, expose hidden dosing, or replace clinical assessment, except for the narrowly approved clinician-only tools defined below.
 
 When a requested change defines a reusable pattern, apply it consistently to logically equivalent areas unless the request explicitly limits the scope.
 
@@ -55,7 +55,7 @@ Medication and supplement dosing must remain hidden. Dosing locks must remain `c
 
 Urgent and emergency teaching must remain visible and must never be demoted by personalization, search context, or SHINE Focus.
 
-Placeholders must remain excluded from ordinary lists, search, guides, and relationship cards. Exercise remains unavailable until researched content replaces its placeholder state.
+Placeholders must remain excluded from ordinary lists, search, guides, and relationship cards. The HEAL Exercise Builder is an approved general adult activity-planning tool; any separate placeholder exercise content remains excluded until researched content replaces it.
 
 ## 6. Saved-data compatibility
 
@@ -87,7 +87,7 @@ Do not infer medical relationships from body text.
 
 The application must remain fully offline and dependency-free.
 
-Do not add remote scripts, APIs, fonts, images, stylesheets, analytics, services, or patient-facing external links. Do not add a backend, authentication, patient accounts, prescribing logic, QR codes, or schedule builders unless a later approved scope explicitly changes these rules.
+Do not add remote scripts, APIs, fonts, images, stylesheets, analytics, services, or patient-facing external links. Do not add a backend, authentication, or patient accounts. QR codes and schedule builders are allowed only inside the explicitly approved clinician tools below.
 
 ## 9. Safety patterns for search and guides
 
@@ -114,11 +114,12 @@ Do not add excessive shadows, large decorative hero sections, or permanent navig
 At minimum, run applicable checks for:
 
 - `node --check app.js`
+- syntax checks for every added JavaScript module
 - content evaluation from `data/content.js`
 - JSON parse of `data/schema.json`
 - `git diff --check`
 - absence of external dependencies and remote requests
-- hidden dosing protections
+- hidden dosing protections outside the approved clinician tools
 - placeholder exclusion
 - stable saved-data keys and task references
 - mobile layouts and print behavior when UI changes
@@ -138,12 +139,28 @@ This pilot uses one repository and one active branch: `main`. Make requested edi
 
 Git history remains the recovery mechanism. Do not rewrite or flatten history merely to make the repository look cleaner.
 
-
 ## Find and Guide Pattern — v047
 
 Find uses deterministic local search over visible researched content. It helps users locate education but does not diagnose symptoms, interpret tests, or select treatment. Guides may organize existing researched pages and Action Path tasks, but must not create new clinical instructions. SHINE Focus may provide secondary context but must never override safety, exact search matches, or urgent-help visibility.
 
+## 14. Narrow Physician Mode exceptions
 
-## 14. Narrow Physician Mode exception — vitamin D schedules
+The user has explicitly approved clinician-only schedule tools for vitamin D, oral iron, and IV iron. These tools must require clinician confirmation, keep patient-identifying information out of generated links, and must not unlock or alter dosing fields elsewhere in the application.
 
-The user has explicitly approved one clinician-only dosing exception: Physician Mode may display Endocrine Society 2024 guidance context and may generate the dated vitamin D schedule defined by the approved local clinic pathways below 20 ng/mL and 20–30 ng/mL. The local pathway durations may be adjusted by the physician before confirmation. The clinician must confirm the protocol and safety review before export. The patient link must contain no identifying information. This exception does not unlock or alter any existing medication or supplement dosing field, does not authorize autonomous prescribing, and does not apply to any other treatment or schedule.
+Vitamin D may generate only the approved local clinic pathways and the separately approved adult reference pathway.
+
+Oral iron may calculate elemental iron from a clinician-confirmed product label and schedule clinician-selected daily or spaced dosing.
+
+IV iron may:
+
+- calculate IDA requirements with the Ganzoni formula
+- display a non-anemic research estimate from current and target ferritin using the explicitly approved healthy-adult ferric-carboxymaltose relationship
+- show the uncertainty range and state that the relationship is not a universal ferritin-to-milligram conversion
+- require a separate clinician-prescribed elemental-iron amount that controls the actual schedule
+- convert the prescribed amount into formulation-specific volume, ampoule or vial equivalents, maximum-per-visit limits, and appointment dates
+
+The IV calculator must not silently convert the research estimate into treatment without showing and requiring the clinician-prescribed amount.
+
+## 15. Narrow HEAL Exercise Builder exception
+
+The user has explicitly approved a general adult exercise-planning builder in HEAL. It may organize preferred activities, available days, gradual aerobic targets, strength days, balance reminders for older adults, and safety prompts. It must not diagnose, provide rehabilitation prescriptions, clear a user for vigorous exercise, or replace individualized medical assessment.
