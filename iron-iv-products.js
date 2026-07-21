@@ -23,9 +23,9 @@ function requiredIron(){
     if(!w||!hb||!target||target<hb||stores<0)return null;
     return {mg:Math.max(0,w*(target-hb)*2.4+stores),weight:w,summary:`Ganzoni: ${w} × (${target} − ${hb}) × 2.4 + ${stores}`};
   }
-  const ferritin=Number(document.getElementById('ivp-ferritin')?.value),mg=Number(document.getElementById('ivp-prescribed')?.value);
+  const ferritin=Number(document.getElementById('ivp-ferritin')?.value),mg=Number(document.getElementById('ivp-prescribed')?.value),weight=Number(document.getElementById('ivp-weight')?.value)||70;
   if(ferritin<0||!mg)return null;
-  return {mg,ferritin,summary:`Ferritin ${ferritin} µg/L; monitoring goal 100 µg/L; total iron independently prescribed by clinician.`};
+  return {mg,ferritin,weight,summary:`Ferritin ${ferritin} µg/L; monitoring goal 100 µg/L; total iron independently prescribed by clinician.`};
 }
 function schedule(){
   const p=product(),need=requiredIron(),start=document.getElementById('ivp-start')?.value,repeat=document.getElementById('ivp-repeat')?.value,clinic=document.getElementById('ivp-clinic')?.value.trim().slice(0,80);
