@@ -12,4 +12,16 @@
 .iron-patient-page .vitd-dose-card{border-color:#ead2c7}
 .iron-patient-page .vitd-dose-card.done{background:#f7e3d8;border-color:#b95b42}
 .iron-patient-page .vitd-dose-check{border-color:#b95b42;color:#8e2f23}
-@media(max-width:520px){.iron-builder .vitd-form-grid{grid-template-columns:1fr}.iron-patient-page .vitd-journey-main{padding-inline:14px}}
+.iron-date-help{margin:0 0 14px;color:#5f4a42;font-size:.94rem;line-height:1.5}
+.iron-adjusted-dose-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(170px,220px);gap:14px;align-items:center;padding:14px!important}
+.iron-adjusted-complete{display:grid;grid-template-columns:auto 36px minmax(0,1fr);gap:12px;align-items:center;cursor:pointer;min-width:0}
+.iron-adjusted-complete>input[type="checkbox"]{position:absolute;opacity:0;pointer-events:none}
+.iron-adjusted-complete>span:last-child{display:grid;gap:2px;min-width:0}
+.iron-adjusted-complete small{font-weight:800;letter-spacing:.06em}
+.iron-adjusted-complete strong{font-size:1rem}
+.iron-adjusted-complete em{font-style:normal;color:#604c44}
+.iron-adjusted-date{display:grid;gap:6px;font-weight:800;font-size:.82rem;color:#604c44}
+.iron-adjusted-date input[type="date"]{display:block!important;position:static!important;opacity:1!important;pointer-events:auto!important;width:100%;min-height:44px;border:1px solid #cdbbb2;border-radius:10px;background:#fff;padding:9px 10px;font:inherit;color:#2d2724}
+.iron-adjusted-date input[type="date"]:focus{outline:3px solid rgba(185,91,66,.22);outline-offset:2px;border-color:#b95b42}
+@media(max-width:680px){.iron-adjusted-dose-card{grid-template-columns:1fr}.iron-adjusted-date{padding-left:48px}}
+@media(max-width:520px){.iron-builder .vitd-form-grid{grid-template-columns:1fr}.iron-patient-page .vitd-journey-main{padding-inline:14px}.iron-adjusted-date{padding-left:0}}
