@@ -4,6 +4,7 @@
 
 const BUNDLE_ROUTE='#/patient/bundle/';
 const DRAFT_KEY='pc_patient_bundle_draft_v1';
+const CHOOSER_KEY='pc_patient_bundle_open_chooser_v1';
 const LANGUAGE_KEY='pc_patient_language';
 const MAX_TOOLS=6;
 const TOOLS={
@@ -73,16 +74,19 @@ function openChooser(){
   closeChooser();
   const draft=loadDraft(),modal=document.createElement('div');
   modal.id='patient-bundle-chooser';modal.className='patient-bundle-modal';
-  modal.innerHTML=`<div class="patient-bundle-backdrop" data-close-bundle-chooser></div><section class="patient-bundle-dialog" role="dialog" aria-modal="true" aria-labelledby="bundle-title"><button type="button" class="patient-bundle-close" data-close-bundle-chooser aria-label="Close">×</button><p class="eyebrow">PATIENT BUNDLE</p><h2 id="bundle-title">Choose a patient tool</h2><p>Schedule tools open their clinician builder first. Blood pressure can be added immediately.</p><div class="patient-bundle-tool-grid">${Object.entries(TOOLS).map(([kind,tool])=>`<button type="button" data-bundle-choose-tool="${kind}" ${kind==='b'&&draft.t.some(x=>x.k==='b')?'disabled':''}><span>${esc(tool.short)}</span><strong>${esc(tool.en)}</strong><small>${kind==='b'?'Add immediately':'Build and confirm first'}</small></button>`).join('')}</div></section>`;
+  modal.innerHTML=`<div class="patient-bundle-backdrop" data-close-bundle-chooser></div><section class="patient-bundle-dialog" role="dialog" aria-modal="true" aria-labelledby="bundle-title"><button type="button" class="patient-bundle-close" data-close-bundle-chooser aria-label="Close">×</button><p class="eyebrow">PATIENT BUNDLE</p><h2 id="bundle-title">Add patient tools</h2><p>${draft.t.length?`${draft.t.length} tool${draft.t.length===1?'':'s'} selected. Add another tool or press Done.`:'Choose the first tool. You can keep adding tools before creating the final patient link.'}</p><div class="patient-bundle-tool-grid">${Object.entries(TOOLS).map(([kind,tool])=>`<button type="button" data-bundle-choose-tool="${kind}" ${kind==='b'&&draft.t.some(x=>x.k==='b')?'disabled':''}><span>${esc(tool.short)}</span><strong>${esc(tool.en)}</strong><small>${kind==='b'?(draft.t.some(x=>x.k==='b')?'Already added':'Add immediately'):'Build and confirm, then return here'}</small></button>`).join('')}</div><div class="patient-bundle-actions"><button type="button" class="btn dr" data-close-bundle-chooser>Done adding tools</button></div></section>`;
   document.body.appendChild(modal);document.body.classList.add('patient-bundle-modal-open');
   modal.querySelector('[data-bundle-choose-tool]:not(:disabled)')?.focus();
 }
 function chooseTool(kind){
   const tool=TOOLS[kind];if(!tool)return;
-  closeChooser();
   if(kind==='b'){
-    const result=addItem({k:'b'});if(result.error)alert(result.error);else renderBuilder();return;
+    const result=addItem({k:'b'});
+    if(result.error){alert(result.error);return}
+    toast(result.duplicate?'BP readings are already in the bundle.':'BP readings added. Choose another tool or press Done.');
+    renderBuilder();setTimeout(openChooser,0);return;
   }
+  closeChooser();
   location.hash=tool.builder;
 }
 function qr(container,url){try{const code=qrcode(0,'L');code.addData(url);code.make();container.innerHTML=code.createSvgTag({cellSize:4,margin:4,scalable:true})}catch(e){container.textContent='Use the patient link.'}}
@@ -100,6 +104,10 @@ function renderBuilder(){
     requestAnimationFrame(()=>{const target=document.getElementById('patient-bundle-qr');if(target)qr(target,url)});
   }
   if(!existing)screen.insertBefore(section,grid);
+  if(sessionStorage.getItem(CHOOSER_KEY)==='1'){
+    sessionStorage.removeItem(CHOOSER_KEY);
+    setTimeout(openChooser,0);
+  }
 }
 function enhanceBp(){
   if(location.hash!=='#/physician')return;
@@ -134,7 +142,15 @@ const previousRoute=window.route;
 window.route=function(){if(routeIsBundle())return renderBundle(location.hash.slice(BUNDLE_ROUTE.length),activeIndex);removeNav();const result=previousRoute.apply(this,arguments);requestAnimationFrame(enhance);return result};
 
 async function copyLink(){const input=document.getElementById('patient-bundle-link');if(!input)return;try{await navigator.clipboard.writeText(input.value);toast('Combined patient link copied')}catch(e){input.select();document.execCommand?.('copy');toast('Combined patient link copied')}}
-function addCurrent(button){const box=button.closest('.vitd-export'),value=box?.querySelector('#vitd-patient-link,#oral-link,#ivp-link')?.value||'',item=parsePatientLink(value);if(!item){alert('Generate the patient schedule first.');return}const result=addItem(item);if(result.error)alert(result.error);else location.hash='#/physician'}
+function addCurrent(button){
+  const box=button.closest('.vitd-export'),value=box?.querySelector('#vitd-patient-link,#oral-link,#ivp-link')?.value||'',item=parsePatientLink(value);
+  if(!item){alert('Generate the patient schedule first.');return}
+  const result=addItem(item);
+  if(result.error){alert(result.error);return}
+  toast(result.duplicate?'This schedule is already in the bundle.':'Schedule added to the patient bundle.');
+  sessionStorage.setItem(CHOOSER_KEY,'1');
+  location.hash='#/physician';
+}
 
 document.addEventListener('click',async event=>{
   if(event.target.closest('[data-bundle-start],[data-bundle-add]')){openChooser();return}
@@ -144,7 +160,12 @@ document.addEventListener('click',async event=>{
   if(event.target.closest('[data-bundle-clear]')){if(confirm('Clear this patient bundle?')){clearDraft();renderBuilder()}return}
   if(event.target.closest('[data-bundle-open]')){const draft=loadDraft();if(draft.t.length)location.hash=BUNDLE_ROUTE+bundleCode(draft);return}
   if(event.target.closest('[data-bundle-copy]')){await copyLink();return}
-  if(event.target.closest('[data-bundle-add-bp]')){const result=addItem({k:'b'});if(result.error)alert(result.error);else{toast(result.duplicate?'BP readings are already in the bundle.':'BP readings added to the patient bundle.');renderBuilder()}return}
+  if(event.target.closest('[data-bundle-add-bp]')){
+    const result=addItem({k:'b'});
+    if(result.error)alert(result.error);
+    else{toast(result.duplicate?'BP readings are already in the bundle.':'BP readings added. Choose another tool or press Done.');renderBuilder();setTimeout(openChooser,0)}
+    return;
+  }
   const current=event.target.closest('[data-bundle-add-current]');if(current){addCurrent(current);return}
   const tool=event.target.closest('[data-bundle-tool-index]');if(tool&&routeIsBundle()){renderBundle(location.hash.slice(BUNDLE_ROUTE.length),Number(tool.dataset.bundleToolIndex));window.scrollTo({top:0,behavior:'smooth'});return}
 });
