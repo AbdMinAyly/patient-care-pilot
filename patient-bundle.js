@@ -15,7 +15,6 @@ const TOOLS={
 };
 let activeIndex=0;
 let appObserver=null;
-let bundleRendering=false;
 let chooserReturnFocus=null;
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
@@ -64,8 +63,9 @@ function expandItem(item){
   if(item.k==='b')return '#/patient/blood-pressure';
   const data={...(item.p||{})};
   if(item.k==='o'&&!Array.isArray(data.d)){
-    const count=Math.floor(((Number(data.w)||0)*7-1)/(Number(data.g)||1))+1;
-    data.d=Array.from({length:Math.max(0,count)},(_,index)=>addDays(data.s,index*(Number(data.g)||1)));
+    const gap=Number(data.g)||1,weeks=Number(data.w)||0;
+    const count=Math.floor((weeks*7-1)/gap)+1;
+    data.d=Array.from({length:Math.max(0,count)},(_,index)=>addDays(data.s,index*gap));
   }
   const code=encode(data);
   if(item.k==='v')return '#/patient/vitamin-d/'+code;
@@ -89,6 +89,11 @@ function parsePatientLink(value){
 }
 function validateBundle(value){return value&&value.v===1&&Array.isArray(value.t)&&value.t.length>0&&value.t.length<=MAX_TOOLS&&value.t.every(item=>item&&TOOLS[item.k]&&expandItem(item))}
 function bundleCode(draft){return encode({v:1,t:draft.t})}
+function bundleLabels(items){
+  const totals={},seen={};
+  for(const item of items)totals[item.k]=(totals[item.k]||0)+1;
+  return items.map(item=>{seen[item.k]=(seen[item.k]||0)+1;return toolName(item.k)+(totals[item.k]>1?` ${seen[item.k]}`:'')});
+}
 
 function removeChooser(){
   document.getElementById('patient-bundle-chooser')?.remove();
@@ -101,7 +106,7 @@ function openChooser(opener){
   modal.id='patient-bundle-chooser';modal.className='patient-bundle-modal';
   modal.innerHTML=`<div class="patient-bundle-backdrop" data-close-bundle-chooser></div><section class="patient-bundle-dialog" role="dialog" aria-modal="true" aria-labelledby="patient-bundle-chooser-title"><button type="button" class="patient-bundle-close" data-close-bundle-chooser aria-label="Close">×</button><p class="eyebrow">PATIENT BUNDLE</p><h2 id="patient-bundle-chooser-title">Add another tool</h2><p>Choose the next tool. Schedule tools open their clinician builder first.</p><div class="patient-bundle-tool-grid">${Object.entries(TOOLS).map(([kind,tool])=>`<button type="button" data-bundle-choose-tool="${kind}" ${kind==='b'&&draft.t.some(item=>item.k==='b')?'disabled':''}><span>${esc(tool.short)}</span><strong>${esc(tool.en)}</strong><small>${kind==='b'?'Add immediately':'Build and confirm first'}</small></button>`).join('')}</div></section>`;
   document.body.appendChild(modal);document.body.classList.add('patient-bundle-modal-open');
-  modal.querySelector('.patient-bundle-close')?.focus();
+  modal.querySelector('[data-bundle-choose-tool]:not(:disabled)')?.focus();
 }
 function chooseTool(kind){
   const tool=TOOLS[kind];if(!tool)return;
@@ -118,8 +123,8 @@ function generateQr(container,url){
   catch(error){container.innerHTML='<p>Use the patient link.</p>';return false}
 }
 function draftToolRows(draft){
-  const counts={};
-  return draft.t.map((item,index)=>{counts[item.k]=(counts[item.k]||0)+1;const duplicateCount=draft.t.filter(x=>x.k===item.k).length,label=toolName(item.k)+(duplicateCount>1?` ${counts[item.k]}`:'');return `<article class="patient-bundle-item"><span>${esc(TOOLS[item.k].short)}</span><strong>${esc(label)}</strong><button type="button" data-bundle-remove="${index}" aria-label="Remove ${esc(label)}">×</button></article>`}).join('');
+  const labels=bundleLabels(draft.t);
+  return draft.t.map((item,index)=>`<article class="patient-bundle-item"><span>${esc(TOOLS[item.k].short)}</span><strong>${esc(labels[index])}</strong><button type="button" data-bundle-remove="${index}" aria-label="Remove ${esc(labels[index])}">×</button></article>`).join('');
 }
 function renderBundleBuilder(){
   if(location.hash!=='#/physician')return;
@@ -169,10 +174,10 @@ function enhancePhysician(){renderBundleBuilder();enhanceBpCard();enhanceBuilder
 function removeBundleNav(){document.getElementById('patient-bundle-nav')?.remove();document.body.classList.remove('patient-bundle-active')}
 function bundleNav(bundle,code){
   removeBundleNav();document.body.classList.add('patient-bundle-active');
-  const nav=document.createElement('nav');nav.id='patient-bundle-nav';nav.className='patient-bundle-nav';nav.setAttribute('aria-label',text('Patient tools','أدوات المريض'));nav.dir=isArabic()?'rtl':'ltr';
-  nav.innerHTML=bundle.t.map((item,index)=>`<button type="button" data-bundle-tool-index="${index}" class="${index===activeIndex?'active':''}" aria-current="${index===activeIndex?'page':'false'}"><span>${esc(TOOLS[item.k].short)}</span><strong>${esc(toolName(item.k))}</strong></button>`).join('');
-  document.body.appendChild(nav);
-  sessionStorage.setItem(activeKey(code),String(activeIndex));
+  const labels=bundleLabels(bundle.t),nav=document.createElement('nav');
+  nav.id='patient-bundle-nav';nav.className='patient-bundle-nav';nav.setAttribute('aria-label',text('Patient tools','أدوات المريض'));nav.dir=isArabic()?'rtl':'ltr';
+  nav.innerHTML=bundle.t.map((item,index)=>`<button type="button" data-bundle-tool-index="${index}" class="${index===activeIndex?'active':''}" aria-current="${index===activeIndex?'page':'false'}"><span>${esc(TOOLS[item.k].short)}</span><strong>${esc(labels[index])}</strong></button>`).join('');
+  document.body.appendChild(nav);sessionStorage.setItem(activeKey(code),String(activeIndex));
 }
 function invalidBundle(){
   removeBundleNav();document.body.classList.add('patient-bundle-active');
@@ -180,20 +185,22 @@ function invalidBundle(){
   root.innerHTML=`<div class="screen patient-bundle-invalid" lang="${isArabic()?'ar':'en'}" dir="${isArabic()?'rtl':'ltr'}"><button type="button" class="patient-language-toggle" data-patient-language-toggle>${isArabic()?'English':'العربية'}</button><section class="detail"><h1>${text('This patient link is invalid','رابط المريض غير صالح')}</h1><p>${text('Ask the clinic to send a new link.','اطلب من العيادة إرسال رابط جديد.')}</p></section></div>`;
 }
 function renderChildRoute(route,bundleHash){
-  const target=location.pathname+location.search+route;
-  history.replaceState(null,'',target);
-  if(route.startsWith('#/patient/iron-')&&typeof window.handleIronRoute==='function')window.handleIronRoute();
-  else previousRoute();
-  history.replaceState(null,'',location.pathname+location.search+bundleHash);
+  history.replaceState(null,'',location.pathname+location.search+route);
+  try{
+    if(route.startsWith('#/patient/iron-')&&typeof window.handleIronRoute==='function')window.handleIronRoute();
+    else previousRoute();
+  }finally{
+    history.replaceState(null,'',location.pathname+location.search+bundleHash);
+  }
 }
 function renderBundle(code,index){
   const bundle=decode(code);if(!validateBundle(bundle)){invalidBundle();return false}
-  activeIndex=Math.max(0,Math.min(Number.isInteger(index)?index:Number(sessionStorage.getItem(activeKey(code)))||0,bundle.t.length-1));
+  const stored=Number(sessionStorage.getItem(activeKey(code)));
+  activeIndex=Math.max(0,Math.min(Number.isInteger(index)?index:Number.isInteger(stored)?stored:0,bundle.t.length-1));
   const route=expandItem(bundle.t[activeIndex]);if(!route){invalidBundle();return false}
-  bundleRendering=true;
-  try{renderChildRoute(route,BUNDLE_ROUTE+code)}finally{bundleRendering=false}
-  document.body.classList.remove('physician-mode-active');
-  bundleNav(bundle,code);return true;
+  document.body.classList.remove('physician-mode-active','vitd-patient-active','iron-patient-active','bp-patient-active');
+  renderChildRoute(route,BUNDLE_ROUTE+code);
+  document.body.classList.remove('physician-mode-active');bundleNav(bundle,code);return true;
 }
 function handleBundleRoute(){const code=currentBundleCode();if(!code){removeBundleNav();return false}return renderBundle(code,activeIndex)}
 
@@ -207,7 +214,15 @@ function addCurrentTool(button){
   if(wasEmpty)sessionStorage.setItem(CHOOSER_KEY,'1');
   location.hash='#/physician';
 }
-function switchBundleTool(index){const code=currentBundleCode(),bundle=decode(code);if(!validateBundle(bundle)||index<0||index>=bundle.t.length)return;activeIndex=index;renderBundle(code,index);window.scrollTo({top:0,behavior:'smooth'})}
+function switchBundleTool(index){
+  const code=currentBundleCode(),bundle=decode(code);if(!validateBundle(bundle)||index<0||index>=bundle.t.length)return;
+  activeIndex=index;renderBundle(code,index);window.scrollTo({top:0,behavior:'smooth'});
+}
+async function copyBundleLink(){
+  const value=document.getElementById('patient-bundle-link')?.value||'';if(!value)return;
+  try{await navigator.clipboard?.writeText(value);toast('Combined patient link copied')}
+  catch(error){const input=document.getElementById('patient-bundle-link');input?.select();document.execCommand?.('copy');toast('Combined patient link copied')}
+}
 
 function observe(){
   const root=document.getElementById('app');
@@ -215,15 +230,15 @@ function observe(){
   enhancePhysician();if(routeIsBundle())handleBundleRoute();
 }
 
-document.addEventListener('click',event=>{
+document.addEventListener('click',async event=>{
   const start=event.target.closest('[data-bundle-start]');if(start){saveDraft({v:1,t:[]});openChooser(start);return}
   const add=event.target.closest('[data-bundle-add]');if(add){openChooser(add);return}
-  const close=event.target.closest('[data-close-bundle-chooser]');if(close){removeChooser();return}
+  if(event.target.closest('[data-close-bundle-chooser]')){removeChooser();return}
   const choice=event.target.closest('[data-bundle-choose-tool]');if(choice){chooseTool(choice.dataset.bundleChooseTool);return}
   const remove=event.target.closest('[data-bundle-remove]');if(remove){removeItem(Number(remove.dataset.bundleRemove));renderBundleBuilder();return}
   if(event.target.closest('[data-bundle-clear]')){if(confirm('Clear this patient bundle?')){clearDraft();renderBundleBuilder()}return}
   if(event.target.closest('[data-bundle-open]')){const draft=loadDraft();if(draft.t.length)location.hash=BUNDLE_ROUTE+bundleCode(draft);return}
-  if(event.target.closest('[data-bundle-copy]')){const value=document.getElementById('patient-bundle-link')?.value||'';navigator.clipboard?.writeText(value);toast('Combined patient link copied');return}
+  if(event.target.closest('[data-bundle-copy]')){await copyBundleLink();return}
   if(event.target.closest('[data-bundle-add-bp]')){const result=addItem({k:'b'});if(result.error)alert(result.error);else{toast(result.duplicate?'BP readings are already in the bundle.':'BP readings added to the patient bundle.');renderBundleBuilder()}return}
   const current=event.target.closest('[data-bundle-add-current]');if(current){addCurrentTool(current);return}
   const toolButton=event.target.closest('[data-bundle-tool-index]');if(toolButton&&routeIsBundle()){switchBundleTool(Number(toolButton.dataset.bundleToolIndex));return}
@@ -236,7 +251,16 @@ document.addEventListener('click',event=>{
   localStorage.setItem(LANGUAGE_KEY,isArabic()?'en':'ar');renderBundle(currentBundleCode(),activeIndex);
 },true);
 
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.getElementById('patient-bundle-chooser'))removeChooser()});
+document.addEventListener('keydown',event=>{
+  const modal=document.getElementById('patient-bundle-chooser');if(!modal)return;
+  if(event.key==='Escape'){event.preventDefault();removeChooser();return}
+  if(event.key==='Tab'){
+    const focusable=[...modal.querySelectorAll('button:not(:disabled),[href],input,[tabindex]:not([tabindex="-1"])')];if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  }
+});
 window.addEventListener('hashchange',()=>setTimeout(()=>{if(routeIsBundle())handleBundleRoute();else{removeBundleNav();enhancePhysician()}},0));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
 })();
