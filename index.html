@@ -1,17 +1,17 @@
 <!doctype html>
 <!-- IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. -->
-<!-- build: bp-home-screen-install-published -->
+<!-- build: shared-home-install-and-extra-bp-readings -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script src="bp-install.js?v=20260722-2"></script>
+<script src="bp-install.js?v=20260722-3"></script>
 <title>Patient Care v047 — Guided Homes</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="vitd-protocol-v2.css">
 <link rel="stylesheet" href="iron-tools.css?v=20260721-12">
 <link rel="stylesheet" href="exercise-tools.css?v=20260721-3">
-<link rel="stylesheet" href="bp-tools.css?v=20260722-1">
+<link rel="stylesheet" href="bp-tools.css?v=20260722-2">
 <style>
 /* Keep the requested bottom-navigation order explicit even if other layout rules are cached. */
 #nav-shine{order:1}
@@ -43,8 +43,8 @@ if(location.hash.startsWith('#/patient/vitamin-d/'))route();
 <script src="iron-iv-default.js?v=20260721-1"></script>
 <script src="patient-pages.js?v=20260721-2"></script>
 <script src="exercise-tools.js?v=20260721-3"></script>
-<script src="bp-tools.js?v=20260721-2"></script>
-<script src="bp-physician-handoff.js?v=20260721-1"></script>
+<script src="bp-tools.js?v=20260722-3"></script>
+<script src="bp-physician-handoff.js?v=20260722-2"></script>
 <script>
 /* Final deterministic dispatch after all feature routers are available. */
 if(typeof window.handleIronRoute==='function' && window.handleIronRoute()){
