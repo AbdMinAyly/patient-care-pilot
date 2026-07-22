@@ -1,0 +1,28 @@
+{
+  "name": "Home Blood Pressure Chart",
+  "short_name": "BP Chart",
+  "description": "A seven-day home blood pressure chart.",
+  "id": "./?app=home-bp",
+  "start_url": "./?pwa=bp#/patient/blood-pressure",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7fbff",
+  "theme_color": "#1767c2",
+  "lang": "en",
+  "dir": "auto",
+  "icons": [
+    {
+      "src": "bp-icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "bp-icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
