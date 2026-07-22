@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="BP Chart">
+  <rect width="512" height="512" rx="112" fill="#1767c2"/>
+  <circle cx="256" cy="236" r="192" fill="#ffffff" opacity=".08"/>
+  <rect x="85" y="112" width="342" height="245" rx="54" fill="#ffffff"/>
+  <path d="M125 245h53l27-45 32 99 35-131 34 77h80" fill="none" stroke="#1767c2" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="451" text-anchor="middle" fill="#ffffff" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="82" font-weight="800">BP</text>
+</svg>
