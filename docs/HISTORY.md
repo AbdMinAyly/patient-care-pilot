@@ -262,3 +262,13 @@ The following remain deferred unless explicitly requested:
 - Kept the current guideline card informational because it does not define the app’s level-based replacement schedule.
 - Made local weekly, monthly, and repeat-test intervals editable before clinician confirmation.
 - Preserved QR, mobile patient page, calendar, image export, privacy limits, and existing dosing locks outside Physician Mode.
+
+### Combined patient tool bundles
+
+- Added a Physician Mode bundle builder that combines up to six confirmed patient tools into one non-identifying QR code and link.
+- Supported Vitamin D, oral iron, IV iron, and home blood-pressure readings while preserving each tool’s existing calculations, confirmations, safety content, and local progress keys.
+- Added an Add another tool action after schedule generation and an Add to patient bundle action for home BP readings.
+- Compact schedule payloads keep combined URLs and QR codes practical without storing patient-identifying information.
+- Added a floating, mobile-safe patient navigation bar for cycling among the included tools without exposing the main application navigation.
+- Applied the existing English/Arabic switch and device-aware Save to Home Screen flow to the combined patient link.
+- Added keyboard focus handling, removable bundle items, clear-bundle control, duplicate prevention, and numbering when more than one tool of the same type is included.
