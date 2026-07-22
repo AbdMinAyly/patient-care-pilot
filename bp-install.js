@@ -62,14 +62,14 @@ function showInstallHelp(platform,opener){
   const first=ios?text('Tap the Share button','اضغط زر المشاركة'):text('Open the browser menu','افتح قائمة المتصفح');
   const second=ios?text('Tap Add to Home Screen','اختر إضافة إلى الشاشة الرئيسية'):text('Tap Install app or Add to Home screen','اختر تثبيت التطبيق أو الإضافة إلى الشاشة الرئيسية');
   const modal=document.createElement('div');modal.id='bp-install-help';modal.className='bp-install-help';
-  modal.innerHTML=`<div class="bp-install-help-backdrop" data-close-bp-install></div><section class="bp-install-help-dialog" role="dialog" aria-modal="true" aria-labelledby="bp-install-help-title" dir="${isArabic()?'rtl':'ltr'}"><button type="button" class="bp-install-help-close" data-close-bp-install aria-label="${text('Close','إغلاق')}">×</button><h2 id="bp-install-help-title">${title}</h2><div class="bp-install-steps"><div><b>1</b>${stepIcon(ios?'share':'menu')}<span>${first}</span></div><div><b>2</b>${stepIcon(ios?'plus':'plus')}<span>${second}</span></div></div><button type="button" class="btn dr" data-close-bp-install>${text('Done','تم')}</button></section>`;
+  modal.innerHTML=`<div class="bp-install-help-backdrop" data-close-bp-install></div><section class="bp-install-help-dialog" role="dialog" aria-modal="true" aria-labelledby="bp-install-help-title" dir="${isArabic()?'rtl':'ltr'}"><button type="button" class="bp-install-help-close" data-close-bp-install aria-label="${text('Close','إغلاق')}">×</button><h2 id="bp-install-help-title">${title}</h2><div class="bp-install-steps"><div><b>1</b>${stepIcon(ios?'share':'menu')}<span>${first}</span></div><div><b>2</b>${stepIcon('plus')}<span>${second}</span></div></div><button type="button" class="btn dr" data-close-bp-install>${text('Done','تم')}</button></section>`;
   document.body.appendChild(modal);document.body.classList.add('bp-install-help-open');
   modal.querySelector('.bp-install-help-close')?.focus();
 }
+function buttonLabel(){return `<span aria-hidden="true">⌂</span>${text('Save to Home Screen','إضافة إلى الشاشة الرئيسية')}`}
 function installButton(){
   const button=document.createElement('button');
-  button.type='button';button.className='btn dr bp-install-button';button.dataset.bpInstallHome='1';
-  button.innerHTML=`<span aria-hidden="true">⌂</span>${text('Save to Home Screen','إضافة إلى الشاشة الرئيسية')}`;
+  button.type='button';button.className='btn dr bp-install-button';button.dataset.bpInstallHome='1';button.innerHTML=buttonLabel();
   return button;
 }
 function enhancePatientPage(){
@@ -82,8 +82,9 @@ function enhancePatientPage(){
   document.querySelectorAll('.bp-tool a[href]').forEach(link=>link.remove());
   const controls=document.querySelector('.bp-tool .bp-controls');
   if(!controls)return;
-  controls.querySelector('[data-bp-install-home]')?.remove();
-  if(!isStandalone())controls.prepend(installButton());
+  const existing=controls.querySelector('[data-bp-install-home]');
+  if(isStandalone()){existing?.remove();return}
+  if(existing)existing.innerHTML=buttonLabel();else controls.prepend(installButton());
 }
 function scheduleEnhance(){setTimeout(enhancePatientPage,0);setTimeout(enhancePatientPage,120)}
 function startObserver(){
@@ -111,7 +112,7 @@ window.addEventListener('beforeinstallprompt',event=>{
 });
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.querySelector('[data-bp-install-home]')?.remove();removeHelp()});
 window.addEventListener('hashchange',()=>{ensureInstallMetadata();registerServiceWorker();scheduleEnhance()});
-window.matchMedia?.('(display-mode: standalone)').addEventListener?.('change',scheduleEnhance);
+window.matchMedia?.('(display-mode: standalone)')?.addEventListener?.('change',scheduleEnhance);
 document.addEventListener('click',event=>{
   const install=event.target.closest?.('[data-bp-install-home]');
   if(install){runInstall(install);return}
