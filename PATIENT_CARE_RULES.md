@@ -164,3 +164,11 @@ The IV calculator must not silently convert the research estimate into treatment
 ## 15. Narrow HEAL Exercise Builder exception
 
 The user has explicitly approved a general adult exercise-planning builder in HEAL. It may organize preferred activities, available days, gradual aerobic targets, strength days, balance reminders for older adults, and safety prompts. It must not diagnose, provide rehabilitation prescriptions, clear a user for vigorous exercise, or replace individualized medical assessment.
+
+## 16. Home blood-pressure tracking and patient tool bundles
+
+The user has explicitly approved a patient-facing home blood-pressure tracker in Physician Mode. It may record patient-entered readings, actual dates and times, pulse, and optional notes; show arithmetic averages and trends; provide measurement-technique teaching; and support local print or CSV export. It must not diagnose hypertension, interpret a pattern as a diagnosis, select treatment, or recommend medicine changes.
+
+The user has explicitly approved patient tool bundles that combine already generated or approved patient tools into one non-identifying QR code and link. Bundling may provide local navigation among the included tools, but it must not alter any calculation, dose, schedule, warning, safety instruction, progress record, or clinician confirmation belonging to an individual tool.
+
+Bundle links must contain no patient name, date of birth, record number, contact information, or other patient-identifying information. Bundle composition may be kept temporarily in session storage while the clinician builds the handoff; patient-entered progress remains local to the patient device under each tool’s established storage keys.
