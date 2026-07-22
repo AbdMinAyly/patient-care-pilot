@@ -13,7 +13,7 @@ function onPatientRoute(){return location.hash===PATIENT_ROUTE}
 function isArabic(){return localStorage.getItem(LANGUAGE_KEY)==='ar'}
 function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 function isAndroid(){return /android/i.test(navigator.userAgent)}
-function isStandalone(){return window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true}
+function isStandalone(){return window.matchMedia?.('(display-mode: standalone)')?.matches||navigator.standalone===true}
 function text(en,ar){return isArabic()?ar:en}
 
 function ensureMeta(name,content){
@@ -25,12 +25,12 @@ function ensureInstallMetadata(){
   if(!onPatientRoute())return;
   if(!document.head.querySelector('link[data-bp-manifest]')){
     const manifest=document.createElement('link');
-    manifest.rel='manifest';manifest.href='bp.webmanifest?v=20260722-1';manifest.dataset.bpManifest='1';
+    manifest.rel='manifest';manifest.href='bp.webmanifest?v=20260722-2';manifest.dataset.bpManifest='1';
     document.head.appendChild(manifest);
   }
   if(!document.head.querySelector('link[data-bp-touch-icon]')){
     const icon=document.createElement('link');
-    icon.rel='apple-touch-icon';icon.href='bp-icon-192.svg?v=20260722-1';icon.dataset.bpTouchIcon='1';
+    icon.rel='apple-touch-icon';icon.href='bp-icon-180.png?v=20260722-1';icon.dataset.bpTouchIcon='1';
     document.head.appendChild(icon);
   }
   ensureMeta('theme-color','#1767c2');
@@ -97,8 +97,8 @@ async function runInstall(button){
   if(deferredInstallPrompt){
     const prompt=deferredInstallPrompt;deferredInstallPrompt=null;
     try{
-      await prompt.prompt();
-      const choice=await prompt.userChoice;
+      const result=await prompt.prompt();
+      const choice=result?.outcome?result:await prompt.userChoice;
       if(choice?.outcome==='accepted'){button.remove();return}
     }catch(error){}
   }
