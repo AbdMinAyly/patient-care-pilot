@@ -6,19 +6,30 @@ let observer=null;
 function updateCard(){
   if(location.hash!=='#/physician')return;
   const current=document.querySelector('[data-bp-physician-card]');
-  if(!current||current.tagName==='A')return;
-  const link=document.createElement('a');
-  link.className=current.className;
-  link.dataset.bpPhysicianCard='1';
-  link.href=ROUTE;
-  link.innerHTML=current.innerHTML;
-  current.replaceWith(link);
+  if(!current)return;
+  if(current.tagName!=='A'){
+    const link=document.createElement('a');
+    link.className=current.className;
+    link.dataset.bpPhysicianCard='1';
+    link.href=ROUTE;
+    link.innerHTML=current.innerHTML;
+    current.replaceWith(link);
+  }else current.href=ROUTE;
+}
+function openBuilder(event){
+  const card=event.target.closest?.('[data-bp-physician-card]');
+  if(!card||location.hash!=='#/physician')return;
+  event.preventDefault();
+  event.stopPropagation();
+  if(location.hash!==ROUTE)location.hash=ROUTE;
+  setTimeout(()=>{if(typeof window.route==='function')window.route()},0);
 }
 function start(){
   const root=document.getElementById('app');
   if(root&&!observer){observer=new MutationObserver(()=>requestAnimationFrame(updateCard));observer.observe(root,{childList:true,subtree:true})}
   updateCard();
 }
+document.addEventListener('click',openBuilder,true);
 window.addEventListener('hashchange',()=>setTimeout(updateCard,0));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
