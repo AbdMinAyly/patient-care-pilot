@@ -1,0 +1,51 @@
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
+
+/* iOS Safari: keep the real checkbox as the tappable surface. */
+.patient-language-page .vitd-dose-card,
+.patient-language-page .iron-adjusted-complete{
+  position:relative;
+  isolation:isolate;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.patient-language-page .vitd-dose-card>input[type="checkbox"],
+.patient-language-page .iron-adjusted-complete>input[type="checkbox"]{
+  position:absolute!important;
+  inset:0!important;
+  z-index:5!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  border:0!important;
+  background:transparent!important;
+  opacity:.001!important;
+  pointer-events:auto!important;
+  cursor:pointer;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.patient-language-page .vitd-dose-card>input[type="checkbox"]:focus-visible+.vitd-dose-check,
+.patient-language-page .iron-adjusted-complete>input[type="checkbox"]:focus-visible+.vitd-dose-check{
+  outline:3px solid rgba(23,103,194,.35);
+  outline-offset:3px;
+}
+.patient-language-page .vitd-dose-check,
+.patient-language-page .vitd-dose-card>span,
+.patient-language-page .iron-adjusted-complete>span{
+  pointer-events:none;
+}
+.patient-language-page button,
+.patient-language-page summary,
+.iron-expect-dialog button{
+  touch-action:manipulation;
+}
+
+/* A stale WebKit compositing layer must never remain tappable after closing. */
+.iron-expect-modal{pointer-events:none}
+body.iron-expect-open .iron-expect-modal{pointer-events:auto}
+body:not(.iron-expect-open) #iron-expectations-modal,
+body:not(.patient-bundle-modal-open) #patient-bundle-chooser,
+body:not(.bp-install-help-open) #bp-install-help{
+  display:none!important;
+  pointer-events:none!important;
+}
