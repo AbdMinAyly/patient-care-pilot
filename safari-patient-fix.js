@@ -3,6 +3,7 @@
 'use strict';
 
 const PATIENT_ROUTE_PREFIX='#/patient/';
+const BUNDLE_ROUTE_PREFIX='#/patient/bundle/';
 const SAFARI_ACTION_SELECTOR=[
   '[data-open-iron-expect]',
   '[data-close-iron-expect]',
@@ -17,11 +18,13 @@ const SAFARI_ACTION_SELECTOR=[
 const pendingTouches=new WeakMap();
 
 function onPatientRoute(){return location.hash.startsWith(PATIENT_ROUTE_PREFIX)}
+function onBundleRoute(){return location.hash.startsWith(BUNDLE_ROUTE_PREFIX)}
 function eventElement(target){
   if(target instanceof Element)return target;
   return target&&target.parentElement instanceof Element?target.parentElement:null;
 }
 function patientAction(target){return eventElement(target)?.closest(SAFARI_ACTION_SELECTOR)||null}
+function bundleOwnsLanguage(control){return onBundleRoute()&&control.matches('[data-patient-language-toggle]')}
 function removeInactiveOverlays(){
   if(!document.body.classList.contains('iron-expect-open'))document.getElementById('iron-expectations-modal')?.remove();
   if(!document.body.classList.contains('patient-bundle-modal-open'))document.getElementById('patient-bundle-chooser')?.remove();
@@ -38,6 +41,7 @@ document.addEventListener('click',event=>{
   const control=patientAction(event.target);
   if(!control)return;
   pendingTouches.delete(control);
+  if(bundleOwnsLanguage(control))return;
   if(event.__pcSafariRetargeted||event.target===control||event.target instanceof Element)return;
   event.preventDefault();
   event.stopImmediatePropagation();
@@ -48,12 +52,14 @@ document.addEventListener('click',event=>{
 
 /*
  * iOS can suppress the synthetic click after a touch sequence. Only create a
- * fallback click when no click arrived for the same control.
+ * fallback click when no click arrived for the same control. Bundle language
+ * is excluded because patient-bundle.js handles it synchronously and exactly
+ * once; a fallback click would toggle the language back.
  */
 document.addEventListener('touchend',event=>{
   if(!onPatientRoute())return;
   const control=patientAction(event.target);
-  if(!control)return;
+  if(!control||bundleOwnsLanguage(control))return;
   const token={};
   pendingTouches.set(control,token);
   window.setTimeout(()=>{
