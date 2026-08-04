@@ -47,8 +47,15 @@ function syncBundleNavigationDirection(){
 function rerenderActiveBundle(){
   refreshTimer=0;
   if(!isBundleRoute())return;
+
+  /*
+   * The active child route is encoded inside the bundle and is not visible in
+   * location.hash. Trigger the active bundle tab itself, which is the same
+   * reliable path used when the patient manually switches tools.
+   */
+  const active=document.querySelector('#patient-bundle-nav [aria-current="page"],#patient-bundle-nav .active');
+  if(active instanceof HTMLElement){active.click();return}
   if(typeof window.route==='function')window.route();
-  syncBundleNavigationDirection();
 }
 function scheduleBundleLanguageRefresh(){
   if(refreshTimer)window.clearTimeout(refreshTimer);
@@ -60,9 +67,8 @@ function syncVisibleUi(){
 }
 
 /*
- * A bundle URL does not expose its active child route in location.hash. Handle
- * the language button before the standalone renderers try to decode the bundle
- * hash, then rerender the active child and its navigation together.
+ * Handle bundle language changes before standalone patient renderers try to
+ * decode the bundle hash. Then rerender the currently active child tool.
  */
 document.addEventListener('click',event=>{
   if(!isBundleRoute())return;
