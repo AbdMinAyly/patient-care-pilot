@@ -2,18 +2,14 @@
 .oral-avoid-section{border-color:#d7dfeb;background:linear-gradient(180deg,#fff,#f8fbff)}
 .oral-avoid-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .oral-avoid-card{overflow:hidden;border:1px solid #dce3ec;border-radius:21px;background:#fff}
-.oral-avoid-card>header{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;padding:16px 17px;border-bottom:1px solid #e4e9ef;background:#f6f9fd}
+.oral-avoid-card>header{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:center;padding:15px 17px;border-bottom:1px solid #e4e9ef;background:#f6f9fd}
 .oral-avoid-card.food>header{background:#fff7ef}
 .oral-avoid-card>header>span{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#1767c2;color:#fff;font-weight:1000}
 .oral-avoid-card.food>header>span{background:#a44633}
-.oral-avoid-card h3{margin:0 0 3px;font-size:1.18rem}
-.oral-avoid-card header p{margin:0;color:#5a6878;font-size:.9rem;line-height:1.42}
+.oral-avoid-card h3{margin:0;font-size:1.12rem}
 .oral-avoid-list{display:grid;gap:0;margin:0;padding:0;list-style:none}
-.oral-avoid-list li{display:grid;gap:4px;padding:14px 17px;border-bottom:1px solid #edf0f4}
+.oral-avoid-list li{padding:13px 17px;border-bottom:1px solid #edf0f4;color:#334155;font-weight:780;line-height:1.4}
 .oral-avoid-list li:last-child{border-bottom:0}
-.oral-avoid-list strong{font-size:.98rem;color:#263545}
-.oral-avoid-list span{color:#596878;line-height:1.48}
-.oral-avoid-footer{margin:13px 0 0;padding:13px 14px;border:1px solid #ead9a0;border-radius:15px;background:#fff9df;color:#5e4d16;font-weight:760;line-height:1.48}
 .oral-guide-page[dir="rtl"] .oral-avoid-card>header{text-align:right}
 @media(max-width:720px){.oral-avoid-grid{grid-template-columns:1fr}}
 @media print{.oral-avoid-card{break-inside:avoid}.oral-avoid-card>header{background:#fff!important}}
