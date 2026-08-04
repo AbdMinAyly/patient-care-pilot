@@ -8,6 +8,10 @@ const REOPEN_KEY='pc_patient_bundle_reopen_chooser_v1';
 const MAX_TOOLS=6;
 const BUILDERS={v:'#/physician/vitamin-d',o:'#/physician/iron-oral',i:'#/physician/iron-iv',b:'#/physician/blood-pressure'};
 
+function eventElement(target){
+  if(target instanceof Element)return target;
+  return target&&target.parentElement instanceof Element?target.parentElement:null;
+}
 function decode(value){
   try{
     const normalized=String(value).replace(/-/g,'+').replace(/_/g,'/');
@@ -78,7 +82,7 @@ function openChooserWhenReady(attempt=0){
  * A standalone generated tool returns to Physician Mode and opens the chooser.
  */
 document.addEventListener('click',event=>{
-  const button=event.target instanceof Element?event.target.closest('[data-bundle-add-current]'):null;
+  const button=eventElement(event.target)?.closest('[data-bundle-add-current]');
   if(!button)return;
   event.preventDefault();
   event.stopImmediatePropagation();
