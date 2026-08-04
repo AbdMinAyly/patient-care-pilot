@@ -1,0 +1,28 @@
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
+.oral-method-builder{margin:18px 0;padding:18px;border:1px solid #d9c7be;border-radius:20px;background:linear-gradient(180deg,#fff,#fff8f4)}
+.oral-method-builder legend{padding:0 8px;font-size:1.05rem;font-weight:950;color:#70291f}
+.oral-method-builder>p{margin:2px 0 14px;color:#66534b;line-height:1.5}
+.oral-method-builder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.oral-method-choice{position:relative;display:grid;min-height:132px;padding:14px;border:2px solid #eadbd4;border-radius:18px;background:#fff;cursor:pointer;touch-action:manipulation}
+.oral-method-choice input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:.001;cursor:pointer}
+.oral-method-choice span{display:grid;gap:7px;pointer-events:none}
+.oral-method-choice strong{font-size:1rem;line-height:1.35;color:#3f302a}
+.oral-method-choice small{color:#68564f;line-height:1.45}
+.oral-method-choice.selected{border-color:#a44633;background:#fff0ea;box-shadow:0 0 0 3px rgba(164,70,51,.1)}
+.oral-method-choice:has(input:focus-visible){outline:3px solid rgba(23,103,194,.32);outline-offset:3px}
+.oral-method-section{border-color:#e1c7ba;background:linear-gradient(180deg,#fff,#fff8f4)}
+.oral-method-selected{overflow:hidden;border:1px solid #e3cabe;border-radius:22px;background:#fff}
+.oral-method-selected-head{display:grid;grid-template-columns:48px minmax(0,1fr);gap:13px;align-items:center;padding:17px 18px;background:linear-gradient(145deg,#7e241b,#b94c35);color:#fff}
+.oral-method-selected-head>span{display:grid;place-items:center;width:46px;height:46px;border-radius:16px;background:rgba(255,255,255,.17);font-weight:1000}
+.oral-method-selected-head small{display:block;margin-bottom:3px;color:rgba(255,255,255,.78);font-weight:950;letter-spacing:.08em}
+.oral-method-selected-head h3{margin:0;font-size:1.3rem}
+.oral-method-selected-body{display:grid;gap:12px;padding:18px}
+.oral-method-instruction{margin:0;font-size:1.08rem;font-weight:850;line-height:1.55;color:#3f302a}
+.oral-method-detail{margin:0;padding:13px 14px;border-radius:15px;background:#f7f9fc;color:#4e6073;line-height:1.5}
+.oral-method-common{display:grid;gap:5px;padding:13px 14px;border:1px solid #ead9a0;border-radius:15px;background:#fff9df;color:#5e4d16;line-height:1.48}
+.oral-method-common strong{font-size:.9rem}
+.oral-method-fixed{margin:0;padding-top:12px;border-top:1px solid #eadbd4;color:#6f2a1e;font-weight:780;line-height:1.48}
+.oral-method-missing{padding:16px;border:1px dashed #d4b7aa;border-radius:16px;background:#fffaf7;color:#654f46;line-height:1.5}
+@media(max-width:760px){.oral-method-builder-grid{grid-template-columns:1fr}.oral-method-choice{min-height:0}}
+@media(max-width:560px){.oral-method-builder{padding:15px}.oral-method-selected-head,.oral-method-selected-body{padding:15px}}
+@media print{.oral-method-builder{display:none!important}.oral-method-selected{break-inside:avoid}}
