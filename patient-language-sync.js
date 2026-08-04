@@ -15,6 +15,7 @@ function eventElement(target){
 }
 function isBundleRoute(){return location.hash.startsWith(BUNDLE_ROUTE)}
 function patientLanguage(){return localStorage.getItem(LANGUAGE_KEY)==='ar'?'ar':'en'}
+function togglePatientLanguage(){localStorage.setItem(LANGUAGE_KEY,patientLanguage()==='ar'?'en':'ar')}
 
 function normalizePhysicianBundleLabels(){
   if(location.hash!==PHYSICIAN_ROUTE)return;
@@ -59,15 +60,19 @@ function syncVisibleUi(){
 }
 
 /*
- * Patient tool renderers update the stored language themselves. On a bundle
- * route they cannot infer the active child from location.hash, so rerender the
- * active bundle immediately after the existing language handler has run.
+ * A bundle URL does not expose its active child route in location.hash. Handle
+ * the language button before the standalone renderers try to decode the bundle
+ * hash, then rerender the active child and its navigation together.
  */
 document.addEventListener('click',event=>{
+  if(!isBundleRoute())return;
   const target=eventElement(event.target);
   if(!target?.closest('[data-patient-language-toggle],[data-bpc-language]'))return;
-  if(isBundleRoute())scheduleBundleLanguageRefresh();
-});
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  togglePatientLanguage();
+  scheduleBundleLanguageRefresh();
+},true);
 
 window.addEventListener('hashchange',()=>window.setTimeout(syncVisibleUi,0));
 function start(){
