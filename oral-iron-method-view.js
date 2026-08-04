@@ -10,7 +10,7 @@ let enhancing=false;
 function store(){return window.ORAL_IRON_METHOD_CONTENT||null}
 function language(){return localStorage.getItem('pc_patient_language')==='ar'?'ar':'en'}
 function copy(){const data=store();return data?data[language()]:null}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]})}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
 function decode(value){try{const normalized=String(value).replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(normalized+'==='.slice((normalized.length+3)%4)))))}catch(error){return null}}
 function unpackClinic(value){
   const raw=String(value||'');
