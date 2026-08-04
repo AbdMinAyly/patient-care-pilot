@@ -2,7 +2,7 @@
 .oral-method-builder{margin:18px 0;padding:18px;border:1px solid #d9c7be;border-radius:20px;background:linear-gradient(180deg,#fff,#fff8f4)}
 .oral-method-builder legend{padding:0 8px;font-size:1.05rem;font-weight:950;color:#70291f}
 .oral-method-builder>p{margin:2px 0 14px;color:#66534b;line-height:1.5}
-.oral-method-builder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.oral-method-builder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .oral-method-choice{position:relative;display:grid;min-height:132px;padding:14px;border:2px solid #eadbd4;border-radius:18px;background:#fff;cursor:pointer;touch-action:manipulation}
 .oral-method-choice input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:.001;cursor:pointer}
 .oral-method-choice span{display:grid;gap:7px;pointer-events:none}
