@@ -8,7 +8,7 @@ let observer=null;
 
 function store(){return window.ORAL_IRON_METHOD_CONTENT||null}
 function copy(){const data=store();return data?data.en:null}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]})}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
 function unpackClinic(value){
   const text=String(value||'');
   if(text.indexOf(MARKER_PREFIX)!==0)return {method:'',clinic:text};
