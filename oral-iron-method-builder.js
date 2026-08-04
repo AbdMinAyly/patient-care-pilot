@@ -101,6 +101,7 @@ document.addEventListener('submit',function(event){
   if(event.target?.id!=='oral-iron-form')return;
   pendingMethod=selectedMethod();
   if(!pendingMethod)return;
+  queueMicrotask(function(){patchGeneratedLink(pendingMethod)});
   patchWhenReady(pendingMethod,0);
 },true);
 
@@ -114,7 +115,7 @@ document.addEventListener('click',function(event){
 
 function start(){
   const root=document.getElementById('app');
-  if(root&&!observer){observer=new MutationObserver(function(){requestAnimationFrame(enhance)});observer.observe(root,{childList:true,subtree:true})}
+  if(root&&!observer){observer=new MutationObserver(function(){enhance()});observer.observe(root,{childList:true,subtree:true})}
   enhance();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
