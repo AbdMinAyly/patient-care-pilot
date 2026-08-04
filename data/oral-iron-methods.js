@@ -1,7 +1,7 @@
 // IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
 window.ORAL_IRON_METHOD_CONTENT = {
   meta: {
-    version: 1,
+    version: 2,
     contentStatus: 'researched',
     researchBatch: 'ORAL_IRON_ADMINISTRATION_METHODS_2026_08',
     sourceIds: [
@@ -32,6 +32,13 @@ window.ORAL_IRON_METHOD_CONTENT = {
         builder: 'For patients who prefer a daytime dose away from food.',
         instruction: 'Take the iron at least 2 hours after your last meal. Wait at least 30 minutes before eating again.',
         detail: 'Use water as the default drink. Orange juice is optional when the clinic or pharmacist recommends it.'
+      },
+      bedtime: {
+        title: 'Bedtime — empty stomach',
+        short: 'At bedtime',
+        builder: 'For patients whose evening routine leaves at least 2 hours after the last meal.',
+        instruction: 'Take the iron with water at bedtime, at least 2 hours after your last meal. Do not take it with a bedtime snack.',
+        detail: 'Keep bedtime calcium, antacids, dairy, tea, coffee, eggs, and interacting medicines separated as directed. Use another clinic-selected method if taking it at night causes troublesome nausea, heartburn, or stomach pain.'
       },
       sensitive: {
         title: 'Sensitive stomach — with a small meal',
@@ -66,6 +73,13 @@ window.ORAL_IRON_METHOD_CONTENT = {
         builder: 'لمن يفضل جرعة نهارية بعيدة عن الطعام.',
         instruction: 'خذ الحديد بعد آخر وجبة بساعتين على الأقل، وانتظر 30 دقيقة على الأقل قبل الأكل مرة أخرى.',
         detail: 'الماء هو الخيار الافتراضي. عصير البرتقال اختياري إذا أوصت به العيادة أو الصيدلي.'
+      },
+      bedtime: {
+        title: 'وقت النوم — على معدة فارغة',
+        short: 'وقت النوم',
+        builder: 'لمن يترك روتينه المسائي ساعتين على الأقل بعد آخر وجبة.',
+        instruction: 'خذ الحديد مع الماء وقت النوم، بعد آخر وجبة بساعتين على الأقل. لا تتناوله مع وجبة خفيفة قبل النوم.',
+        detail: 'اترك الفاصل المطلوب عن الكالسيوم ومضادات الحموضة والألبان والشاي والقهوة والبيض والأدوية المتداخلة التي تؤخذ مساءً. استخدم طريقة أخرى تختارها العيادة إذا سبب تناوله ليلًا غثيانًا أو حرقة أو ألمًا مزعجًا بالمعدة.'
       },
       sensitive: {
         title: 'معدة حساسة — مع وجبة صغيرة',
