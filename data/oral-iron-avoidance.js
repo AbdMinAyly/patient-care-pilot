@@ -1,7 +1,7 @@
 // IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE.
 window.ORAL_IRON_AVOIDANCE_CONTENT = {
   meta: {
-    version: 2,
+    version: 3,
     contentStatus: 'researched',
     researchBatch: 'ORAL_IRON_AVOIDANCE_GUIDE_2026_08',
     sourceIds: [
@@ -14,7 +14,7 @@ window.ORAL_IRON_AVOIDANCE_CONTENT = {
   },
   en: {
     title: 'Keep these away from the iron dose',
-    intro: 'Keep foods and drinks about 2 hours away. Medicine timing may differ by product.',
+    intro: 'Keep foods and drinks about 2 hours away from the dose.',
     foodTitle: 'Foods and drinks',
     foods: [
       'Laban, yoghurt, milk and cheese',
@@ -32,7 +32,7 @@ window.ORAL_IRON_AVOIDANCE_CONTENT = {
   },
   ar: {
     title: 'أبعد هذه الأشياء عن جرعة الحديد',
-    intro: 'اترك نحو ساعتين عن الأطعمة والمشروبات. قد يختلف توقيت الأدوية حسب المنتج.',
+    intro: 'اترك نحو ساعتين بين الجرعة وبين هذه الأطعمة والمشروبات.',
     foodTitle: 'الأطعمة والمشروبات',
     foods: [
       'اللبن والزبادي والحليب والجبن',
