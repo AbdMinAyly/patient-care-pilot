@@ -10,7 +10,7 @@ let enhancing=false;
 function store(){return window.ORAL_IRON_METHOD_CONTENT||null}
 function language(){return localStorage.getItem('pc_patient_language')==='ar'?'ar':'en'}
 function copy(){const data=store();return data?data[language()]:null}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]})}
 function decode(value){try{const normalized=String(value).replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(normalized+'==='.slice((normalized.length+3)%4)))))}catch(error){return null}}
 function unpackClinic(value){
   const raw=String(value||'');
@@ -22,8 +22,9 @@ function unpackClinic(value){
 function methodId(data){return data.m||unpackClinic(data.c).method||''}
 function methodSection(data,text){
   const selected=text.methods[methodId(data)];
-  const body=selected?'<article class="oral-method-selected"><header class="oral-method-selected-head"><span aria-hidden="true">Fe</span><div><small>'+esc(text.selectedLabel)+'</small><h3>'+esc(selected.title)+'</h3></div></header><div class="oral-method-selected-body"><p class="oral-method-instruction">'+esc(selected.instruction)+'</p><p class="oral-method-detail">'+esc(selected.detail)+'</p><div class="oral-method-common"><strong>'+esc(text.commonTitle)+'</strong><span>'+esc(text.commonText)+'</span></div><p class="oral-method-fixed">'+esc(text.fixedPlan)+'</p></div></article>':'<div class="oral-method-missing">'+esc(text.missing)+'</div>';
-  return '<section class="oral-guide-section oral-method-section" data-oral-method-view><div class="oral-section-heading"><span aria-hidden="true">1</span><div><h2>'+esc(text.sectionTitle)+'</h2><p>'+esc(text.sectionIntro)+'</p></div></div>'+body+'</section>';
+  const headingIntro=text.sectionIntro?'<p>'+esc(text.sectionIntro)+'</p>':'';
+  const body=selected?'<article class="oral-method-selected"><header class="oral-method-selected-head"><span aria-hidden="true">Fe</span><div><small>'+esc(text.selectedLabel)+'</small><h3>'+esc(selected.title)+'</h3></div></header><div class="oral-method-selected-body"><p class="oral-method-instruction">'+esc(selected.instruction)+'</p>'+(selected.detail?'<p class="oral-method-detail">'+esc(selected.detail)+'</p>':'')+((text.commonTitle||text.commonText)?'<div class="oral-method-common">'+(text.commonTitle?'<strong>'+esc(text.commonTitle)+'</strong>':'')+(text.commonText?'<span>'+esc(text.commonText)+'</span>':'')+'</div>':'')+(text.fixedPlan?'<p class="oral-method-fixed">'+esc(text.fixedPlan)+'</p>':'')+'</div></article>':'<div class="oral-method-missing">'+esc(text.missing)+'</div>';
+  return '<section class="oral-guide-section oral-method-section" data-oral-method-view><div class="oral-section-heading"><span aria-hidden="true">1</span><div><h2>'+esc(text.sectionTitle)+'</h2>'+headingIntro+'</div></div>'+body+'</section>';
 }
 function enhance(){
   if(enhancing)return;
