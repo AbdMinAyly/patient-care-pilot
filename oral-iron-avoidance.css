@@ -10,6 +10,7 @@
 .oral-avoid-list{display:grid;gap:0;margin:0;padding:0;list-style:none}
 .oral-avoid-list li{padding:13px 17px;border-bottom:1px solid #edf0f4;color:#334155;font-weight:780;line-height:1.4}
 .oral-avoid-list li:last-child{border-bottom:0}
+.oral-guide-hero>p:last-child:empty,.oral-plan-note:empty,.oral-guide-save details{display:none!important}
 .oral-guide-page[dir="rtl"] .oral-avoid-card>header{text-align:right}
 @media(max-width:720px){.oral-avoid-grid{grid-template-columns:1fr}}
 @media print{.oral-avoid-card{break-inside:avoid}.oral-avoid-card>header{background:#fff!important}}
