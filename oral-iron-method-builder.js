@@ -5,6 +5,8 @@
 const MARKER_PREFIX='[[pc-oral-method:';
 const MARKER_SUFFIX=']]';
 let observer=null;
+let pendingMethod='';
+let patchTimer=0;
 
 function store(){return window.ORAL_IRON_METHOD_CONTENT||null}
 function methodCopy(){const data=store();return data?data.en:null}
@@ -18,8 +20,8 @@ function unpackClinic(value){
   if(end<0)return {method:'',clinic:text};
   return {method:text.slice(MARKER_PREFIX.length,end),clinic:text.slice(end+MARKER_SUFFIX.length)};
 }
-function packClinic(method,value){const clean=unpackClinic(value).clinic;return MARKER_PREFIX+method+MARKER_SUFFIX+clean}
-function selectedMethod(){return document.querySelector('input[name="oral-taking-method"]:checked')?.value||''}
+function packClinic(method,value){return MARKER_PREFIX+method+MARKER_SUFFIX+unpackClinic(value).clinic}
+function selectedMethod(){return document.querySelector('input[name="oral-taking-method"]:checked')?.value||pendingMethod||''}
 
 function selectorHtml(){
   const copy=methodCopy();
@@ -33,8 +35,7 @@ function injectSelector(){
   const form=document.getElementById('oral-iron-form');
   if(!form||document.getElementById('oral-method-builder'))return;
   const preview=document.getElementById('oral-preview');
-  if(!preview)return;
-  preview.insertAdjacentHTML('beforebegin',selectorHtml());
+  if(preview)preview.insertAdjacentHTML('beforebegin',selectorHtml());
 }
 function refreshChoiceState(){
   document.querySelectorAll('.oral-method-choice').forEach(function(label){
@@ -49,41 +50,66 @@ function regenerateQr(url){
 }
 function patchSummary(method){
   const copy=methodCopy(),summary=document.querySelector('#oral-export .vitd-export-summary');
-  if(!copy||!summary||summary.querySelector('[data-oral-method-summary]'))return;
+  if(!copy||!summary)return;
   const item=copy.methods[method];
   if(!item)return;
-  const card=document.createElement('article');
-  card.dataset.oralMethodSummary='1';
+  let card=summary.querySelector('[data-oral-method-summary]');
+  if(!card){card=document.createElement('article');card.dataset.oralMethodSummary='1';summary.appendChild(card)}
   card.innerHTML='<small>Taking method</small><strong>'+esc(item.short)+'</strong><span>'+esc(item.instruction)+'</span>';
-  summary.appendChild(card);
 }
 function patchGeneratedLink(method){
   const input=document.getElementById('oral-link'),exportBox=document.getElementById('oral-export');
-  if(!input||!exportBox||!method)return;
+  if(!input||!exportBox||exportBox.hidden||!method)return false;
   let parsed;
-  try{parsed=new URL(input.value,location.href)}catch(error){return}
+  try{parsed=new URL(input.value,location.href)}catch(error){return false}
   const prefix='#/patient/iron-oral/';
-  if(parsed.hash.indexOf(prefix)!==0)return;
+  if(parsed.hash.indexOf(prefix)!==0)return false;
   const data=decode(parsed.hash.slice(prefix.length));
-  if(!data)return;
+  if(!data)return false;
   data.m=method;
   data.c=packClinic(method,data.c||'');
   const code=encode(data),url=parsed.origin+parsed.pathname+parsed.search+prefix+code;
   input.value=url;
   exportBox.dataset.schedule=code;
+  exportBox.dataset.oralMethod=method;
   patchSummary(method);
   regenerateQr(url);
+  return true;
 }
-function enhance(){injectSelector();refreshChoiceState()}
+function patchWhenReady(method,attempt){
+  const selected=method||selectedMethod();
+  if(!selected)return;
+  if(patchGeneratedLink(selected))return;
+  if((attempt||0)>=20)return;
+  window.clearTimeout(patchTimer);
+  patchTimer=window.setTimeout(function(){patchWhenReady(selected,(attempt||0)+1)},25);
+}
+function enhance(){
+  injectSelector();
+  refreshChoiceState();
+  const method=selectedMethod();
+  if(method)patchGeneratedLink(method);
+}
 
 document.addEventListener('change',function(event){
-  if(event.target&&event.target.matches('input[name="oral-taking-method"]'))refreshChoiceState();
+  if(!event.target||!event.target.matches('input[name="oral-taking-method"]'))return;
+  pendingMethod=event.target.value;
+  refreshChoiceState();
+  patchGeneratedLink(pendingMethod);
 });
 document.addEventListener('submit',function(event){
   if(event.target?.id!=='oral-iron-form')return;
+  pendingMethod=selectedMethod();
+  if(!pendingMethod)return;
+  patchWhenReady(pendingMethod,0);
+},true);
+
+/* The selected method must be written before another handler opens, copies, or bundles the link. */
+document.addEventListener('click',function(event){
+  const target=event.target instanceof Element?event.target:event.target&&event.target.parentElement;
+  if(!target||!target.closest('[data-open-oral-patient],[data-copy-oral-link],[data-bundle-add-current]'))return;
   const method=selectedMethod();
-  if(!method)return;
-  queueMicrotask(function(){patchGeneratedLink(method)});
+  if(method)patchGeneratedLink(method);
 },true);
 
 function start(){
