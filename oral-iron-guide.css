@@ -1,0 +1,93 @@
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
+
+.oral-guide-active .bottom-nav{display:none!important}
+.oral-guide-page{min-height:100vh;background:linear-gradient(180deg,#fff6ef 0,#fffaf7 34%,#f5f7fb 100%);color:#2d2724}
+.oral-guide-hero{position:relative;padding:max(78px,calc(env(safe-area-inset-top) + 66px)) 20px 34px;text-align:center;background:radial-gradient(circle at 50% 8%,rgba(255,255,255,.92),transparent 32%),linear-gradient(150deg,#7e241b,#b94c35 58%,#e7a47f);color:#fff;border-radius:0 0 34px 34px}
+.oral-guide-hero .eyebrow{color:rgba(255,255,255,.82)}
+.oral-guide-hero h1{max-width:780px;margin:.25rem auto .65rem;font-size:clamp(2.35rem,9vw,4.8rem);line-height:.96;letter-spacing:-.06em}
+.oral-guide-hero>p:last-child{max-width:680px;margin:0 auto;color:rgba(255,255,255,.92);font-size:1.03rem;line-height:1.55}
+.oral-guide-mark{display:grid;place-items:center;width:84px;height:84px;margin:0 auto 14px;border:1px solid rgba(255,255,255,.44);border-radius:28px;background:rgba(255,255,255,.16);font-size:2.15rem;font-weight:1000;box-shadow:0 14px 36px rgba(59,15,8,.18)}
+.oral-guide-page .patient-language-toggle{border-color:rgba(255,255,255,.48);background:rgba(255,255,255,.96);color:#7e241b}
+.oral-guide-main{display:grid;gap:18px;max-width:840px;margin:0 auto;padding:22px 14px 48px}
+.oral-guide-section,.oral-guide-contact,.oral-guide-urgent,.oral-guide-save{padding:20px;border:1px solid #e4d9d3;border-radius:24px;background:#fff;box-shadow:0 10px 28px rgba(54,37,28,.06)}
+.oral-section-heading{display:grid;grid-template-columns:48px minmax(0,1fr);gap:13px;align-items:start;margin-bottom:16px}
+.oral-section-heading>span{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:#fff0e9;color:#9c3b2a;font-weight:1000;font-size:1.05rem}
+.oral-section-heading h2{margin:.08rem 0 .35rem;font-size:clamp(1.35rem,4vw,1.85rem);letter-spacing:-.035em}
+.oral-section-heading p{margin:0;color:#66534b;line-height:1.52}
+.oral-plan-section{border-color:#d6e2f0;background:linear-gradient(180deg,#fff,#f8fbff)}
+.oral-plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.oral-plan-grid article{display:grid;gap:5px;min-height:92px;padding:14px;border:1px solid #dfe7f1;border-radius:17px;background:#fff}
+.oral-plan-grid small{color:#667085;font-weight:850}
+.oral-plan-grid strong{font-size:1.04rem;line-height:1.35}
+.oral-plan-note{margin:12px 0 0;padding:12px 14px;border-left:4px solid #1767c2;border-radius:12px;background:#edf5ff;color:#244a73;font-weight:750;line-height:1.45}
+.oral-guide-tip-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.oral-guide-tip{display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;align-items:start;padding:15px;border:1px solid #eadbd4;border-radius:18px;background:#fffaf7}
+.oral-guide-tip>span{display:grid;place-items:center;width:40px;height:40px;border-radius:14px;background:#9c3b2a;color:#fff;font-weight:1000}
+.oral-guide-tip h3{margin:.05rem 0 .35rem;font-size:1.02rem}
+.oral-guide-tip p{margin:0;color:#604c44;line-height:1.48}
+.oral-improvement-section{border-color:#cfe4d1;background:linear-gradient(180deg,#fff,#f8fcf7)}
+.oral-improvement-progress{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-bottom:14px}
+.oral-improvement-progress>div{height:11px;border-radius:999px;background:#e7eee7;overflow:hidden}
+.oral-improvement-progress>div span{display:block;width:var(--oral-progress);height:100%;border-radius:inherit;background:#4f8f55;transition:width .18s ease}
+.oral-improvement-progress strong{font-size:.88rem;color:#3f6844}
+.oral-improvement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.oral-improvement-card{display:grid;grid-template-columns:28px 42px minmax(0,1fr);gap:10px;align-items:center;min-height:96px;padding:14px;border:1px solid #d7e4d7;border-radius:18px;background:#fff;cursor:pointer;touch-action:manipulation}
+.oral-improvement-card>input{width:26px;height:26px;margin:0;accent-color:#4f8f55;cursor:pointer}
+.oral-improvement-check{display:grid;place-items:center;width:40px;height:40px;border:2px solid #a9c5ac;border-radius:14px;background:#f8fcf8;color:#fff;font-weight:1000}
+.oral-improvement-card>span:last-child{display:grid;gap:4px}
+.oral-improvement-card strong{font-size:1rem}
+.oral-improvement-card small{color:#5f6f61;line-height:1.4}
+.oral-improvement-card.done{border-color:#79ad7e;background:#eef8ef}
+.oral-improvement-card.done .oral-improvement-check{border-color:#4f8f55;background:#4f8f55}
+.oral-guide-reset{min-height:44px;margin-top:12px;border:0;background:transparent;color:#446c48;text-decoration:underline;text-underline-offset:3px;font:inherit;font-weight:850;cursor:pointer}
+.oral-timeline{display:grid;gap:10px}
+.oral-timeline article{display:grid;grid-template-columns:42px minmax(0,1fr);gap:13px;padding:14px;border:1px solid #e2e7ef;border-radius:18px;background:#fbfcfe}
+.oral-timeline article>span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#1767c2;color:#fff;font-weight:1000}
+.oral-timeline small{color:#1767c2;font-weight:950;letter-spacing:.04em}
+.oral-timeline h3{margin:.15rem 0 .3rem;font-size:1.04rem}
+.oral-timeline p{margin:0;color:#536273;line-height:1.48}
+.oral-guide-note{margin-top:12px;padding:13px 14px;border:1px solid #e4d8a7;border-radius:15px;background:#fff9df;color:#665316;line-height:1.48}
+.oral-side-effects-section{border-color:#ebd6cc}
+.oral-side-effect-list{display:grid;gap:10px}
+.oral-side-effect-card{display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);overflow:hidden;border:1px solid #e5d8d2;border-radius:19px;background:#fff}
+.oral-side-effect-symptom,.oral-side-effect-help{padding:15px 16px}
+.oral-side-effect-symptom{background:#fff1ec;border-inline-end:1px solid #e7cfc5}
+.oral-side-effect-help{background:#f7fbff}
+.oral-side-effect-card small{display:block;margin-bottom:5px;font-size:.72rem;font-weight:1000;letter-spacing:.09em;color:#8b4b3c}
+.oral-side-effect-symptom strong{display:block;font-size:1.02rem;line-height:1.4;color:#6f2a1e}
+.oral-side-effect-help small{color:#1767c2}
+.oral-side-effect-help p{margin:0;color:#45576a;line-height:1.5}
+.oral-guide-contact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.oral-guide-contact{border-color:#f0d194;background:#fffaf0}
+.oral-guide-contact h2,.oral-guide-urgent h2{margin:.05rem 0 .65rem;font-size:1.3rem}
+.oral-contact-list{display:grid;gap:8px;margin:0;padding-inline-start:1.15rem;color:#5d4b26;line-height:1.46}
+.oral-guide-urgent{border-color:#e7aaa3;background:#fff2f1;color:#6d2019}
+.oral-guide-urgent p{margin:.2rem 0 .8rem;line-height:1.5}
+.oral-guide-urgent strong{display:block;padding-top:10px;border-top:1px solid #efc1bc}
+.oral-guide-save{margin:0}
+.oral-guide-invalid{position:relative;min-height:100vh;place-items:center;align-content:center;padding:18px}
+.oral-guide-invalid .patient-language-toggle{position:fixed;top:max(14px,env(safe-area-inset-top));right:16px}
+.oral-guide-page[dir="rtl"]{text-align:right}
+.oral-guide-page[dir="rtl"] .oral-plan-note{border-left:0;border-right:4px solid #1767c2}
+.oral-guide-page[dir="rtl"] .oral-side-effect-symptom{border-inline-end:1px solid #e7cfc5}
+@media(max-width:720px){
+  .oral-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .oral-guide-tip-grid,.oral-improvement-grid,.oral-guide-contact-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .oral-guide-main{padding-inline:12px}
+  .oral-guide-section,.oral-guide-contact,.oral-guide-urgent,.oral-guide-save{padding:16px;border-radius:21px}
+  .oral-plan-grid{grid-template-columns:1fr}
+  .oral-side-effect-card{grid-template-columns:1fr}
+  .oral-side-effect-symptom{border-inline-end:0;border-bottom:1px solid #e7cfc5}
+  .oral-improvement-card{grid-template-columns:26px 38px minmax(0,1fr);padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .oral-improvement-progress>div span{transition:none}
+}
+@media print{
+  .oral-guide-hero{color:#000;background:#fff;border:1px solid #bbb;box-shadow:none}
+  .oral-guide-hero .eyebrow,.oral-guide-hero>p:last-child{color:#333}
+  .oral-guide-page .patient-language-toggle,.oral-guide-save,.oral-guide-reset{display:none!important}
+  .oral-guide-section,.oral-guide-contact,.oral-guide-urgent{box-shadow:none;break-inside:avoid}
+}
