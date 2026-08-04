@@ -5,12 +5,10 @@
 const MARKER_PREFIX='[[pc-oral-method:';
 const MARKER_SUFFIX=']]';
 let observer=null;
-let pendingMethod='';
-let currentForm=null;
 
 function store(){return window.ORAL_IRON_METHOD_CONTENT||null}
-function methodCopy(){const data=store();return data?data.en:null}
-function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
+function copy(){const data=store();return data?data.en:null}
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]})}
 function unpackClinic(value){
   const text=String(value||'');
   if(text.indexOf(MARKER_PREFIX)!==0)return {method:'',clinic:text};
@@ -19,86 +17,55 @@ function unpackClinic(value){
   return {method:text.slice(MARKER_PREFIX.length,end),clinic:text.slice(end+MARKER_SUFFIX.length)};
 }
 function packClinic(method,value){return MARKER_PREFIX+method+MARKER_SUFFIX+unpackClinic(value).clinic}
-function selectedMethod(){
-  const checked=document.querySelector('input[name="oral-taking-method"]:checked');
-  return checked?checked.value:pendingMethod;
-}
 
-function selectorHtml(){
-  const copy=methodCopy();
-  if(!copy)return '';
-  return '<fieldset class="oral-method-builder" id="oral-method-builder"><legend>'+esc(copy.builderLegend)+'</legend><p>'+esc(copy.builderIntro)+'</p><div class="oral-method-builder-grid">'+Object.keys(copy.methods).map(function(id,index){
-    const item=copy.methods[id];
-    return '<label class="oral-method-choice"><input type="radio" name="oral-taking-method" value="'+esc(id)+'" '+(index===0?'required':'')+'><span><strong>'+esc(item.title)+'</strong><small>'+esc(item.builder)+'</small></span></label>';
-  }).join('')+'</div></fieldset>';
+function methodFieldHtml(){
+  const text=copy();
+  if(!text)return '';
+  const options=Object.keys(text.methods).map(function(id){
+    return '<option value="'+esc(id)+'">'+esc(text.methods[id].title)+'</option>';
+  }).join('');
+  return '<label class="vitd-clinic-field oral-method-field">How should the patient take the iron?'+
+    '<select id="oral-taking-method" required><option value="">Choose one</option>'+options+'</select>'+
+    '<small>The patient guide will show only the selected method.</small></label>';
 }
-function injectSelector(){
+function injectField(){
   const form=document.getElementById('oral-iron-form');
-  if(!form)return;
-  if(form!==currentForm){currentForm=form;pendingMethod=''}
-  if(document.getElementById('oral-method-builder'))return;
-  const preview=document.getElementById('oral-preview');
-  if(preview)preview.insertAdjacentHTML('beforebegin',selectorHtml());
-}
-function refreshChoiceState(){
-  document.querySelectorAll('.oral-method-choice').forEach(function(label){
-    const input=label.querySelector('input');
-    label.classList.toggle('selected',Boolean(input&&input.checked));
-  });
+  if(!form||document.getElementById('oral-taking-method'))return;
+  const grid=form.querySelector('.vitd-form-grid'),clinic=document.getElementById('oral-label')?.closest('label');
+  if(!grid)return;
+  if(clinic)clinic.insertAdjacentHTML('beforebegin',methodFieldHtml());
+  else grid.insertAdjacentHTML('beforeend',methodFieldHtml());
 }
 function patchSummary(method){
-  const copy=methodCopy(),summary=document.querySelector('#oral-export .vitd-export-summary');
-  if(!copy||!summary||!copy.methods[method])return;
-  const item=copy.methods[method];
-  let card=summary.querySelector('[data-oral-method-summary]');
-  if(!card){
-    card=document.createElement('article');
-    card.dataset.oralMethodSummary='1';
-    summary.appendChild(card);
-  }
-  if(card.dataset.method===method)return;
-  card.dataset.method=method;
+  const text=copy(),summary=document.querySelector('#oral-export .vitd-export-summary');
+  if(!text||!summary||!text.methods[method]||summary.querySelector('[data-oral-method-summary]'))return;
+  const item=text.methods[method],card=document.createElement('article');
+  card.dataset.oralMethodSummary='1';
   card.innerHTML='<small>Taking method</small><strong>'+esc(item.short)+'</strong><span>'+esc(item.instruction)+'</span>';
-}
-function enhance(){
-  injectSelector();
-  refreshChoiceState();
-  const exportBox=document.getElementById('oral-export'),method=selectedMethod();
-  if(exportBox&&!exportBox.hidden&&method)patchSummary(method);
+  summary.appendChild(card);
 }
 
-document.addEventListener('change',function(event){
-  if(!event.target||!event.target.matches('input[name="oral-taking-method"]'))return;
-  pendingMethod=event.target.value;
-  refreshChoiceState();
-});
-
-/*
- * Embed the method before iron-tools.js handles the form submission. This
- * makes the first generated link and QR correct and avoids rewriting the QR
- * from a MutationObserver, which previously caused an infinite update loop.
- */
+/* Attach the selected method before iron-tools.js creates the link and QR. */
 document.addEventListener('submit',function(event){
   if(!event.target||event.target.id!=='oral-iron-form')return;
-  const method=selectedMethod(),clinicInput=document.getElementById('oral-label');
+  const method=document.getElementById('oral-taking-method')?.value||'';
+  const clinicInput=document.getElementById('oral-label');
   if(!method||!clinicInput)return;
-  pendingMethod=method;
   const original=unpackClinic(clinicInput.value).clinic;
-  const packed=packClinic(method,original);
-  clinicInput.value=packed;
-  queueMicrotask(function(){
-    if(clinicInput.isConnected&&clinicInput.value===packed)clinicInput.value=original;
+  clinicInput.value=packClinic(method,original);
+  window.setTimeout(function(){
+    if(clinicInput.isConnected)clinicInput.value=original;
     patchSummary(method);
-  });
+  },0);
 },true);
 
 function start(){
   const root=document.getElementById('app');
   if(root&&!observer){
-    observer=new MutationObserver(function(){requestAnimationFrame(enhance)});
+    observer=new MutationObserver(injectField);
     observer.observe(root,{childList:true,subtree:true});
   }
-  enhance();
+  injectField();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
