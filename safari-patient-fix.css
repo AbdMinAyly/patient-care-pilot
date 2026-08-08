@@ -34,6 +34,32 @@
 .patient-language-page .iron-adjusted-complete>span{
   pointer-events:none;
 }
+
+/*
+ * IV visit cards contain two independent controls: completion and date.
+ * Keep the checkbox hit area clipped to its own half of the card and keep the
+ * native date editor above it so Safari cannot route date taps to the checkbox.
+ */
+.patient-language-page .iron-adjusted-complete{
+  z-index:1;
+  overflow:hidden;
+}
+.patient-language-page .iron-adjusted-date{
+  position:relative!important;
+  z-index:20!important;
+  isolation:isolate;
+  pointer-events:auto!important;
+  touch-action:auto!important;
+}
+.patient-language-page .iron-adjusted-date input[type="date"]{
+  position:relative!important;
+  z-index:21!important;
+  pointer-events:auto!important;
+  touch-action:auto!important;
+  -webkit-appearance:auto!important;
+  appearance:auto!important;
+}
+
 .patient-language-page button,
 .patient-language-page summary,
 .iron-expect-dialog button{
