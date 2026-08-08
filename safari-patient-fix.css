@@ -35,11 +35,7 @@
   pointer-events:none;
 }
 
-/*
- * IV visit cards contain two independent controls: completion and date.
- * The date editor stays above the completion hit area. The native iOS date
- * input is hidden and replaced by explicit day/month/year controls.
- */
+/* IV visit cards contain independent completion and date controls. */
 .patient-language-page .iron-adjusted-complete{
   z-index:1;
   overflow:hidden;
@@ -49,56 +45,86 @@
   z-index:20!important;
   isolation:isolate;
   pointer-events:auto!important;
-  touch-action:auto!important;
 }
-.patient-language-page .iron-adjusted-date input[type="date"][hidden]{
-  display:none!important;
+.patient-language-page .iron-adjusted-date input[type="date"]{
+  position:relative!important;
+  z-index:21!important;
+  pointer-events:auto!important;
 }
-.pc-iv-date-editor{
-  display:grid;
-  grid-template-columns:minmax(72px,.8fr) minmax(128px,1.5fr) minmax(92px,1fr);
-  gap:8px;
-  align-items:end;
+
+/* Only iPhone gets the custom calendar button; other devices keep type=date. */
+.patient-language-page .iron-adjusted-date.pc-iphone-date-mode input[type="date"][hidden]{display:none!important}
+.pc-iv-date-open{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
   width:100%;
-}
-.pc-iv-date-field{
-  display:grid;
-  gap:5px;
-  min-width:0;
-  font-size:.78rem;
-  font-weight:800;
-}
-.pc-iv-date-field span{
-  color:#604c44;
-}
-.pc-iv-date-field select{
-  width:100%;
-  min-height:46px;
-  padding:8px 28px 8px 9px;
+  min-height:48px;
+  padding:10px 12px;
   border:1px solid #cdbbb2;
   border-radius:10px;
   background:#fff;
   color:#2d2724;
   font:inherit;
-  font-size:.92rem;
-  pointer-events:auto!important;
+  font-weight:800;
+  text-align:start;
+  cursor:pointer;
   touch-action:manipulation;
 }
-.pc-iv-date-field select:focus-visible{
-  outline:3px solid rgba(185,91,66,.22);
-  outline-offset:2px;
-  border-color:#b95b42;
+.pc-iv-date-open:focus-visible{outline:3px solid rgba(185,91,66,.22);outline-offset:2px;border-color:#b95b42}
+.pc-iv-date-open-icon{font-size:1.1rem;color:#7c6258;pointer-events:none}
+
+body.pc-iv-calendar-open{overflow:hidden}
+.pc-iv-calendar-modal{position:fixed;inset:0;z-index:1200;display:grid;place-items:end center;padding:12px}
+.pc-iv-calendar-backdrop{position:absolute;inset:0;background:rgba(30,24,21,.42)}
+.pc-iv-calendar{
+  position:relative;
+  width:min(430px,100%);
+  padding:16px;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 18px 60px rgba(31,22,18,.28);
 }
-.pc-iv-date-apply{
-  grid-column:1/-1;
+.pc-iv-calendar>header{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:8px;align-items:center;margin-bottom:12px}
+.pc-iv-calendar>header h2{margin:0;text-align:center;font-size:1.15rem}
+.pc-iv-calendar-nav,
+.pc-iv-calendar-cancel{
   min-height:44px;
-  margin-top:2px;
-  pointer-events:auto!important;
+  border:1px solid #dbc9c0;
+  border-radius:12px;
+  background:#fff;
+  color:#5d433a;
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
   touch-action:manipulation;
 }
-.patient-language-page[dir="rtl"] .pc-iv-date-field select{
-  padding:8px 9px 8px 28px;
+.pc-iv-calendar-nav{font-size:1.5rem;line-height:1}
+.pc-iv-calendar-weekdays,
+.pc-iv-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.pc-iv-calendar-weekdays{margin-bottom:5px}
+.pc-iv-calendar-weekdays span{padding:5px 0;text-align:center;color:#7b6b64;font-size:.75rem;font-weight:900}
+.pc-iv-calendar-blank{min-height:44px}
+.pc-iv-calendar-day{
+  display:grid;
+  place-items:center;
+  min-width:0;
+  min-height:44px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:#f8f5f3;
+  color:#342a26;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+  touch-action:manipulation;
 }
+.pc-iv-calendar-day.today{border-color:#c8b5ac}
+.pc-iv-calendar-day.selected{background:#a44633;color:#fff;border-color:#a44633}
+.pc-iv-calendar-day:focus-visible,.pc-iv-calendar-nav:focus-visible,.pc-iv-calendar-cancel:focus-visible{outline:3px solid rgba(185,91,66,.26);outline-offset:2px}
+.pc-iv-calendar-cancel{width:100%;margin-top:12px}
+.pc-iv-calendar[dir="rtl"]{text-align:right}
 
 .patient-language-page button,
 .patient-language-page summary,
@@ -111,12 +137,12 @@
 body.iron-expect-open .iron-expect-modal{pointer-events:auto}
 body:not(.iron-expect-open) #iron-expectations-modal,
 body:not(.patient-bundle-modal-open) #patient-bundle-chooser,
-body:not(.bp-install-help-open) #bp-install-help{
+body:not(.bp-install-help-open) #bp-install-help,
+body:not(.pc-iv-calendar-open) #pc-iv-calendar{
   display:none!important;
   pointer-events:none!important;
 }
 
-@media(max-width:520px){
-  .pc-iv-date-editor{grid-template-columns:minmax(62px,.75fr) minmax(110px,1.4fr) minmax(82px,1fr);gap:6px}
-  .pc-iv-date-field select{min-height:48px;font-size:.88rem;padding-inline:8px}
+@media(min-width:600px){
+  .pc-iv-calendar-modal{place-items:center;padding:20px}
 }
