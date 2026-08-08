@@ -6,7 +6,8 @@ const PATIENT_ROUTE_PREFIX='#/patient/';
 const BUNDLE_ROUTE_PREFIX='#/patient/bundle/';
 const IV_ROUTE_PREFIX='#/patient/iron-iv/';
 const IV_DATE_PREFIX='pc_iron_dates_';
-const IS_IPHONE=/iPhone|iPod/.test(navigator.userAgent||'');
+const IS_ANDROID=/Android/i.test(navigator.userAgent||'');
+const USE_CUSTOM_IV_CALENDAR=!IS_ANDROID;
 const SAFARI_ACTION_SELECTOR=[
   '[data-open-iron-expect]',
   '[data-close-iron-expect]',
@@ -27,6 +28,14 @@ const pendingTouches=new WeakMap();
 const WEEKDAYS={
   en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
   ar:['أحد','اثن','ثلا','أرب','خمي','جمع','سبت']
+};
+const DATE_FORMATTERS={
+  en:new Intl.DateTimeFormat('en-US',{year:'numeric',month:'long',day:'numeric'}),
+  ar:new Intl.DateTimeFormat('ar-EG-u-ca-gregory',{year:'numeric',month:'long',day:'numeric'})
+};
+const MONTH_FORMATTERS={
+  en:new Intl.DateTimeFormat('en-US',{year:'numeric',month:'long'}),
+  ar:new Intl.DateTimeFormat('ar-EG-u-ca-gregory',{year:'numeric',month:'long'})
 };
 let calendarState=null;
 
@@ -76,13 +85,18 @@ function loadDates(code,data){
   }catch(error){return fallback}
 }
 function saveDates(code,dates){localStorage.setItem(IV_DATE_PREFIX+hash(code),JSON.stringify(dates))}
-function prettyDate(value){
-  return new Intl.DateTimeFormat(isArabic()?'ar-EG-u-ca-gregory':'en-US',{year:'numeric',month:'long',day:'numeric'}).format(date(value));
+function prettyDate(value){return DATE_FORMATTERS[language()].format(date(value))}
+function monthTitle(year,month){return MONTH_FORMATTERS[language()].format(new Date(year,month-1,1))}
+function adjustedRepeatDate(data,dates){
+  const original=originalDates(data);
+  if(!parseIso(data?.r)||!original.length||original.length!==dates.length)return data?.r||'';
+  return addDays(data.r,daysBetween(original.at(-1),dates.at(-1)));
 }
-function monthTitle(year,month){
-  return new Intl.DateTimeFormat(isArabic()?'ar-EG-u-ca-gregory':'en-US',{year:'numeric',month:'long'}).format(new Date(year,month-1,1));
+function syncIvRepeat(data,dates){
+  const repeat=adjustedRepeatDate(data,dates);
+  const heading=document.querySelector('.iron-patient-page .vitd-repeat h2');
+  if(heading&&repeat)heading.textContent=prettyDate(repeat);
 }
-function toast(message){if(typeof window.showToast==='function')window.showToast(message)}
 
 function removeInactiveOverlays(){
   if(!document.body.classList.contains('iron-expect-open'))document.getElementById('iron-expectations-modal')?.remove();
@@ -91,7 +105,7 @@ function removeInactiveOverlays(){
   if(!document.body.classList.contains('pc-iv-calendar-open'))document.getElementById('pc-iv-calendar')?.remove();
 }
 
-function syncIvDates(dates,startIndex){
+function syncIvDates(data,dates,startIndex){
   for(let index=startIndex;index<dates.length;index+=1){
     const input=document.querySelector(`[data-pp-iv-date="${index}"]`);
     if(input){input.value=dates[index];input.removeAttribute('min')}
@@ -104,6 +118,7 @@ function syncIvDates(dates,startIndex){
     const visible=input?.closest('.iron-adjusted-dose-card')?.querySelector('.iron-adjusted-complete strong');
     if(visible)visible.textContent=prettyDate(dates[index]);
   }
+  syncIvRepeat(data,dates);
 }
 function applyIvDate(index,newDate){
   const code=ivCode(),data=decode(code);
@@ -111,24 +126,26 @@ function applyIvDate(index,newDate){
   const dates=loadDates(code,data);
   if(index<0||index>=dates.length)return false;
   const shift=daysBetween(dates[index],newDate);
-  if(!shift){syncIvDates(dates,index);return true}
+  if(!shift){syncIvDates(data,dates,index);return true}
   const adjusted=[...dates];
   for(let cursor=index;cursor<adjusted.length;cursor+=1)adjusted[cursor]=addDays(adjusted[cursor],shift);
   saveDates(code,adjusted);
-  syncIvDates(adjusted,index);
+  syncIvDates(data,adjusted,index);
   return true;
 }
 
-function iphoneDateButton(index,value){
+function customDateButton(index,value){
   return `<button type="button" class="pc-iv-date-open" data-iv-date-open="${index}" data-value="${value}" aria-haspopup="dialog"><span data-iv-date-open-label>${prettyDate(value)}</span><span class="pc-iv-date-open-icon" aria-hidden="true">▾</span></button>`;
 }
 function enhanceIvDates(){
   if(!onIvRoute())return;
+  const code=ivCode(),data=decode(code);
+  const dates=code&&data?.kind==='iv'?loadDates(code,data):null;
   document.querySelectorAll('[data-pp-iv-date]').forEach(input=>{
     input.removeAttribute('min');
     const wrapper=input.closest('.iron-adjusted-date');
     if(!wrapper)return;
-    if(!IS_IPHONE){
+    if(!USE_CUSTOM_IV_CALENDAR){
       input.hidden=false;
       input.removeAttribute('aria-hidden');
       input.removeAttribute('tabindex');
@@ -142,7 +159,7 @@ function enhanceIvDates(){
     input.setAttribute('aria-hidden','true');
     let open=wrapper.querySelector('[data-iv-date-open]');
     if(!open){
-      input.insertAdjacentHTML('afterend',iphoneDateButton(input.dataset.ppIvDate,input.value));
+      input.insertAdjacentHTML('afterend',customDateButton(input.dataset.ppIvDate,input.value));
       open=wrapper.querySelector('[data-iv-date-open]');
     }
     if(open){
@@ -151,6 +168,7 @@ function enhanceIvDates(){
       if(label)label.textContent=prettyDate(input.value);
     }
   });
+  if(data&&dates)syncIvRepeat(data,dates);
 }
 function scheduleEnhance(){window.setTimeout(enhanceIvDates,0)}
 
@@ -179,7 +197,7 @@ function renderCalendar(){
   document.body.classList.add('pc-iv-calendar-open');
 }
 function openCalendar(control){
-  if(!IS_IPHONE)return;
+  if(!USE_CUSTOM_IV_CALENDAR)return;
   const index=Number(control.dataset.ivDateOpen),value=control.dataset.value;
   const parts=parseIso(value);
   if(!Number.isInteger(index)||!parts)return;
@@ -205,7 +223,6 @@ function chooseCalendarDate(value){
   if(!calendarState)return;
   const index=calendarState.index;
   if(applyIvDate(index,value)){
-    toast(isArabic()?'تم تحديث التاريخ.':'Date updated.');
     closeCalendar(false);
     document.querySelector(`[data-iv-date-open="${index}"]`)?.focus();
   }
@@ -220,8 +237,8 @@ for(const eventName of ['pointerdown','touchstart','focusin']){
 }
 
 /*
- * Normal browser date pickers stay native everywhere except iPhone. Capture
- * their change before the old restricted handler and save the chosen date.
+ * Android keeps its fast native date picker. Other platforms use the local
+ * custom calendar. Capture native changes before the old restricted handler.
  */
 document.addEventListener('change',event=>{
   const target=eventElement(event.target);
@@ -230,7 +247,7 @@ document.addEventListener('change',event=>{
     event.stopImmediatePropagation();
     dateInput.removeAttribute('min');
     const index=Number(dateInput.dataset.ppIvDate);
-    if(applyIvDate(index,dateInput.value))toast(isArabic()?'تم تحديث التاريخ.':'Date updated.');
+    applyIvDate(index,dateInput.value);
     return;
   }
   if(target?.closest('[data-pp-iv-dose]'))scheduleEnhance();
