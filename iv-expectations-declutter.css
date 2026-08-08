@@ -1,0 +1,21 @@
+/* IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. */
+
+/*
+ * The IV patient page already carries its safety guidance at the bottom.
+ * Keep the What to expect dialog focused on common, non-alarming experiences.
+ */
+.iron-expect-action,
+.iron-expect-note,
+.iron-expect-product{
+  display:none!important;
+}
+
+/* Remove the extra cautionary driving line from the Right after tab. */
+#iron-expect-panel[aria-labelledby="iron-expect-tab-after"] .iron-expect-common li:nth-child(3){
+  display:none!important;
+}
+
+/* The launch card does not need to repeat that the guide contains warnings. */
+.iron-expect-launch>div>p:not(.eyebrow){
+  display:none!important;
+}
