@@ -37,8 +37,8 @@
 
 /*
  * IV visit cards contain two independent controls: completion and date.
- * Keep the checkbox hit area clipped to its own half of the card and keep the
- * native date editor above it so Safari cannot route date taps to the checkbox.
+ * The date editor stays above the completion hit area. The native iOS date
+ * input is hidden and replaced by explicit day/month/year controls.
  */
 .patient-language-page .iron-adjusted-complete{
   z-index:1;
@@ -51,13 +51,53 @@
   pointer-events:auto!important;
   touch-action:auto!important;
 }
-.patient-language-page .iron-adjusted-date input[type="date"]{
-  position:relative!important;
-  z-index:21!important;
+.patient-language-page .iron-adjusted-date input[type="date"][hidden]{
+  display:none!important;
+}
+.pc-iv-date-editor{
+  display:grid;
+  grid-template-columns:minmax(72px,.8fr) minmax(128px,1.5fr) minmax(92px,1fr);
+  gap:8px;
+  align-items:end;
+  width:100%;
+}
+.pc-iv-date-field{
+  display:grid;
+  gap:5px;
+  min-width:0;
+  font-size:.78rem;
+  font-weight:800;
+}
+.pc-iv-date-field span{
+  color:#604c44;
+}
+.pc-iv-date-field select{
+  width:100%;
+  min-height:46px;
+  padding:8px 28px 8px 9px;
+  border:1px solid #cdbbb2;
+  border-radius:10px;
+  background:#fff;
+  color:#2d2724;
+  font:inherit;
+  font-size:.92rem;
   pointer-events:auto!important;
-  touch-action:auto!important;
-  -webkit-appearance:auto!important;
-  appearance:auto!important;
+  touch-action:manipulation;
+}
+.pc-iv-date-field select:focus-visible{
+  outline:3px solid rgba(185,91,66,.22);
+  outline-offset:2px;
+  border-color:#b95b42;
+}
+.pc-iv-date-apply{
+  grid-column:1/-1;
+  min-height:44px;
+  margin-top:2px;
+  pointer-events:auto!important;
+  touch-action:manipulation;
+}
+.patient-language-page[dir="rtl"] .pc-iv-date-field select{
+  padding:8px 9px 8px 28px;
 }
 
 .patient-language-page button,
@@ -74,4 +114,9 @@ body:not(.patient-bundle-modal-open) #patient-bundle-chooser,
 body:not(.bp-install-help-open) #bp-install-help{
   display:none!important;
   pointer-events:none!important;
+}
+
+@media(max-width:520px){
+  .pc-iv-date-editor{grid-template-columns:minmax(62px,.75fr) minmax(110px,1.4fr) minmax(82px,1fr);gap:6px}
+  .pc-iv-date-field select{min-height:48px;font-size:.88rem;padding-inline:8px}
 }
