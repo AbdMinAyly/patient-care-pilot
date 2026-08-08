@@ -4,7 +4,6 @@
 
 const IV_ROUTE='#/patient/iron-iv/';
 const DATE_PREFIX='pc_iron_dates_';
-let observer=null;
 
 function onIvPage(){return location.hash.startsWith(IV_ROUTE)}
 function decode(value){
@@ -35,34 +34,23 @@ function loadDates(code,data){
 }
 function saveDates(code,dates){localStorage.setItem(DATE_PREFIX+hash(code),JSON.stringify(dates))}
 function currentCode(){return document.getElementById('app')?.dataset.ironCode||''}
-function removeMinimums(root=document){
+function locale(){return localStorage.getItem('pc_patient_language')==='ar'?'ar-EG-u-ca-gregory':'en-US'}
+function pretty(value){return new Intl.DateTimeFormat(locale(),{year:'numeric',month:'long',day:'numeric'}).format(date(value))}
+function removeMinimums(){
   if(!onIvPage())return;
-  root.querySelectorAll?.('[data-pp-iv-date][min]').forEach(input=>input.removeAttribute('min'));
+  document.querySelectorAll('[data-pp-iv-date][min]').forEach(input=>input.removeAttribute('min'));
 }
-function rerender(){
-  if(typeof window.handleIronRoute==='function')window.handleIronRoute();
-  window.setTimeout(()=>removeMinimums(document),0);
-}
-
-/* Remove HTML date minimums as soon as IV visit cards are rendered. */
-function startObserver(){
-  const root=document.getElementById('app');
-  if(!root||observer)return;
-  observer=new MutationObserver(records=>{
-    if(!onIvPage())return;
-    for(const record of records){
-      for(const node of record.addedNodes){
-        if(!(node instanceof Element))continue;
-        if(node.matches?.('[data-pp-iv-date]'))node.removeAttribute('min');
-        removeMinimums(node);
-      }
-    }
-  });
-  observer.observe(root,{childList:true,subtree:true});
-  removeMinimums(root);
+function syncVisibleDates(dates,startIndex){
+  for(let index=startIndex;index<dates.length;index+=1){
+    const input=document.querySelector(`[data-pp-iv-date="${index}"]`);
+    if(input){input.value=dates[index];input.removeAttribute('min')}
+    const card=input?.closest('.iron-adjusted-dose-card');
+    const visible=card?.querySelector('.iron-adjusted-complete strong');
+    if(visible)visible.textContent=pretty(dates[index]);
+  }
 }
 
-/* Ensure the native picker never sees the old minimum before it opens. */
+/* The old renderer adds a minimum. Strip it before Safari opens the picker. */
 for(const eventName of ['pointerdown','touchstart','focusin']){
   document.addEventListener(eventName,event=>{
     const input=event.target instanceof Element?event.target.closest('[data-pp-iv-date]'):null;
@@ -70,10 +58,7 @@ for(const eventName of ['pointerdown','touchstart','focusin']){
   },true);
 }
 
-/*
- * Replace the old restricted date-change handler. Any valid date is accepted.
- * Later visits keep their relative spacing by moving by the same number of days.
- */
+/* Accept any valid date and update the current DOM without rerouting the page. */
 document.addEventListener('change',event=>{
   const input=event.target instanceof Element?event.target.closest('[data-pp-iv-date]'):null;
   if(!input)return;
@@ -89,11 +74,11 @@ document.addEventListener('change',event=>{
   if(!shift)return;
 
   const adjusted=[...dates];
-  for(let i=index;i<adjusted.length;i+=1)adjusted[i]=addDays(adjusted[i],shift);
+  for(let cursor=index;cursor<adjusted.length;cursor+=1)adjusted[cursor]=addDays(adjusted[cursor],shift);
   saveDates(code,adjusted);
-  rerender();
+  syncVisibleDates(adjusted,index);
 },true);
 
-window.addEventListener('hashchange',()=>window.setTimeout(()=>{startObserver();removeMinimums(document)},0));
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObserver,{once:true});else startObserver();
+window.addEventListener('hashchange',()=>window.setTimeout(removeMinimums,0));
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>window.setTimeout(removeMinimums,0),{once:true});else window.setTimeout(removeMinimums,0);
 })();
