@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- IF YOU HAVE NOT ALREADY READ PATIENT_CARE_RULES.md, STOP AND READ IT BEFORE EDITING THIS FILE. -->
-<!-- build: stable-iv-date-controls -->
+<!-- build: native-date-picker-with-iphone-fallback -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="bp-tools.css?v=20260722-2">
 <link rel="stylesheet" href="bp-configurable.css?v=20260723-2">
 <link rel="stylesheet" href="patient-bundle.css?v=20260804-3">
-<link rel="stylesheet" href="safari-patient-fix.css?v=20260808-3">
+<link rel="stylesheet" href="safari-patient-fix.css?v=20260808-4">
 <style>
 /* Keep the requested bottom-navigation order explicit even if other layout rules are cached. */
 #nav-shine{order:1}
@@ -61,7 +61,7 @@ if(location.hash.startsWith('#/patient/vitamin-d/'))route();
 <script src="bp-configurable.js?v=20260723-1"></script>
 <script src="bp-card-link.js?v=20260723-2"></script>
 <script src="patient-bundle.js?v=20260804-4"></script>
-<script src="safari-patient-fix.js?v=20260808-3"></script>
+<script src="safari-patient-fix.js?v=20260808-4"></script>
 <script>
 /* Final deterministic dispatch after all feature routers are available. */
 if(typeof window.handleIronRoute==='function' && window.handleIronRoute()){
